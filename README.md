@@ -1,2 +1,1 @@
-# acmqe-mcn-test
-Automated QE Tests for Multi-Cluster-Networking using Submariner in RHACM
+# Automated QE Tests for Multi-Cluster-Networking using Submariner in RHACM
