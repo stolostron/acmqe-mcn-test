@@ -7,6 +7,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 export CLUSTERSET="submariner"
 export MANAGED_CLUSTERS=""
+export TESTS_LOGS="$SCRIPT_DIR/tests_logs"
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
 
 # Import functions
@@ -29,8 +30,16 @@ function verify_required_env_vars() {
     fi
 }
 
-function deploy_submariner() {
+function prepare() {
+    verify_required_env_vars
+    verify_prerequisites_tools
+
+    oc login --insecure-skip-tls-verify -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
+
     check_managed_clusters
+}
+
+function deploy_submariner() {
     create_clusterset
     assign_clusters_to_clusterset
 
@@ -40,14 +49,9 @@ function deploy_submariner() {
 }
 
 function test_submariner() {
-    echo "Add submariner test flow here"
-}
-
-function prepare() {
-    verify_required_env_vars
-    verify_prerequisites_tools
-
-    oc login --insecure-skip-tls-verify -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
+    verify_subctl_command
+    fetch_kubeconfig_contexts
+    execute_submariner_tests
 }
 
 
@@ -65,7 +69,7 @@ case "$1" in
         prepare
         test_submariner
         ;;
-    --help)
+    --help|-h)
         usage
         ;;
     *)
