@@ -1,0 +1,2 @@
+# Ignore tests_logs directory which will contain tests results
+tests_logs/
