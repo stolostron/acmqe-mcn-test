@@ -29,16 +29,27 @@ function ERROR() {
 }
 
 function usage() {
-    echo
-    echo "Deploy Submariner Addon on ACM hub"
-    echo "Requirements:"
-    echo "- ACM hub ready"
-    echo "- At least two managed clusters"
-    echo
-    echo "Arguments:"
-    echo "--all      - Perform deployment and testing of the Submariner addon"
-    echo "--deploy   - Perform deployment of the Submariner addon"
-    echo "--test     - Perform testing of the Submariner addon"
-    echo "--help     - Print help"
-    echo
+    cat <<EOF
+
+    Deploy and test Submariner Addon on ACM hub
+    The script supports the following platforms - AWS, GCP
+
+    Requirements:
+    - ACM hub ready
+    - At least two managed clusters
+
+    Arguments:
+    --all      - Perform deployment and testing of the Submariner addon
+
+    --deploy   - Perform deployment of the Submariner addon
+
+    --test     - Perform testing of the Submariner addon
+
+    --platform - Specify the platforms that should be used for testing
+                 Separate multiple platforms by comma
+                 (Optional)
+                 By default - aws,gcp
+
+    --help|-h  - Print help
+EOF
 }
