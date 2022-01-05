@@ -114,6 +114,6 @@ function wait_for_submariner_ready_state() {
         done
         INFO "Submariner connectivity has been established on $cluster cluster"
     done
-    INFO "Submariner connectivity have been sucesfully established between clusters"
-    INFO "All Submariner services sucesfully running on the clusters"
+    INFO "Submariner connectivity have been successfully established between clusters"
+    INFO "All Submariner services successfully running on the clusters"
 }
