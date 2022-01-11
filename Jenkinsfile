@@ -5,6 +5,9 @@ pipeline {
             args '--network host -u 0:0'
         }
     }
+    options {
+        ansiColor('xterm')
+    }
     parameters {
         string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
         string(name: 'OC_CLUSTER_USER', defaultValue: 'kubeadmin', description: 'ACM Hub username')
