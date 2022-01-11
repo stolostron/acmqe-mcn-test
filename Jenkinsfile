@@ -19,7 +19,7 @@ pipeline {
                 export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
                 export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
 
-                ./run.sh --deploy --platform="${params.PLATFORM}"
+                ./run.sh --deploy --platform "${params.PLATFORM}"
                 """
             }
         }
@@ -30,7 +30,7 @@ pipeline {
                 export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
                 export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
 
-                ./run.sh --test --platform="${params.PLATFORM}"
+                ./run.sh --test --platform "${params.PLATFORM}"
                 """
             }
         }
