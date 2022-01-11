@@ -13,13 +13,13 @@ pipeline {
     }
     stages {
         stage('Deploy') {
-            steps {                
+            steps {
                 sh """
                 export OC_CLUSTER_URL="${params.OC_CLUSTER_URL}"
                 export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
                 export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
 
-                ./run --deploy --platform="${params.PLATFORM}"
+                ./run.sh --deploy --platform="${params.PLATFORM}"
                 """
             }
         }
@@ -30,7 +30,7 @@ pipeline {
                 export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
                 export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
 
-                ./run --test --platform="${params.PLATFORM}"
+                ./run.sh --test --platform="${params.PLATFORM}"
                 """
             }
         }
