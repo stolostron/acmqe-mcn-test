@@ -1,41 +1,46 @@
 pipeline {
     agent {
         docker {
-            image 'quay.io/rhn_support_abutt/centos8-nodejs12'
-            args '--network host -u 0:0 -p 3000:3000'
+            image 'quay.io/generic/rhel8'
+            args '--network host -u 0:0'
         }
     }
-    parameters {
-        string(name:'DEMO_PARAM', defaultValue: 'Submariner demo input', description: 'Submariner demo variable for Jenkins pipeline')
+    options {
+        ansiColor('xterm')
     }
-    environment {
-        CI = 'true'
+    parameters {
+        string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
+        string(name: 'OC_CLUSTER_USER', defaultValue: 'kubeadmin', description: 'ACM Hub username')
+        string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
+        string(name: 'PLATFORM', defaultValue: 'aws,gcp', description: 'The managed clusters platform that should be tested')
     }
     stages {
-        stage('Build') {
-            steps {                
-                sh '''       
-                npm config set unsafe-perm true                    
-                npm install
-                npm ci
-                npx browserslist@latest --update-db
-                '''
+        stage('Deploy') {
+            steps {
+                sh """
+                export OC_CLUSTER_URL="${params.OC_CLUSTER_URL}"
+                export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
+                export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
+
+                ./run.sh --deploy --platform "${params.PLATFORM}"
+                """
             }
         }
         stage('Test') {
             steps {
                 sh """
-                export DEMO_PARAM="${params.DEMO_PARAM}"
-                
-                echo "This is a jenkins piplene stage to test $DEMO_PARAM"
+                export OC_CLUSTER_URL="${params.OC_CLUSTER_URL}"
+                export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
+                export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
+
+                ./run.sh --test --platform "${params.PLATFORM}"
                 """
             }
         }
     }
     post {
         always {
-            archiveArtifacts artifacts: 'missing-artifacts-dir/*', followSymlinks: false
-            junit 'missing-artifacts-dir/*.xml'
+            archiveArtifacts artifacts: "tests_logs/*", followSymlinks: false
         }
     }
 }

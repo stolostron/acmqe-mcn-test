@@ -6,18 +6,19 @@
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
 function verify_ocp_clients() {
-    if ! command -v oc && command -v kubectl &> /dev/null; then
-        WARNING "Missing oc/kubectl commands. Installing..."
+    if ! command -v oc &> /dev/null; then
+        WARNING "Missing oc command. Installing..."
         mkdir -p "$HOME"/.local/bin
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz \
+        wget -qO- https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz \
             -O openshift-install-linux.tar.gz
         tar zxvf openshift-install-linux.tar.gz
         mv oc kubectl "$HOME"/.local/bin
         
         # Add local BIN dir to PATH
         [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+        INFO "The oc and kubectl installed."
     fi
-    INFO "The oc/kubectl commands found."
+    INFO "The oc and kubectl commands found."
 }
 
 function verify_yq() {
@@ -27,12 +28,13 @@ function verify_yq() {
         elif [[ "${OS}" == "linux" ]]; then
             WARNING "#### Missing yq command. Installing..."
             mkdir -p "$HOME"/.local/bin
-            wget https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64 \
+            wget -qO- https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64 \
                 -O "$HOME"/.local/bin/yq && chmod +x "$HOME"/.local/bin/yq
             
             # Add local BIN dir to PATH
             [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
         fi
+        INFO "The yq command installed."
     fi
     INFO "The yq command is found."
 }
@@ -54,8 +56,7 @@ function fetch_submariner_addon_version() {
                    -o jsonpath='{.items[0].metadata.namespace}')
     sub_version=$(oc get managedclusteraddon/submariner -n "$sub_cluster_ns" \
                     -o jsonpath='{.status.conditions[?(@.type == "SubmarinerAgentDegraded")].message}' \
-                    | grep -Po '(?<=submariner.v)[^)]*')
-    INFO "Submariner addon has been installed with version - $sub_version"
+                    | grep -Po '(?<=submariner.)[^)]*')
     echo "$sub_version"
 }
 
@@ -63,16 +64,20 @@ function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
     local subctl_version
+    local subctl_download_url
     subctl_version=$(fetch_submariner_addon_version)
+    subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
 
-    wget -qO- "$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-v$subctl_version-linux-amd64.tar.xz" \
-        -O "subctl-v$subctl_version-linux-amd64.tar.xz"
-    tar xfJ "subctl-v$subctl_version-linux-amd64.tar.xz"
+    INFO "Submariner addon version - $subctl_version"
+    INFO "Download subctl from - $subctl_download_url"
+
+    wget -qO- "$subctl_download_url" -O "subctl-$subctl_version-linux-amd64.tar.xz"
+    tar xfJ "subctl-$subctl_version-linux-amd64.tar.xz"
 
     mkdir -p "$HOME"/.local/bin
-    cp "subctl-v$subctl_version/subctl-v$subctl_version-linux-amd64" "$HOME"/.local/bin/subctl
+    cp "subctl-$subctl_version/subctl-$subctl_version-linux-amd64" "$HOME"/.local/bin/subctl
 
-    rm -rf "subctl-v$subctl_version-linux-amd64.tar.xz" "subctl-v$subctl_version"
+    rm -rf "subctl-$subctl_version-linux-amd64.tar.xz" "subctl-$subctl_version"
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
@@ -80,7 +85,7 @@ function get_subctl_for_testing() {
 }
 
 function get_subctl_version() {
-    subctl version | grep -Po '(?<=: v).*'
+    subctl version 2>/dev/null | grep -Po '(?<=: v).*' || echo "Missing subctl client"
 }
 
 function verify_subctl_command() {
@@ -94,7 +99,7 @@ function verify_subctl_command() {
 
     if ! command -v subctl &> /dev/null; then
         get_subctl_for_testing
-    elif [[ "$submariner_version" == "$subctl_client" ]]; then
+    elif [[ "$submariner_version" != "$subctl_client" ]]; then
         get_subctl_for_testing
     else
         INFO "The subctl client exists and has the required version - $subctl_client"
