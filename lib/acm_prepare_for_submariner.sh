@@ -4,7 +4,7 @@
 
 function create_clusterset() {
     yq eval '.metadata.name = env(CLUSTERSET)' \
-        "$SCRIPT_DIR/resources/clusterset.yaml" | oc apply -f -
+        "$SCRIPT_DIR/resources/cluster-set.yaml" | oc apply -f -
     oc get managedclusterset "$CLUSTERSET"
 }
 
@@ -13,13 +13,13 @@ function assign_clusters_to_clusterset() {
 
     INFO "Add the RBAC ClusterRole entry to allow cluster join"
     yq eval '.rules[0].resourceNames = [env(CLUSTERSET)]' \
-        "$SCRIPT_DIR/resources/clusterrole.yaml" | oc apply -f -
+        "$SCRIPT_DIR/resources/cluster-role.yaml" | oc apply -f -
 
     INFO "Add managed clusters to the clusterset"
     for cluster in $MANAGED_CLUSTERS; do
         CL="$cluster" yq eval 'with(.metadata; .name = env(CL)
             | .labels."cluster.open-cluster-management.io/clusterset" = env(CLUSTERSET))' \
-            resources/managedcluster.yaml | oc apply -f -
+            resources/managed-cluster.yaml | oc apply -f -
     done
 
     assigned_clusters=$(oc get managedclusters \
