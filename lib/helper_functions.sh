@@ -38,6 +38,11 @@ function usage() {
     - ACM hub ready
     - At least two managed clusters
 
+    Export the following values to execute the flow:
+    export OC_CLUSTER_URL=<hub cluster url>
+    export OC_CLUSTER_USER=<cluster user name>
+    export OC_CLUSTER_PASS=<password of the cluster user>
+
     Arguments:
     --all      - Perform deployment and testing of the Submariner addon
 

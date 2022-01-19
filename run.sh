@@ -92,6 +92,7 @@ function parse_arguments() {
                 ;;
             --help|-h)
                 usage
+                exit 0
                 ;;
             *)
                 echo "Invalid argument provided: $1"
