@@ -29,7 +29,7 @@ function prepare_clusters_for_submariner() {
 
         CL="$cluster" CRED="$creds" yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)' \
-            "$SCRIPT_DIR/resources/submarinerconfig.yaml" | oc apply -f -
+            "$SCRIPT_DIR/resources/submariner-config.yaml" | oc apply -f -
     done
 }
 
@@ -40,7 +40,7 @@ function deploy_submariner_addon() {
         INFO "Deploy Submariner addon on cluster - $cluster"
 
         CL="$cluster" yq eval '.metadata.namespace = env(CL)' \
-            "$SCRIPT_DIR/resources/submarineraddon.yaml" | oc apply -f -
+            "$SCRIPT_DIR/resources/submariner-addon.yaml" | oc apply -f -
     done
 }
 
