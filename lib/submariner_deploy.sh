@@ -21,14 +21,23 @@ function get_cluster_credential_name() {
 function prepare_clusters_for_submariner() {
     INFO "Perform Submariner cloud prepare for the managed clusters"
     local creds
+    local submariner_channel
+    local submariner_version
+
+    submariner_channel="alpha-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
+    submariner_version="submariner.v$SUBMARINER_VERSION_INSTALL"
 
     for cluster in $MANAGED_CLUSTERS; do
         creds=$(get_cluster_credential_name "$cluster")
         INFO "Using $creds credentials for $cluster cluster"
         INFO "Prepare cloud for cluster $cluster"
 
-        CL="$cluster" CRED="$creds" yq eval '.metadata.namespace = env(CL)
-            | .spec.credentialsSecret.name = env(CRED)' \
+        CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
+            SUBM_VER="$submariner_version" \
+            yq eval '.metadata.namespace = env(CL)
+            | .spec.credentialsSecret.name = env(CRED)
+            | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
+            | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \
             "$SCRIPT_DIR/resources/submariner-config.yaml" | oc apply -f -
     done
 }
@@ -67,12 +76,11 @@ function check_submariner_deployment_state() {
 # - Submariner cross cluster connectivity
 function wait_for_submariner_ready_state() {
     INFO "Wait for Submariner ready status"
-    local wait_timeout
+    local wait_timeout=50
     local timeout
     local cmd_output
 
     INFO "Check Submariner Gateway node state on clusters"
-    wait_timeout=300
     timeout=0
     cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
@@ -80,14 +88,17 @@ function wait_for_submariner_ready_state() {
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "SubmarinerGatewayNodesLabeled" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerGatewayNodesLabeled")
-            sleep $(( TIMEOUT++ ))
+            sleep $(( timeout++ ))
         done
+
+        if [[ "$cmd_output" != "SubmarinerGatewayNodesLabeled" ]]; then
+            ERROR "The Submariner Gateway node is not labeled - $cmd_output"
+        fi
         INFO "Submariner Gateway node has been deployed on $cluster cluster"
     done
     INFO "Submariner Gateway node has been sucesfully deployed on each cluster"
 
     INFO "Check Submariner Agent state on clusters"
-    wait_timeout=300
     timeout=0
     cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
@@ -95,14 +106,17 @@ function wait_for_submariner_ready_state() {
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "SubmarinerAgentDeployed" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerAgentDegraded")
-            sleep $(( TIMEOUT++ ))
+            sleep $(( timeout++ ))
         done
+
+        if [[ "$cmd_output" != "SubmarinerAgentDeployed" ]]; then
+            ERROR "The Submariner Agent state is not ready - $cmd_output"
+        fi
         INFO "Submariner Agent has been deployed on $cluster cluster"
     done
     INFO "Submariner Agent has been sucesfully deployed on each cluster"
 
     INFO "Check Submariner connectivity between clusters"
-    wait_timeout=300
     timeout=0
     cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
@@ -110,8 +124,12 @@ function wait_for_submariner_ready_state() {
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "ConnectionsEstablished" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerConnectionDegraded")
-            sleep $(( TIMEOUT++ ))
+            sleep $(( timeout++ ))
         done
+
+        if [[ "$cmd_output" != "ConnectionsEstablished" ]]; then
+            ERROR "The Submariner connectivity is not ready - $cmd_output"
+        fi
         INFO "Submariner connectivity has been established on $cluster cluster"
     done
     INFO "Submariner connectivity have been successfully established between clusters"

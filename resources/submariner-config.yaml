@@ -2,10 +2,15 @@ apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
 kind: SubmarinerConfig
 metadata:
   name: submariner
-  namespace: test-cluster
+  namespace: $managed_cluster_namespace
 spec:
   gatewayConfig:
     aws:
       instanceType: c5d.large
   credentialsSecret:
-    name: submariner
+    name: $managed_cluster_platform_secret
+  subscriptionConfig:
+    channel: $submariner_channel
+    source: submariner-catalog
+    sourceNamespace: openshift-marketplace
+    startingCSV: $submariner_version

@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: submariner-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: "$BREW_IIB_URL"
+  displayName: Testing Catalog Source
+  publisher: Red Hat Partner (Test)
+  updateStrategy:
+    registryPoll:
+      interval: 5m

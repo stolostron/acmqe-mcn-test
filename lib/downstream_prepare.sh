@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# The functions below will prepare the
+# managed clusters when downstream flow is used.
+
+function create_icsp() {
+    INFO "Create ImageContentSourcePolicy on the managed clusters"
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Create Brew ICSP mirror on $cluster"
+        yq eval '.spec.repositoryDigestMirrors[].mirrors[] = env(BREW_REGISTRY)' \
+            "$SCRIPT_DIR/resources/image-content-source-policy.yaml" \
+            | KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" oc apply -f -
+    done
+}
+
+# The image index builder (iib) will be used by the downstream deployment
+# to serve as a CatalogSource for the submariner images
+function get_latest_iib() {
+    INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
+
+    local submariner_version="$SUBMARINER_VERSION_INSTALL"
+    local latest_iib
+    local ocp_version
+    local umb_output
+    local index_images
+
+    local bundle_name="submariner-operator-bundle"
+    local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
+    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete") | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
+    local latest_builds_number=5
+    local rows=$((latest_builds_number * 5))
+    local number_of_days=30
+    local delta=$((number_of_days * 86400))  # 1296000 = 15 days * 86400 seconds
+
+    umb_output=$(curl --retry 30 --retry-delay 5 -Ls "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+    index_images=$(echo "$umb_output" | jq -r "$iib_query")
+    INFO "Retrieved the following index images - $index_images"
+
+    ocp_version=$(oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
+    latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
+
+    if [[ ! "$latest_iib" =~ iib:[0-9]+ ]]; then
+        ERROR "No image index bundle $bundle_name for OCP version $ocp_version detected"
+    fi
+
+    LATEST_IIB="$BREW_REGISTRY/$(echo "$latest_iib" | cut -d'/' -f2-)"
+    INFO "Detected IIB - $LATEST_IIB"
+}
+
+# The CatalogSource will be created with the iib image
+# and used to fetch the submariner components images
+function create_catalog_source() {
+    INFO "Create CatalogSource on the managed clusters"
+    get_latest_iib
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Create CatalogSource on $cluster cluster"
+        yq eval '.spec.image = env(LATEST_IIB)' \
+            "$SCRIPT_DIR/resources/catalog-source.yaml" \
+            | KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" oc apply -f -
+    done
+
+    INFO "Check CatalogSource state"
+    local wait_timeout=25
+    local timeout=0
+    local cmd_output=""
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Check CatalogSource state on $cluster cluster"
+        until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "READY" ]]; do
+            INFO "Waiting for CatalogSource 'READY' state..."
+            cmd_output=$(KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" \
+                            oc -n openshift-marketplace get catalogsource submariner-catalog \
+                            -o jsonpath='{.status.connectionState.lastObservedState}')
+            sleep $(( timeout++ ))
+        done
+
+        if [[ "$cmd_output" != "READY" ]]; then
+            ERROR "The CatalogSource didn't reach ready state - $cmd_output"
+        fi
+        INFO "The CatalogSource is in 'READY' state"
+    done
+}

@@ -1,0 +1,15 @@
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: brew-registry
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - "$BREW_REGISTRY"
+    source: registry.redhat.io
+  - mirrors:
+    - "$BREW_REGISTRY"
+    source: registry.stage.redhat.io
+  - mirrors:
+    - "$BREW_REGISTRY"
+    source: registry-proxy.engineering.redhat.com
