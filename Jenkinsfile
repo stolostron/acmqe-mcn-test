@@ -10,7 +10,7 @@ pipeline {
     }
     parameters {
         string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
-        string(name: 'OC_CLUSTER_USER', defaultValue: 'kubeadmin', description: 'ACM Hub username')
+        string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         string(name: 'PLATFORM', defaultValue: 'aws,gcp', description: 'The managed clusters platform that should be tested')
     }
