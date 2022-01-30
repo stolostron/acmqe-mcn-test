@@ -2,26 +2,6 @@
 
 # Perform Submariner test by using the "subctl" command.
 
-function fetch_kubeconfig_contexts() {
-    INFO "Fetch kubeconfig for managed clusters"
-    local kubeconfig_name
-
-    rm -rf "$TESTS_LOGS"
-    mkdir -p "$TESTS_LOGS"
-
-    for cluster in $MANAGED_CLUSTERS; do
-        kubeconfig_name=$(oc get -n "$cluster" secrets --no-headers \
-                            -o custom-columns=NAME:.metadata.name | grep kubeconfig)
-        oc get secrets "$kubeconfig_name" -n "$cluster" \
-            --template='{{.data.kubeconfig}}' | base64 -d > "$TESTS_LOGS/$cluster-kubeconfig.yaml"
-
-        CL="$cluster" yq eval -i '.contexts[].context.user = env(CL)
-            | .contexts[].name = env(CL)
-            | .current-context = env(CL)
-            | .users[].name = env(CL)' "$TESTS_LOGS/$cluster-kubeconfig.yaml"
-    done
-}
-
 # The function executes Submariner E2E tests by using the subctl tool.
 # The subctl tool is able to run E2E tests only on two clusters
 # at the same time.
