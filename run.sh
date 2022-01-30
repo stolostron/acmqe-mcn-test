@@ -46,6 +46,7 @@ function prepare() {
     oc login --insecure-skip-tls-verify -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
 
     check_clusters_deployment
+    fetch_kubeconfig_contexts
 }
 
 function deploy_submariner() {
@@ -59,7 +60,6 @@ function deploy_submariner() {
 
 function test_submariner() {
     verify_subctl_command
-    fetch_kubeconfig_contexts
     execute_submariner_tests
 }
 
