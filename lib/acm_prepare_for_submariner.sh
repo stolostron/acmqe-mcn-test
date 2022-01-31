@@ -31,3 +31,33 @@ function assign_clusters_to_clusterset() {
     fi
     INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $assigned_clusters"
 }
+
+function fetch_multiclusterhub_version() {
+    local mch_version
+
+    mch_version=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
+    echo "$mch_version"
+}
+
+# The submariner version selection will be done
+# when brew image source will be selected.
+# Otherwise, it will install from official source:
+# catalog.redhat.com
+function select_submariner_version_to_deploy() {
+    INFO "Select downstream Submariner version to deploy"
+    local mch_ver
+
+    mch_ver=$(fetch_multiclusterhub_version)
+    INFO "MultiClusterHub version - $mch_ver"
+
+    for key in ${!COMPONENT_VERSION[*]}; do
+        if [[ "$mch_ver" == "$key"* ]]; then
+            SUBMARINER_VERSION_INSTALL="${COMPONENT_VERSION[$key]}"
+            INFO "Submariner version - $SUBMARINER_VERSION_INSTALL will be installed"
+        fi
+    done
+
+    if [[ -z "$SUBMARINER_VERSION_INSTALL" ]]; then
+        ERROR "Unable to match between ACM and Submariner versions"
+    fi
+}

@@ -73,6 +73,20 @@ If one of the provided platforms does not exist, deployment and test will contin
 with the existing platforms, but after the tests execution, the flow will fail with  
 an error message that one of the requested platforms was not found.
 
+```bash
+./run.sh --deploy --downstream
+```
+
+Downstream flag will perform submariner deployment from brew.registry.redhat.io.  
+**Note** - Brew secret should exists for this deployment.
+
+```bash
+./run.sh --deploy --version 0.11.1
+```
+
+Specify the Submariner version that needs to be deployed.  
+Specified version will be verified against supported versions.
+
 ## Tests
 Submariner addon testing performed by using the `subctl` command.  
 The tools will be downloaded during the testing to the executors machine.
