@@ -36,7 +36,7 @@ export DOWNSTREAM="false"
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
-export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.1" "0.12")
+export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.1" "0.12.0")
 
 export BREW_REGISTRY="brew.registry.redhat.io"
 export LATEST_IIB=""
