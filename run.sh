@@ -25,7 +25,7 @@ export FAILURES=""
 declare -A COMPONENT_VERSION
 export COMPONENT_VERSION
 COMPONENT_VERSION["2.4"]="0.11.1"
-COMPONENT_VERSION["2.5"]="0.12"
+COMPONENT_VERSION["2.5"]="0.12.0"
 # Submariner images could be taken from two different places:
 # * Official Red Hat registry - registry.redhat.io
 # * Downstream Brew registry - brew.registry.redhat.io
@@ -77,9 +77,6 @@ function prepare() {
 }
 
 function deploy_submariner() {
-    create_clusterset
-    assign_clusters_to_clusterset
-
     if [[ -n "$SUBMARINER_VERSION_INSTALL" ]]; then
         validate_given_submariner_version
     else
@@ -87,10 +84,13 @@ function deploy_submariner() {
     fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
+        create_brew_secret
         create_icsp
         create_catalog_source
     fi
 
+    create_clusterset
+    assign_clusters_to_clusterset
     prepare_clusters_for_submariner
     deploy_submariner_addon
     wait_for_submariner_ready_state

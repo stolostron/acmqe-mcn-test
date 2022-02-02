@@ -81,3 +81,54 @@ function create_catalog_source() {
         INFO "The CatalogSource is in 'READY' state"
     done
 }
+
+function verify_brew_secret_existence() {
+    local brew_sec
+    local brew_sec_state
+
+    brew_sec=$(oc -n openshift-config get secret pull-secret \
+        --template='{{index .data ".dockerconfigjson" | base64decode}}' \
+        | jq --arg brew "$BREW_REGISTRY" '{"auths": {($brew): .auths[$brew]}}' | base64 -w 0)
+
+    brew_sec_state=$(echo "$brew_sec" | base64 -d \
+                        | jq --arg brew "$BREW_REGISTRY" '.auths[$brew]')
+    if [[ "$brew_sec_state" == "null" ]]; then
+        ERROR "Brew secret is required for downstream deployment but not available. Aborting."
+    fi
+    echo "$brew_sec"
+}
+
+function create_brew_secret() {
+    INFO "Create Brew secret on the managed clusters"
+    local brew_sec
+
+    INFO "Verify Brew secret existence on ACM Hub"
+    brew_sec=$(verify_brew_secret_existence)
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Create brew secret on $cluster cluster"
+        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+
+        INFO "Create Brew registry secret in globally available namespace"
+        INFO "Create Brew registry secret to be reachable for the catalog source"
+        for namespace in 'openshift-config' 'openshift-marketplace'; do
+            NS="$namespace" HASH="$brew_sec" \
+                yq eval '.metadata.name = "brew-registry"
+                | .metadata.namespace = env(NS)
+                | .data.".dockerconfigjson" = env(HASH)' \
+                "$SCRIPT_DIR/resources/secret.yaml" \
+                | KUBECONFIG="$kube_conf" oc apply -f -
+        done
+
+        INFO "Update the cluster global pull-secret"
+        KUBECONFIG="$kube_conf" oc patch secret pull-secret -n openshift-config \
+            -p '{"data":{".dockerconfigjson":"'"$(KUBECONFIG="$kube_conf" oc get \
+            secret pull-secret -n openshift-config \
+            --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
+            | jq -r -c '.auths |= . + '"$(KUBECONFIG="$kube_conf" oc get secret \
+            brew-registry -n openshift-config \
+            --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
+            | jq -r -c '.auths')"'' | base64 -w 0)"'"}}'
+    done
+    INFO "Brew secret has been updated on all managed clusters"
+}
