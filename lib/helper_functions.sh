@@ -38,18 +38,64 @@ function usage() {
     - ACM hub ready
     - At least two managed clusters
 
+    Export the following values to execute the flow:
+    export OC_CLUSTER_URL=<hub cluster url>
+    export OC_CLUSTER_USER=<cluster user name>
+    export OC_CLUSTER_PASS=<password of the cluster user>
+
     Arguments:
-    --all      - Perform deployment and testing of the Submariner addon
+    --all        - Perform deployment and testing of the Submariner addon
 
-    --deploy   - Perform deployment of the Submariner addon
+    --deploy     - Perform deployment of the Submariner addon
 
-    --test     - Perform testing of the Submariner addon
+    --test       - Perform testing of the Submariner addon
 
-    --platform - Specify the platforms that should be used for testing
-                 Separate multiple platforms by comma
-                 (Optional)
-                 By default - aws,gcp
+    --platform   - Specify the platforms that should be used for testing
+                   Separate multiple platforms by comma
+                   (Optional)
+                   By default - aws,gcp
 
-    --help|-h  - Print help
+    --version    - Specify Submariner version to be deployed
+                   (Optional)
+                   If not specified, submariner version will be chosen
+                   based of the ACM hub support
+
+    --downstream - Use the flag if downsteram images should be used.
+                   Submariner images could be sourced from two places:
+                     * Official Red Hat ragistry - registry.redhat.io
+                     * Downstream Quay registry - brew.registry.redhat.io
+                   (Optional)
+                   If flag is not used, official registry will be used
+
+    --help|-h    - Print help
 EOF
+}
+
+# Prepare kubeconfig of the managed clusters by fetching them from the hub
+function fetch_kubeconfig_contexts() {
+    INFO "Fetch kubeconfig for managed clusters"
+    local kubeconfig_name
+
+    rm -rf "$TESTS_LOGS"
+    mkdir -p "$TESTS_LOGS"
+
+    for cluster in $MANAGED_CLUSTERS; do
+        kubeconfig_name=$(oc get -n "$cluster" secrets --no-headers \
+                            -o custom-columns=NAME:.metadata.name | grep kubeconfig)
+        oc get secrets "$kubeconfig_name" -n "$cluster" \
+            --template='{{.data.kubeconfig}}' | base64 -d > "$TESTS_LOGS/$cluster-kubeconfig.yaml"
+
+        CL="$cluster" yq eval -i '.contexts[].context.user = env(CL)
+            | .contexts[].name = env(CL)
+            | .current-context = env(CL)
+            | .users[].name = env(CL)' "$TESTS_LOGS/$cluster-kubeconfig.yaml"
+    done
+}
+
+function validate_given_submariner_version() {
+    INFO "Validate given Submariner version with supported versions"
+    if [[ ! "${SUPPORTED_SUBMARINER_VERSIONS[*]}" =~ $SUBMARINER_VERSION_INSTALL ]]; then
+        ERROR "Suplied Submariner version is not supported. Supported versions - ${SUPPORTED_SUBMARINER_VERSIONS[*]}"
+    fi
+    INFO "Submariner version provided manually - $SUBMARINER_VERSION_INSTALL"
 }
