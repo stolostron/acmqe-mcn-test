@@ -33,7 +33,8 @@ function get_latest_iib() {
     local number_of_days=30
     local delta=$((number_of_days * 86400))  # 1296000 = 15 days * 86400 seconds
 
-    umb_output=$(curl --retry 30 --retry-delay 5 -Ls "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+    umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
+                  "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
     index_images=$(echo "$umb_output" | jq -r "$iib_query")
     INFO "Retrieved the following index images - $index_images"
 
