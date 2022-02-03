@@ -26,7 +26,7 @@ function verify_yq() {
         if [[ "${OS}" == "darwin" ]]; then
             ERROR "Perform 'brew install yq' and try again."
         elif [[ "${OS}" == "linux" ]]; then
-            WARNING "#### Missing yq command. Installing..."
+            WARNING "Missing yq command. Installing..."
             mkdir -p "$HOME"/.local/bin
             wget -qO- https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64 \
                 -O "$HOME"/.local/bin/yq && chmod +x "$HOME"/.local/bin/yq
@@ -39,10 +39,25 @@ function verify_yq() {
     INFO "The yq command is found."
 }
 
+function verify_jq() {
+    if ! command -v jq &> /dev/null; then
+        WARNING "Missing jq command. Installing..."
+        mkdir -p "$HOME"/.local/bin
+        wget -qO- https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 \
+            -O "$HOME"/.local/bin/jq && chmod +x "$HOME"/.local/bin/jq
+
+        # Add local BIN dir to PATH
+        [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+        INFO "The jq command installed."
+    fi
+    INFO "The jq command is found"
+}
+
 function verify_prerequisites_tools() {
     INFO "Verify prerequisites tools"
     verify_ocp_clients
     verify_yq
+    verify_jq
 }
 
 
