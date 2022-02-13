@@ -16,6 +16,7 @@ export SUPPORTED_PLATFORMS="aws,gcp"  # Supported platform definition
 # The testing will be performed,
 # but the failure of the final result will be set.
 export FAILURES=""
+export TESTS_FAILURES="false"
 
 # Submariner versioning and image sourcing
 
@@ -24,7 +25,7 @@ export FAILURES=""
 # The value will define the version of Submariner
 declare -A COMPONENT_VERSION
 export COMPONENT_VERSION
-COMPONENT_VERSION["2.4"]="0.11.1"
+COMPONENT_VERSION["2.4"]="0.11.2"
 COMPONENT_VERSION["2.5"]="0.12.0"
 # Submariner images could be taken from two different places:
 # * Official Red Hat registry - registry.redhat.io
@@ -36,7 +37,7 @@ export DOWNSTREAM="false"
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
-export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.1" "0.12.0")
+export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.0")
 
 export BREW_REGISTRY="brew.registry.redhat.io"
 export LATEST_IIB=""
@@ -102,8 +103,13 @@ function test_submariner() {
 }
 
 function finalize() {
-    if  [[ -n "$FAILURES" ]]; then
-        ERROR "Execution finished, but the following failures detected: $FAILURES"
+    if [[ "$TESTS_FAILURES" == "true" ]]; then
+        WARNING "Tests execution contains failures"
+        get_tests_failures
+    fi
+
+    if [[ -n "$FAILURES" ]]; then
+        WARNING "Execution finished, but the following failures detected: $FAILURES"
     fi
 }
 
