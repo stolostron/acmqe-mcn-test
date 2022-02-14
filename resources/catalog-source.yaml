@@ -8,6 +8,3 @@ spec:
   image: "$BREW_IIB_URL"
   displayName: Testing Catalog Source
   publisher: Red Hat Partner (Test)
-  updateStrategy:
-    registryPoll:
-      interval: 5m

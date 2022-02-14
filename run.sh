@@ -72,6 +72,7 @@ function prepare() {
     verify_prerequisites_tools
 
     oc login --insecure-skip-tls-verify -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
+    oc cluster-info | grep Kubernetes
 
     check_clusters_deployment
     fetch_kubeconfig_contexts
@@ -88,6 +89,7 @@ function deploy_submariner() {
         create_brew_secret
         create_icsp
         create_catalog_source
+        verify_package_manifest
     fi
 
     create_clusterset
