@@ -83,6 +83,39 @@ function create_catalog_source() {
     done
 }
 
+# Verify required submariner version within the package manifest.
+# The package manifest created based on the IIB within the CatalogSource.
+function verify_package_manifest() {
+    INFO "Verify Submariner version within the package manifest"
+
+    local manifest_ver
+    local submariner_version="$SUBMARINER_VERSION_INSTALL"
+    local wait_timeout=6
+    local timeout=0
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Verify package manifest for cluster $cluster"
+
+        # For some reason version of the manifest is not fetched
+        # on each call. Making 6 iterrations to get it.
+        until [[ "$timeout" -eq "$wait_timeout" ]]; do
+            manifest_ver=$(KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" \
+                            oc -n openshift-marketplace get packagemanifest submariner \
+                            -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
+
+            if [[ -n "$manifest_ver" ]]; then
+                break
+            fi
+            ((timeout=timeout+1))
+        done
+
+        if [[ "$manifest_ver" != "$submariner_version" ]]; then
+            ERROR "Submariner package manifest is missing $submariner_version version"
+        fi
+        INFO "Submariner package manifest contains version $submariner_version"
+    done
+}
+
 function verify_brew_secret_existence() {
     local brew_sec
     local brew_sec_state
