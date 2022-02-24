@@ -23,6 +23,11 @@ function prepare_clusters_for_submariner() {
     local creds
     local submariner_channel
     local submariner_version
+    local catalog_ns="openshift-marketplace"
+
+    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
+        catalog_ns="$SUBMARINER_NS"
+    fi
 
     submariner_channel="alpha-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
     submariner_version="submariner.v$SUBMARINER_VERSION_INSTALL"
@@ -33,10 +38,11 @@ function prepare_clusters_for_submariner() {
         INFO "Prepare cloud for cluster $cluster"
 
         CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
-            SUBM_VER="$submariner_version" \
+            SUBM_VER="$submariner_version" NS="$catalog_ns" \
             yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)
             | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
+            | .spec.subscriptionConfig.sourceNamespace = env(NS)
             | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \
             "$SCRIPT_DIR/resources/submariner-config.yaml" | oc apply -f -
     done

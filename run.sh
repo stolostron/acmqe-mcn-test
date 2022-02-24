@@ -6,6 +6,7 @@ set -eo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 export CLUSTERSET="submariner"
+export SUBMARINER_NS="submariner-operator"
 export MANAGED_CLUSTERS=""
 export TESTS_LOGS="$SCRIPT_DIR/tests_logs"
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
@@ -33,13 +34,37 @@ COMPONENT_VERSION["2.5"]="0.12.0"
 # Note - the use of brew will require a secret with brew credentials to present in cluster
 # If DOWNSTREAM flag is set to "true", it will fetch downstream images.
 export DOWNSTREAM="false"
+# Due to https://issues.redhat.com/browse/RFE-1608, add the ability
+# to use local ocp cluster registry and import the images.
+export LOCAL_MIRROR="true"
 # The submariner version will be defined and used
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
 export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.0")
-
+# Official RedHat registry
+export OFFICIAL_REGISTRY="registry.redhat.io"
+export STAGING_REGISTRY="registry.stage.redhat.io"
+# External RedHat downstream registry (require authentication)
 export BREW_REGISTRY="brew.registry.redhat.io"
+export REGISTRY_IMAGE_PREFIX="rhacm2"
+export REGISTRY_IMAGE_PREFIX_TECH_PREVIEW="rhacm2-tech-preview"
+export REGISTRY_IMAGE_IMPORT_PATH="rh-osbs"
+export CATALOG_REGISTRY="registry.access.redhat.com"
+export CATALOG_IMAGE_PREFIX="openshift4"
+export CATALOG_IMAGE_IMPORT_PATH="ose-oauth-proxy"
+# Internal RedHat downstream registry
+export VPN_REGISTRY="registry-proxy.engineering.redhat.com"
+# Submariner images names
+export SUBM_IMG_BUNDLE="submariner-operator-bundle"
+export SUBM_IMG_OPERATOR="submariner-rhel8-operator"
+export SUBM_IMG_GATEWAY="submariner-gateway-rhel8"
+export SUBM_IMG_ROUTE="submariner-route-agent-rhel8"
+export SUBM_IMG_NETWORK="submariner-networkplugin-syncer-rhel8"
+export SUBM_IMG_LIGHTHOUSE="lighthouse-agent-rhel8"
+export SUBM_IMG_COREDNS="lighthouse-coredns-rhel8"
+export SUBM_IMG_GLOBALNET="submariner-globalnet-rhel8"
+
 export LATEST_IIB=""
 
 
@@ -54,6 +79,8 @@ source "${SCRIPT_DIR}/lib/validate_acm_readiness.sh"
 source "${SCRIPT_DIR}/lib/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/downstream_prepare.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/downstream_mirroring_workaround.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_deploy.sh"
 # shellcheck disable=SC1091
@@ -71,11 +98,10 @@ function prepare() {
     verify_required_env_vars
     verify_prerequisites_tools
 
-    oc login --insecure-skip-tls-verify -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
-    oc cluster-info | grep Kubernetes
+    login_to_cluster "hub"
 
     check_clusters_deployment
-    fetch_kubeconfig_contexts
+    fetch_kubeconfig_contexts_and_pass
 }
 
 function deploy_submariner() {
@@ -86,8 +112,21 @@ function deploy_submariner() {
     fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
+        if [[ "$LOCAL_MIRROR" == "true" ]]; then
+            create_namespace
+        fi
+
         create_brew_secret
-        create_icsp
+
+        if [[ "$LOCAL_MIRROR" == 'true' ]]; then
+            INFO "Using local ocp cluster due to -
+            https://issues.redhat.com/browse/RFE-1608"
+            set_custom_registry_mirror
+            import_images_into_local_registry
+        fi
+
+        # Disabled due to https://issues.redhat.com/browse/RFE-1608
+        # create_icsp
         create_catalog_source
         verify_package_manifest
     fi
@@ -145,6 +184,12 @@ function parse_arguments() {
             --downstream)
                 DOWNSTREAM="true"
                 shift
+                ;;
+            --mirror)
+                if [[ -n "$2" ]]; then
+                    LOCAL_MIRROR="$2"
+                    shift 2
+                fi
                 ;;
             --help|-h)
                 usage

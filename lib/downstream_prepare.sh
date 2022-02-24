@@ -53,17 +53,35 @@ function get_latest_iib() {
 # and used to fetch the submariner components images
 function create_catalog_source() {
     INFO "Create CatalogSource on the managed clusters"
-    get_latest_iib
+    local ocp_registry_url
+    local ocp_registry_path
+    local image_source="$LATEST_IIB"
+
+    if [[ -n "$LATEST_IIB" ]]; then
+        INFO "Detected IIB - $LATEST_IIB"
+    else
+        get_latest_iib
+    fi
+
+    local catalog_ns="openshift-marketplace"
+    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
+        catalog_ns="$SUBMARINER_NS"
+        ocp_registry_url=$(oc registry info --internal)
+        ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
+        image_source="$ocp_registry_path"
+    fi
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create CatalogSource on $cluster cluster"
-        yq eval '.spec.image = env(LATEST_IIB)' \
+        IMG_SRC="$image_source" NS="$catalog_ns" \
+            yq eval '.spec.image = env(IMG_SRC)
+            | .metadata.namespace = env(NS)' \
             "$SCRIPT_DIR/resources/catalog-source.yaml" \
             | KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" oc apply -f -
     done
 
     INFO "Check CatalogSource state"
-    local wait_timeout=25
+    local wait_timeout=35
     local timeout=0
     local cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
@@ -71,7 +89,7 @@ function create_catalog_source() {
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "READY" ]]; do
             INFO "Waiting for CatalogSource 'READY' state..."
             cmd_output=$(KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" \
-                            oc -n openshift-marketplace get catalogsource submariner-catalog \
+                            oc -n "$catalog_ns" get catalogsource submariner-catalog \
                             -o jsonpath='{.status.connectionState.lastObservedState}')
             sleep $(( timeout++ ))
         done
@@ -92,6 +110,11 @@ function verify_package_manifest() {
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
     local wait_timeout=6
     local timeout=0
+    local catalog_ns="openshift-marketplace"
+
+    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
+        catalog_ns="$SUBMARINER_NS"
+    fi
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Verify package manifest for cluster $cluster"
@@ -100,7 +123,7 @@ function verify_package_manifest() {
         # on each call. Making 6 iterrations to get it.
         until [[ "$timeout" -eq "$wait_timeout" ]]; do
             manifest_ver=$(KUBECONFIG="$TESTS_LOGS/$cluster-kubeconfig.yaml" \
-                            oc -n openshift-marketplace get packagemanifest submariner \
+                            oc -n "$catalog_ns" get packagemanifest submariner \
                             -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
 
             if [[ -n "$manifest_ver" ]]; then
@@ -139,13 +162,18 @@ function create_brew_secret() {
     INFO "Verify Brew secret existence on ACM Hub"
     brew_sec=$(verify_brew_secret_existence)
 
+    local secret_ns=("openshift-config" "openshift-marketplace")
+    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
+        secret_ns+=("$SUBMARINER_NS")
+    fi
+
     for cluster in $MANAGED_CLUSTERS; do
-        INFO "Create brew secret on $cluster cluster"
+        INFO "Create Brew secret on $cluster cluster"
         local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
 
         INFO "Create Brew registry secret in globally available namespace"
         INFO "Create Brew registry secret to be reachable for the catalog source"
-        for namespace in 'openshift-config' 'openshift-marketplace'; do
+        for namespace in "${secret_ns[@]}"; do
             NS="$namespace" HASH="$brew_sec" \
                 yq eval '.metadata.name = "brew-registry"
                 | .metadata.namespace = env(NS)
