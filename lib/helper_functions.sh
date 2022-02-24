@@ -67,14 +67,59 @@ function usage() {
                    (Optional)
                    If flag is not used, official registry will be used
 
+    --mirror     - Use local ocp registry.
+                   Due to https://issues.redhat.com/browse/RFE-1608,
+                   local ocp registry is required.
+                   The images are imported and used from the local registry.
+                   (Optional) (true/false)
+                   By default - true
+                   The flag is used only with "--downstream" flag.
+                   Otherwise, ignored.
+
     --help|-h    - Print help
 EOF
 }
 
-# Prepare kubeconfig of the managed clusters by fetching them from the hub
-function fetch_kubeconfig_contexts() {
-    INFO "Fetch kubeconfig for managed clusters"
+# Login to a cluster with the fiven details
+function login_to_cluster() {
+    local cluster="$1"
+
+    if [[ "$cluster" == "hub" ]]; then
+        oc login --insecure-skip-tls-verify \
+            -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
+        oc cluster-info | grep Kubernetes
+    else
+        if [[ ! -f "$TESTS_LOGS/$cluster-password" || ! -f "$TESTS_LOGS/$cluster-kubeconfig.yaml" ]]; then
+            ERROR "Unable login to a $cluster cluster. Missing config files."
+        fi
+
+        cluster_pass="$TESTS_LOGS/$cluster-password"
+        cluster_url=$(yq eval '.clusters[].cluster.server' \
+                        "$TESTS_LOGS/$cluster-kubeconfig.yaml")
+        oc login --insecure-skip-tls-verify -u "kubeadmin" \
+            -p "$(< "$cluster_pass")" "$cluster_url" &> /dev/null
+    fi
+}
+
+# The function will return token of the given cluster name
+# The token information will be received based on the
+# available kubeconfig file within the "$TESTS_LOGS" dir.
+function get_cluster_token() {
+    local cluster="$1"
+    local token="$2"
+
+    login_to_cluster "$cluster"
+    token=$(oc whoami -t)
+    echo "$token"
+
+    login_to_cluster "hub" &> /dev/null
+}
+
+# Prepare kubeconfig and password of the managed clusters by fetching them from the hub
+function fetch_kubeconfig_contexts_and_pass() {
+    INFO "Fetch kubeconfig and password for managed clusters"
     local kubeconfig_name
+    local pass_name
 
     rm -rf "$TESTS_LOGS"
     mkdir -p "$TESTS_LOGS"
@@ -83,12 +128,17 @@ function fetch_kubeconfig_contexts() {
         kubeconfig_name=$(oc get -n "$cluster" secrets --no-headers \
                             -o custom-columns=NAME:.metadata.name | grep kubeconfig)
         oc get secrets "$kubeconfig_name" -n "$cluster" \
-            --template='{{.data.kubeconfig}}' | base64 -d > "$TESTS_LOGS/$cluster-kubeconfig.yaml"
+            --template='{{index .data.kubeconfig | base64decode}}' > "$TESTS_LOGS/$cluster-kubeconfig.yaml"
 
         CL="$cluster" yq eval -i '.contexts[].context.user = env(CL)
             | .contexts[].name = env(CL)
             | .current-context = env(CL)
             | .users[].name = env(CL)' "$TESTS_LOGS/$cluster-kubeconfig.yaml"
+
+        pass_name=$(oc get -n "$cluster" secrets --no-headers \
+                      -o custom-columns=NAME:.metadata.name | grep password)
+        oc get secrets "$pass_name" -n "$cluster" \
+            --template='{{index .data.password | base64decode}}' > "$TESTS_LOGS/$cluster-password"
     done
 }
 
@@ -98,4 +148,23 @@ function validate_given_submariner_version() {
         ERROR "Suplied Submariner version is not supported. Supported versions - ${SUPPORTED_SUBMARINER_VERSIONS[*]}"
     fi
     INFO "Submariner version provided manually - $SUBMARINER_VERSION_INSTALL"
+}
+
+# Function to convert raw text (e.g. yaml) to encoded url format
+function raw_to_url_encode() {
+    local string
+    string="$(cat < /dev/stdin)"
+    local strlen=${#string}
+    local encoded=""
+    local pos c o
+
+    for (( pos=0 ; pos<strlen ; pos++ )); do
+        c=${string:$pos:1}
+        case "$c" in
+            [-_.~a-zA-Z0-9] ) o="${c}" ;;
+            * )               printf -v o '%%%02x' "'$c"
+        esac
+        encoded+="${o}"
+    done
+    echo "${encoded}"
 }
