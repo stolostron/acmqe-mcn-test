@@ -108,7 +108,7 @@ function verify_package_manifest() {
 
     local manifest_ver
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
-    local wait_timeout=6
+    local wait_timeout=30
     local timeout=0
     local catalog_ns="openshift-marketplace"
 

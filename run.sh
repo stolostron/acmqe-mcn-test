@@ -7,6 +7,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 export CLUSTERSET="submariner"
 export SUBMARINER_NS="submariner-operator"
+export SUBMARINER_GLOBALNET="false"
 export MANAGED_CLUSTERS=""
 export TESTS_LOGS="$SCRIPT_DIR/tests_logs"
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
@@ -125,8 +126,11 @@ function deploy_submariner() {
             import_images_into_local_registry
         fi
 
-        # Disabled due to https://issues.redhat.com/browse/RFE-1608
-        # create_icsp
+        if [[ "$LOCAL_MIRROR" == 'false' ]]; then
+            # https://issues.redhat.com/browse/RFE-1608
+            create_icsp
+        fi
+
         create_catalog_source
         verify_package_manifest
     fi
@@ -134,6 +138,7 @@ function deploy_submariner() {
     create_clusterset
     assign_clusters_to_clusterset
     prepare_clusters_for_submariner
+    deploy_submariner_broker
     deploy_submariner_addon
     wait_for_submariner_ready_state
 }
@@ -178,6 +183,12 @@ function parse_arguments() {
             --version)
                 if [[ -n "$2" ]]; then
                     SUBMARINER_VERSION_INSTALL="$2"
+                    shift 2
+                fi
+                ;;
+            --globalnet)
+                if [[ -n "$2" ]]; then
+                    SUBMARINER_GLOBALNET="$2"
                     shift 2
                 fi
                 ;;
