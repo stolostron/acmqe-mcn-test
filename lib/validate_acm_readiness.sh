@@ -48,13 +48,13 @@ function check_clusters_deployment() {
 
     MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
                          --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
-                         --no-headers=true -o custom-columns=NAME:.metadata.name)
+                         -o jsonpath='{range.items[?(@.status.powerState=="Running")]}{.metadata.name}{"\n"}{end}')
     clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
 
     if [[ "$clusters_count" -lt 2 ]]; then
         ERROR "At least two managed clusters required for Submariner deployment. Found - $clusters_count"
     fi
 
-    INFO "Found the following managed clusters:"
+    INFO "Found the following active managed clusters:"
     INFO "$MANAGED_CLUSTERS"
 }
