@@ -60,6 +60,12 @@ function usage() {
                    If not specified, submariner version will be chosen
                    based of the ACM hub support
 
+    --globalnet  - Set the state of the Globalnet for the Submariner deployment.
+                   The globalnet configuration will be applied starting from
+                   ACM version 2.5.0 and Submariner 0.12.0
+                   (Optional)
+                   By default - false
+
     --downstream - Use the flag if downsteram images should be used.
                    Submariner images could be sourced from two places:
                      * Official Red Hat ragistry - registry.redhat.io
@@ -167,4 +173,26 @@ function raw_to_url_encode() {
         encoded+="${o}"
     done
     echo "${encoded}"
+}
+
+# Validate versions
+# The function will get two versions:
+# First - Base varsion
+# Second - Current version
+# The function will return the state of the current
+# version comparing to the base:
+# If current version equal or highter than base - "valid"
+# If current version lower than base - "not_valid"
+function validate_version() {
+    local base_version="$1"
+    local current_version="$2"
+    local version_state="not_valid"
+
+    if test "$(echo "$base_version $current_version" | tr " " "\n" | sort -rV | head -n 1)" == "$current_version"; then
+        version_state="valid"
+    fi
+    if test "$(echo "$base_version $current_version" | tr " " "\n" | sort -rV | head -n 1)" != "$current_version"; then
+        version_state="not_valid"
+    fi
+    echo "$version_state"
 }
