@@ -49,6 +49,13 @@ function check_clusters_deployment() {
     MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
                          --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                          -o jsonpath='{range.items[?(@.status.powerState=="Running")]}{.metadata.name}{"\n"}{end}')
+    # ACM 2.4.x missing ".status.powerState", which is added in 2.5.x
+    # In case first quesry return empty var, execute a different query
+    if [[ -z "$MANAGED_CLUSTERS" ]]; then
+        MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
+                             --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
+                             -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.name}{"\n"}{end}')
+    fi
     clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
 
     if [[ "$clusters_count" -lt 2 ]]; then
