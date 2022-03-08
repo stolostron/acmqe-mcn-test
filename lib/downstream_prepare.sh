@@ -61,6 +61,7 @@ function create_catalog_source() {
         INFO "Detected IIB - $LATEST_IIB"
     else
         get_latest_iib
+        image_source="$LATEST_IIB"
     fi
 
     local catalog_ns="openshift-marketplace"
