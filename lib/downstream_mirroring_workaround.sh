@@ -25,7 +25,7 @@ function create_internal_registry_secret() {
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create internal regsitry secret on $cluster cluster"
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         ocp_token=$(get_cluster_token "$cluster")
         ocp_registry_url=$(oc registry info --internal)
@@ -59,7 +59,7 @@ function create_internal_registry_secret() {
 function create_namespace() {
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create $SUBMARINER_NS namespace on cluster $cluster"
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         NS="$SUBMARINER_NS" yq eval '.metadata.name = env(NS)' \
             "$SCRIPT_DIR/resources/namespace.yaml" \
@@ -183,7 +183,7 @@ EOF
 
     for cluster in $MANAGED_CLUSTERS; do
         local ocp_version
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         INFO "Enable auto-reboot of $node node when changing Machine Config Pool on cluster $cluster"
         KUBECONFIG="$kube_conf" oc patch --type=merge \
@@ -216,7 +216,7 @@ function check_for_nodes_ready_state() {
     local machine_duration="20m"
 
     for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         INFO "Check for the nodes ready state"
         KUBECONFIG="$kube_conf" oc wait nodes --all --for=condition=ready \
@@ -253,7 +253,7 @@ function verify_custom_registry_on_nodes() {
     
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Verify custom registry existence on cluster $cluster"
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         for node in "master" "worker"; do
             local config_name="99-$node-submariner-registries"
@@ -296,7 +296,7 @@ function import_images_into_local_registry() {
     local ocp_registry_path
 
     for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$TESTS_LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         INFO "Disable the default remote OperatorHub sources for OLM"
         KUBECONFIG="$kube_conf" oc patch OperatorHub cluster --type json \

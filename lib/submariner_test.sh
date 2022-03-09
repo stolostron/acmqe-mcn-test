@@ -12,6 +12,9 @@
 function execute_submariner_tests() {
     INFO "Execute Submariner tests"
 
+    rm -rf "$TESTS_LOGS"
+    mkdir -p "$TESTS_LOGS"
+
     # Subctl E2E tests are working with 2 clusters only at a time
     local primary_test_cluster
     local secondary_test_cluster
@@ -26,7 +29,7 @@ function execute_submariner_tests() {
         secondary_test_cluster="$cluster"
 
         INFO "Running tests between $primary_test_cluster and $secondary_test_cluster clusters"
-        export KUBECONFIG="$TESTS_LOGS/$primary_test_cluster-kubeconfig.yaml:$TESTS_LOGS/$secondary_test_cluster-kubeconfig.yaml"
+        export KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml:$LOGS/$secondary_test_cluster-kubeconfig.yaml"
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
@@ -40,8 +43,8 @@ function execute_submariner_tests() {
 
         INFO "Execute diagnose firewall inter-cluster tests"
         subctl diagnose firewall inter-cluster \
-            "$TESTS_LOGS/$primary_test_cluster-kubeconfig.yaml" \
-            "$TESTS_LOGS/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
+            "$LOGS/$primary_test_cluster-kubeconfig.yaml" \
+            "$LOGS/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
             |  tee "$TESTS_LOGS/subctl_firewall_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
             || add_test_error $?
 
@@ -51,6 +54,7 @@ function execute_submariner_tests() {
             | tee "$TESTS_LOGS/subctl_e2e_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
             || add_test_error $?
     done
+    unset KUBECONFIG
     INFO "Tests execution finished"
     INFO "All the logs are placed within the $TESTS_LOGS directory"
 }
