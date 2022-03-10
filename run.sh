@@ -2,6 +2,8 @@
 
 set -eo pipefail
 
+trap 'catch_error $?' EXIT
+
 # Global variables
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
