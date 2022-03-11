@@ -110,7 +110,7 @@ function verify_package_manifest() {
     local manifest_ver
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
     local wait_timeout=30
-    local timeout=0
+    local timeout
     local catalog_ns="openshift-marketplace"
 
     if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
@@ -122,6 +122,7 @@ function verify_package_manifest() {
 
         # For some reason version of the manifest is not fetched
         # on each call. Making 6 iterrations to get it.
+        timeout=0
         until [[ "$timeout" -eq "$wait_timeout" ]]; do
             manifest_ver=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
                             oc -n "$catalog_ns" get packagemanifest submariner \
