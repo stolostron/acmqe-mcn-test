@@ -25,6 +25,7 @@ function WARNING() {
 function ERROR() {
     local message="$1"
     echo -e "${RED}ERROR: ${NO_COLOR}${message}"
+    FAILURES+="${RED}ERROR: ${NO_COLOR}${message}"
     exit 1
 }
 
@@ -218,4 +219,13 @@ function validate_version() {
         version_state="not_valid"
     fi
     echo "$version_state"
+}
+
+function catch_error() {
+    if [[ "$1" != "0" ]]; then
+        gather_debug_info
+        if [[ -n "$FAILURES" ]]; then
+            echo -e "\nExecution aborted. The following failures detected:\n$FAILURES"
+        fi
+    fi
 }
