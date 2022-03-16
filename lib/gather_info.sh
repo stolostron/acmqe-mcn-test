@@ -60,6 +60,16 @@ function get_cluster_service_version() {
     fi
 }
 
+function get_submariner_config_crd() {
+    LOG "Get SubmarinerConfig CRD"
+    local kube_conf="$1"
+    local cluster_log="$2"
+
+    KUBECONFIG="$kube_conf" oc get crd \
+        submarinerconfigs.submarineraddon.open-cluster-management.io \
+        -o yaml --ignore-not-found 2>&1 | tee -a "$cluster_log"
+}
+
 function get_icsp() {
     LOG "Get ICSP"
     local kube_conf="$1"
@@ -127,6 +137,7 @@ function gather_cluster_info() {
         get_submariner_pods_images "$kube_conf" "$cluster_log"
         get_submariner_pods_content "$kube_conf" "$cluster_log"
         get_cluster_service_version "$kube_conf" "$cluster_log"
+        get_submariner_config_crd "$kube_conf" "$cluster_log"
         get_icsp "$kube_conf" "$cluster_log"
         get_catalog_source "$kube_conf" "$cluster_log"
         get_submariner_pods_logs "$kube_conf" "$cluster_log"
