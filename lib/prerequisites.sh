@@ -16,9 +16,9 @@ function verify_ocp_clients() {
         
         # Add local BIN dir to PATH
         [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
-        INFO "The oc and kubectl installed."
+        INFO "The oc and kubectl installed"
     fi
-    INFO "The oc and kubectl commands found."
+    INFO "The oc and kubectl commands found"
 }
 
 function verify_yq() {
@@ -34,9 +34,9 @@ function verify_yq() {
             # Add local BIN dir to PATH
             [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
         fi
-        INFO "The yq command installed."
+        INFO "The yq command installed"
     fi
-    INFO "The yq command is found."
+    INFO "The yq command is found"
 }
 
 function verify_jq() {
@@ -48,7 +48,7 @@ function verify_jq() {
 
         # Add local BIN dir to PATH
         [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
-        INFO "The jq command installed."
+        INFO "The jq command installed"
     fi
     INFO "The jq command is found"
 }
@@ -67,7 +67,7 @@ function fetch_submariner_addon_version() {
     local sub_version
 
     sub_cluster_ns=$(oc get clusterdeployment -A \
-                   --selector=cluster.open-cluster-management.io/clusterset=submariner \
+                   --selector=cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
                    -o jsonpath='{.items[0].metadata.namespace}')
     sub_version=$(oc get managedclusteraddon/submariner -n "$sub_cluster_ns" \
                     -o jsonpath='{.status.conditions[?(@.type == "SubmarinerAgentDegraded")].message}' \

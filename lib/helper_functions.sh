@@ -18,13 +18,13 @@ function INFO() {
 # Print the message with a prefix WARNING with YELLOW color
 function WARNING() {
     local message="$1"
-    echo -e "${YELLOW}WARNING: ${NO_COLOR}${message}"
+    echo -e "\n${YELLOW}WARNING: ${NO_COLOR}${message}\n"
 }
 
 # Print the message with a prefix ERROR with RED color and fail the execution
 function ERROR() {
     local message="$1"
-    echo -e "${RED}ERROR: ${NO_COLOR}${message}"
+    echo -e "\n${RED}ERROR: ${NO_COLOR}${message}"
     FAILURES+="${RED}ERROR: ${NO_COLOR}${message}"
     exit 1
 }
@@ -223,9 +223,11 @@ function validate_version() {
 
 function catch_error() {
     if [[ "$1" != "0" ]]; then
-        gather_debug_info
-        if [[ -n "$FAILURES" ]]; then
-            echo -e "\nExecution aborted. The following failures detected:\n$FAILURES"
+        if [[ "$GATHER_LOGS" == "true" ]]; then
+            gather_debug_info
+            if [[ -n "$FAILURES" ]]; then
+                echo -e "\nExecution aborted. The following failures detected:\n$FAILURES"
+            fi
         fi
     fi
 }

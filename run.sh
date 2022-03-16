@@ -110,6 +110,7 @@ function prepare() {
     login_to_cluster "hub"
 
     check_clusters_deployment
+    check_for_claim_cluster_with_pre_set_clusterset
     fetch_kubeconfig_contexts_and_pass
 }
 
