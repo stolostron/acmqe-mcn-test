@@ -65,3 +65,36 @@ function check_clusters_deployment() {
     INFO "Found the following active managed clusters:"
     INFO "$MANAGED_CLUSTERS"
 }
+
+# When one of the managed clusters claimed from a pool and pre-assigned to a clusterset,
+# due to the lack of functionality, it couldn't be removed from that clusterset.
+# As a result, this clusterset needs to be used as a clusterset for the submariner
+# deployment.
+# It will reset the CLUSTERSET environment variable.
+function check_for_claim_cluster_with_pre_set_clusterset() {
+    INFO "Check for claim cluster"
+
+    local claim_cluster
+    local claim_clusterset
+
+    for cluster in $MANAGED_CLUSTERS; do
+        claim_cluster=$(oc get clusterdeployment -n "$cluster" "$cluster" \
+            -o json | jq '.metadata.annotations."hive.openshift.io/cluster-pool-spec-hash"')
+
+        if [[ "$claim_cluster" != "null" ]]; then
+            INFO "Claim detected for cluster - $cluster"
+            claim_clusterset=$(oc get clusterdeployment -n "$cluster" "$cluster" \
+                -o json | jq -r '.metadata.labels."cluster.open-cluster-management.io/clusterset"')
+
+            if [[ "$claim_clusterset" != "null" ]]; then
+                WARNING "Claim cluster has a pre-defined clusterset.
+                That clusterset should be used for the Submariner deployment
+                due to ACM limitations.
+                Set Submariner ClusterSet to - $claim_clusterset"
+                export CLUSTERSET=$claim_clusterset
+            fi
+        else
+            INFO "Claim not detected for cluster - $cluster"
+        fi
+    done
+}

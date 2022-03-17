@@ -2,6 +2,8 @@
 
 set -eo pipefail
 
+trap 'catch_error $?' EXIT
+
 # Global variables
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
@@ -9,7 +11,11 @@ export CLUSTERSET="submariner"
 export SUBMARINER_NS="submariner-operator"
 export SUBMARINER_GLOBALNET="false"
 export MANAGED_CLUSTERS=""
-export TESTS_LOGS="$SCRIPT_DIR/tests_logs"
+export GATHER_LOGS="true"
+export LOGS="$SCRIPT_DIR/logs"
+export TESTS_LOGS="$LOGS/tests_logs"
+export DEBUG_LOGS="$LOGS/debug_logs"
+export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
 export PLATFORM="aws,gcp"  # Default platform definition
 export SUPPORTED_PLATFORMS="aws,gcp"  # Supported platform definition
@@ -86,6 +92,8 @@ source "${SCRIPT_DIR}/lib/downstream_mirroring_workaround.sh"
 source "${SCRIPT_DIR}/lib/submariner_deploy.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_test.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/gather_info.sh"
 
 
 function verify_required_env_vars() {
@@ -102,6 +110,7 @@ function prepare() {
     login_to_cluster "hub"
 
     check_clusters_deployment
+    check_for_claim_cluster_with_pre_set_clusterset
     fetch_kubeconfig_contexts_and_pass
 }
 
@@ -146,6 +155,11 @@ function deploy_submariner() {
 function test_submariner() {
     verify_subctl_command
     execute_submariner_tests
+
+    if [[ "$GATHER_LOGS" == "true" ]]; then
+        INFO "Gather ACM Hub and managed clusters information"
+        gather_debug_info
+    fi
 }
 
 function finalize() {
@@ -199,6 +213,12 @@ function parse_arguments() {
             --mirror)
                 if [[ -n "$2" ]]; then
                     LOCAL_MIRROR="$2"
+                    shift 2
+                fi
+                ;;
+            --gather-logs)
+                if [[ -n "$2" ]]; then
+                    GATHER_LOGS="$2"
                     shift 2
                 fi
                 ;;
