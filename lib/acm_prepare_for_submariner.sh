@@ -43,21 +43,25 @@ function fetch_multiclusterhub_version() {
 # when brew image source will be selected.
 # Otherwise, it will install from official source:
 # catalog.redhat.com
-function select_submariner_version_to_deploy() {
-    INFO "Select downstream Submariner version to deploy"
+function select_submariner_version_and_channel_to_deploy() {
+    INFO "Select Submariner version and channel to deploy"
     local mch_ver
 
     mch_ver=$(fetch_multiclusterhub_version)
     INFO "MultiClusterHub version - $mch_ver"
 
-    for key in ${!COMPONENT_VERSION[*]}; do
-        if [[ "$mch_ver" == "$key"* ]]; then
-            SUBMARINER_VERSION_INSTALL="${COMPONENT_VERSION[$key]}"
-            INFO "Submariner version - $SUBMARINER_VERSION_INSTALL will be installed"
+    # Declare loop variable as acm_ref
+    declare -n acm_ref
+    for acm_ref in "${COMPONENT_VERSIONS[@]}"; do
+        if [[ "$mch_ver" == "${acm_ref[acm_version]}"* ]]; then
+            SUBMARINER_VERSION_INSTALL="${acm_ref[submariner_version]}"
+            SUBMARINER_CHANNEL_RELEASE="${acm_ref[channel]}"
+            INFO "Submariner version - $SUBMARINER_VERSION_INSTALL will be installed
+            into the '$SUBMARINER_CHANNEL_RELEASE' channel"
         fi
     done
 
-    if [[ -z "$SUBMARINER_VERSION_INSTALL" ]]; then
-        ERROR "Unable to match between ACM and Submariner versions"
+    if [[ -z "$SUBMARINER_VERSION_INSTALL" || -z "$SUBMARINER_CHANNEL_RELEASE" ]]; then
+        ERROR "Unable to match between ACM and Submariner/channel versions"
     fi
 }

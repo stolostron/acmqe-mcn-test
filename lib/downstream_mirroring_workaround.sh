@@ -72,6 +72,15 @@ function add_custom_registry_to_node() {
     local node="$1"
     local local_registry_path="$2"
     local config_source
+    local submariner_ga="0.12.0"
+    local registry_image_prefix_path
+    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
+
+    if [[ "$version_state" == "valid" ]]; then
+        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
+    elif [[ "$version_state" == "not_valid" ]]; then
+        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+    fi
 
     if [[ -z "$local_registry_path" ]] || [[ ! "$node" =~ ^(master|worker)$ ]]; then
         ERROR "Openshift Registry values are missing: node or registry path"
@@ -85,12 +94,12 @@ function add_custom_registry_to_node() {
             - ${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}
         * ${VPN_REGISTRY} -->
             - ${BREW_REGISTRY}
-        * ${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW} -->
+        * ${OFFICIAL_REGISTRY}/${registry_image_prefix_path} -->
             - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}
-        * ${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW} -->
+            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
+        * ${STAGING_REGISTRY}/${registry_image_prefix_path} -->
             - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}
+            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
         * ${CATALOG_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH} -->
             - ${OFFICIAL_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}
         "
@@ -140,7 +149,7 @@ function add_custom_registry_to_node() {
 
     [[registry]]
       prefix = ""
-      location = "${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+      location = "${OFFICIAL_REGISTRY}/${registry_image_prefix_path}"
       mirror-by-digest-only = false
       insecure = false
       blocked = false
@@ -150,12 +159,12 @@ function add_custom_registry_to_node() {
         insecure = false
 
       [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
         insecure = false
 
     [[registry]]
       prefix = ""
-      location = "${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+      location = "${STAGING_REGISTRY}/${registry_image_prefix_path}"
       mirror-by-digest-only = false
       insecure = false
       blocked = false
@@ -165,7 +174,7 @@ function add_custom_registry_to_node() {
         insecure = false
 
       [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
         insecure = false
 
       [[registry]]
@@ -294,6 +303,15 @@ function import_images_into_local_registry() {
     local import_state
     local ocp_registry_url
     local ocp_registry_path
+    local submariner_ga="0.12.0"
+    local registry_image_prefix_path
+    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
+
+    if [[ "$version_state" == "valid" ]]; then
+        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
+    elif [[ "$version_state" == "not_valid" ]]; then
+        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+    fi
 
     for cluster in $MANAGED_CLUSTERS; do
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
@@ -313,7 +331,7 @@ function import_images_into_local_registry() {
           $SUBM_IMG_COREDNS \
           $SUBM_IMG_GLOBALNET \
           ; do
-            local img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$REGISTRY_IMAGE_PREFIX_TECH_PREVIEW-$image:v$SUBMARINER_VERSION_INSTALL"
+            local img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$registry_image_prefix_path-$image:v$SUBMARINER_VERSION_INSTALL"
             import_state=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" import-image \
                 "$image:v$SUBMARINER_VERSION_INSTALL" --from="$img_src" --confirm 2>&1) || true
 

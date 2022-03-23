@@ -27,14 +27,27 @@ export FAILURES=""
 export TESTS_FAILURES="false"
 
 # Submariner versioning and image sourcing
-
-# Declare a map to define submariner versions to ACM versions
+# Declare a map to define submariner versions and channel to ACM versions
 # The key will define the version of ACM
-# The value will define the version of Submariner
-declare -A COMPONENT_VERSION
-export COMPONENT_VERSION
-COMPONENT_VERSION["2.4"]="0.11.2"
-COMPONENT_VERSION["2.5"]="0.12.0"
+# The value will define the version of Submariner and a channel
+
+# Declare associative arrays
+declare -A ACM_2_4=(
+    [acm_version]='2.4'
+    [submariner_version]='0.11.2'
+    [channel]='alpha'
+)
+export ACM_2_4
+declare -A ACM_2_5=(
+    [acm_version]='2.5'
+    [submariner_version]='0.12.0'
+    [channel]='stable'
+)
+export ACM_2_5
+# Declare array of COMPONENTS_VERSIONS of associative arrays
+export COMPONENT_VERSIONS=("${!ACM@}")
+
+
 # Submariner images could be taken from two different places:
 # * Official Red Hat registry - registry.redhat.io
 # * Downstream Brew registry - brew.registry.redhat.io
@@ -49,6 +62,7 @@ export LOCAL_MIRROR="true"
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
 export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.0")
+export SUBMARINER_CHANNEL_RELEASE=""
 # Official RedHat registry
 export OFFICIAL_REGISTRY="registry.redhat.io"
 export STAGING_REGISTRY="registry.stage.redhat.io"
@@ -118,7 +132,7 @@ function deploy_submariner() {
     if [[ -n "$SUBMARINER_VERSION_INSTALL" ]]; then
         validate_given_submariner_version
     else
-        select_submariner_version_to_deploy
+        select_submariner_version_and_channel_to_deploy
     fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then

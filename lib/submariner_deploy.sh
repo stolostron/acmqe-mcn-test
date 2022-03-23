@@ -29,7 +29,7 @@ function prepare_clusters_for_submariner() {
         catalog_ns="$SUBMARINER_NS"
     fi
 
-    submariner_channel="alpha-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
+    submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
     submariner_version="submariner.v$SUBMARINER_VERSION_INSTALL"
 
     for cluster in $MANAGED_CLUSTERS; do
