@@ -77,6 +77,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: "logs/**/*.*", followSymlinks: false
+            junit allowEmptyResults: true, testResults: "logs/*.xml"
         }
     }
 }

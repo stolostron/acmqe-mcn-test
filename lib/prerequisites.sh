@@ -80,19 +80,26 @@ function get_subctl_for_testing() {
 
     local subctl_version
     local subctl_download_url
+    local subctl_bin
     subctl_version=$(fetch_submariner_addon_version)
-    subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
+
+    if [[ "$subctl_version" == "v0.11"*  ]]; then
+        subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
+    else
+        WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
+        subctl_download_url="$SUBM_OPERATOR_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
+    fi
 
     INFO "Submariner addon version - $subctl_version"
     INFO "Download subctl from - $subctl_download_url"
 
-    wget -qO- "$subctl_download_url" -O "subctl-$subctl_version-linux-amd64.tar.xz"
-    tar xfJ "subctl-$subctl_version-linux-amd64.tar.xz"
+    wget -qO- "$subctl_download_url" -O subctl.tar.xz
+    tar xfJ subctl.tar.xz --strip-components 1
+    subctl_bin=$(find . -maxdepth 1 -name "subctl*linux-amd64")
 
     mkdir -p "$HOME"/.local/bin
-    cp "subctl-$subctl_version/subctl-$subctl_version-linux-amd64" "$HOME"/.local/bin/subctl
-
-    rm -rf "subctl-$subctl_version-linux-amd64.tar.xz" "subctl-$subctl_version"
+    cp "$subctl_bin" "$HOME"/.local/bin/subctl
+    rm -rf "$subctl_bin" subctl.tar.xz
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
