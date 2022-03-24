@@ -16,9 +16,20 @@ pipeline {
             value: 'aws,gcp', defaultValue: 'aws,gcp', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
+        string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
     }
     stages {
         stage('Deploy') {
+            when {
+                anyOf {
+                    // The job flow will be executed only if TEST_TAGS parameter
+                    // will be empty or definited with the values below.
+                    // The last two values are used by the acm qe ci.
+                    environment name: 'TEST_TAGS', value: ''
+                    environment name: 'TEST_TAGS', value: '@e2e'
+                    environment name: 'TEST_TAGS', value: '@Submariner'
+                }
+            }
             steps {
                 script {
                     VERSION = ""
@@ -42,6 +53,16 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                anyOf {
+                    // The job flow will be executed only if TEST_TAGS parameter
+                    // will be empty or definited with the values below.
+                    // The last two values are used by the acm qe ci.
+                    environment name: 'TEST_TAGS', value: ''
+                    environment name: 'TEST_TAGS', value: '@e2e'
+                    environment name: 'TEST_TAGS', value: '@Submariner'
+                }
+            }
             steps {
                 sh """
                 export OC_CLUSTER_URL="${params.OC_CLUSTER_URL}"
@@ -56,6 +77,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: "logs/**/*.*", followSymlinks: false
+            junit allowEmptyResults: true, testResults: "logs/*.xml"
         }
     }
 }

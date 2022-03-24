@@ -83,10 +83,11 @@ function create_catalog_source() {
 
     INFO "Check CatalogSource state"
     local wait_timeout=35
-    local timeout=0
+    local timeout
     local cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Check CatalogSource state on $cluster cluster"
+        timeout=0
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "READY" ]]; do
             INFO "Waiting for CatalogSource 'READY' state..."
             cmd_output=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
@@ -131,7 +132,7 @@ function verify_package_manifest() {
             if [[ -n "$manifest_ver" ]]; then
                 break
             fi
-            ((timeout=timeout+1))
+            sleep $(( timeout++ ))
         done
 
         if [[ "$manifest_ver" != "$submariner_version" ]]; then
