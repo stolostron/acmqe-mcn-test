@@ -15,10 +15,6 @@ function execute_submariner_tests() {
     rm -rf "$TESTS_LOGS"
     mkdir -p "$TESTS_LOGS"
 
-    # Due to https://github.com/submariner-io/submariner-operator/issues/1977
-    local subctl_extra_args="--verbose --junit-report $TESTS_LOGS/submariner_e2e.xml"
-    subctl verify --help | grep -q --no-messages junit-report || subctl_extra_args="--verbose"
-
     # Subctl E2E tests are working with 2 clusters only at a time
     local primary_test_cluster
     local secondary_test_cluster
@@ -53,10 +49,19 @@ function execute_submariner_tests() {
             || add_test_error $?
 
         INFO "Execute E2E tests"
-        subctl verify --only service-discovery,connectivity "$subctl_extra_args" \
-            --kubecontexts "$primary_test_cluster","$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/subctl_e2e_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
-            || add_test_error $?
+        # Due to https://github.com/submariner-io/submariner-operator/issues/1977
+        if subctl verify --help | grep -q --no-messages junit-report; then
+            subctl verify --only service-discovery,connectivity --verbose \
+                --junit-report "$TESTS_LOGS/submariner_e2e.xml" \
+                --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
+                | tee "$TESTS_LOGS/subctl_e2e_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
+                || add_test_error $?
+        else
+            subctl verify --only service-discovery,connectivity --verbose \
+                --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
+                | tee "$TESTS_LOGS/subctl_e2e_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
+                || add_test_error $?
+        fi
     done
     unset KUBECONFIG
     INFO "Tests execution finished"

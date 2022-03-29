@@ -14,6 +14,7 @@ pipeline {
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
             value: 'aws,gcp', defaultValue: 'aws,gcp', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
+        booleanParam(name: 'GLOBALNET', defaultValue: false, description: 'Deploy Globalnet on Submariner')
         string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
@@ -32,6 +33,11 @@ pipeline {
             }
             steps {
                 script {
+                    GLOBALNET = ""
+                    if (params.GLOBALNET != '') {
+                        GLOBALNET = "--globalnet true"
+                    }
+
                     VERSION = ""
                     if (params.VERSION != '') {
                         VERSION = "--version ${params.VERSION}"
@@ -48,7 +54,7 @@ pipeline {
                 export OC_CLUSTER_USER="${params.OC_CLUSTER_USER}"
                 export OC_CLUSTER_PASS="${params.OC_CLUSTER_PASS}"
 
-                ./run.sh --deploy --platform "${params.PLATFORM}" $VERSION $DOWNSTREAM
+                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $VERSION $DOWNSTREAM
                 """
             }
         }
@@ -77,7 +83,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: "logs/**/*.*", followSymlinks: false
-            junit allowEmptyResults: true, testResults: "logs/*.xml"
+            junit allowEmptyResults: true, testResults: "logs/**/*.xml"
         }
     }
 }

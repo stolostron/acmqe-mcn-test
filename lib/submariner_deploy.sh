@@ -41,6 +41,9 @@ function prepare_clusters_for_submariner() {
             SUBM_VER="$submariner_version" NS="$catalog_ns" \
             yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)
+            | .spec.IPSecNATTPort = env(SUBMARINER_IPSEC_NATT_PORT)
+            | .spec.cableDriver = env(SUBMARINER_CABLE_DRIVER)
+            | .spec.gatewayConfig.gateways = env(SUBMARINER_GATEWAY_COUNT)
             | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
             | .spec.subscriptionConfig.sourceNamespace = env(NS)
             | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \

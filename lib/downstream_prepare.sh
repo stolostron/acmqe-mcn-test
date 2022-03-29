@@ -122,15 +122,16 @@ function verify_package_manifest() {
         INFO "Verify package manifest for cluster $cluster"
 
         # For some reason version of the manifest is not fetched
-        # on each call. Making 6 iterrations to get it.
+        # on each call. Making repeating iterrations to get it.
         timeout=0
         until [[ "$timeout" -eq "$wait_timeout" ]]; do
+            INFO "Searching for Submariner version - $submariner_version in PackageManifest"
             manifest_ver=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
                             oc -n "$catalog_ns" get packagemanifest submariner \
                             -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
 
-            if [[ -n "$manifest_ver" ]]; then
-                break
+            if [[ -n "$manifest_ver" && "$manifest_ver" == "$submariner_version" ]]; then
+                continue 2
             fi
             sleep $(( timeout++ ))
         done
