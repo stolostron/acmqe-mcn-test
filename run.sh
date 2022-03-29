@@ -64,6 +64,10 @@ export LOCAL_MIRROR="true"
 export SUBMARINER_VERSION_INSTALL=""
 export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.0")
 export SUBMARINER_CHANNEL_RELEASE=""
+# The default IPSEC NATT port is - 4500
+export SUBMARINER_IPSEC_NATT_PORT=4505
+export SUBMARINER_CABLE_DRIVER="libreswan"
+export SUBMARINER_GATEWAY_COUNT=1
 # Official RedHat registry
 export OFFICIAL_REGISTRY="registry.redhat.io"
 export STAGING_REGISTRY="registry.stage.redhat.io"
@@ -234,6 +238,24 @@ function parse_arguments() {
             --gather-logs)
                 if [[ -n "$2" ]]; then
                     GATHER_LOGS="$2"
+                    shift 2
+                fi
+                ;;
+            --subm-ipsec-natt-port)
+                if [[ -n "$2" ]]; then
+                    SUBMARINER_IPSEC_NATT_PORT="$2"
+                    shift 2
+                fi
+                ;;
+            --subm-cable-driver)
+                if [[ -n "$2" ]]; then
+                    SUBMARINER_CABLE_DRIVER="$2"
+                    shift 2
+                fi
+                ;;
+            --subm-gateway-count)
+                if [[ -n "$2" ]]; then
+                    SUBMARINER_GATEWAY_COUNT="$2"
                     shift 2
                 fi
                 ;;
