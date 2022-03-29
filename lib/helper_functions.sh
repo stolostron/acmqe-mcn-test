@@ -256,3 +256,20 @@ function catch_error() {
         fi
     fi
 }
+
+function print_selected_options() {
+    echo -e "\n###############################\n"
+    INFO "The following arguments were selected for the execution:
+    Run command: $RUN_COMMAND
+    Platform: $PLATFORM
+    Specific submariner version: $SUBMARINER_VERSION_INSTALL
+    Globalnet: $SUBMARINER_GLOBALNET
+    Use downstream deployment: $DOWNSTREAM
+    Use downstream mirror: $LOCAL_MIRROR
+    Gather logs: $GATHER_LOGS
+
+    Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT
+    Submariner cable driver: $SUBMARINER_CABLE_DRIVER
+    Submariner gateway count: $SUBMARINER_GATEWAY_COUNT"
+    echo -e "\n###############################\n"
+}
