@@ -105,6 +105,16 @@ function get_catalog_source() {
     fi
 }
 
+function get_package_manifest() {
+    LOG "Get Submariner PackageManifest"
+    local kube_conf="$1"
+    local cluster_log="$2"
+
+    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
+        get packagemanifest submariner -o yaml \
+        --ignore-not-found 2>&1 | tee -a "$cluster_log"
+}
+
 function get_submariner_pods_logs() {
     LOG "Gather Submariner pods logs"
     LOG "The logs will be stored in the $cluster_log-pod_logs path"
@@ -140,6 +150,7 @@ function gather_cluster_info() {
         get_submariner_config_crd "$kube_conf" "$cluster_log"
         get_icsp "$kube_conf" "$cluster_log"
         get_catalog_source "$kube_conf" "$cluster_log"
+        get_package_manifest "$kube_conf" "$cluster_log"
         get_submariner_pods_logs "$kube_conf" "$cluster_log"
     done
 }
@@ -151,23 +162,23 @@ function gather_hub_info() {
     LOG_PATH="$acm_hub_log"
     LOG "Gather ACM Hub information"
 
+    LOG "Get ClusterDeployments clusters"
+    oc get clusterdeployment -A \
+        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+
+    LOG "Get ClusterDeployments clusters details"
+    oc get clusterdeployment -A -o yaml \
+        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+
+    LOG "Get MultiClusterHub details"
+    oc get multiclusterhub -A -o yaml \
+        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+
+    LOG "Get Submariner ClusterSet details"
+    oc get managedclusterset "$CLUSTERSET" -o yaml \
+        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+
     for cluster_ns in $MANAGED_CLUSTERS; do
-        LOG "Get ClusterDeployments clusters"
-        oc get clusterdeployment -A \
-            --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
-
-        LOG "Get ClusterDeployments clusters details"
-        oc get clusterdeployment -A -o yaml \
-            --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
-
-        LOG "Get MultiClusterHub details"
-        oc get multiclusterhub -A -o yaml \
-            --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
-
-        LOG "Get Submariner ClusterSet details"
-        oc get managedclusterset "$CLUSTERSET" -o yaml \
-            --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
-
         LOG "Get SubmarinerConfig from $cluster cluster"
         oc -n "$cluster_ns" get submarinerconfig submariner \
             -o yaml --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
