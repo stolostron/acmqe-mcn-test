@@ -55,7 +55,10 @@ function usage() {
 
     Requirements:
     - ACM hub ready
-    - At least two managed clusters
+    - At least two managed clusters created by the hub
+    Note! - The managed clusters needs to be created by the
+            hub because credentials of the cloud are required
+            to set submariner configurations.
 
     Export the following values to execute the flow:
     export OC_CLUSTER_URL=<hub cluster url>
@@ -63,48 +66,70 @@ function usage() {
     export OC_CLUSTER_PASS=<password of the cluster user>
 
     Arguments:
-    --all         - Perform deployment and testing of the Submariner addon
+    Global arguments:
+    -----------------
+    --all                  - Perform deployment and testing of the Submariner addon
 
-    --deploy      - Perform deployment of the Submariner addon
+    --deploy               - Perform deployment of the Submariner addon
 
-    --test        - Perform testing of the Submariner addon
+    --test                 - Perform testing of the Submariner addon
 
-    --platform    - Specify the platforms that should be used for testing
-                    Separate multiple platforms by comma
-                    (Optional)
-                    By default - aws,gcp
+    Submariner deployment arguments:
+    --------------------------------
+    --platform             - Specify the platforms that should be used for testing
+                             Separate multiple platforms by comma
+                             (Optional)
+                             By default - aws,gcp
 
-    --version     - Specify Submariner version to be deployed
-                    (Optional)
-                    If not specified, submariner version will be chosen
-                    based of the ACM hub support
+    --version              - Specify Submariner version to be deployed
+                             (Optional)
+                             If not specified, submariner version will be chosen
+                             based of the ACM hub support
 
-    --globalnet   - Set the state of the Globalnet for the Submariner deployment.
-                    The globalnet configuration will be applied starting from
-                    ACM version 2.5.0 and Submariner 0.12.0
-                    (Optional)
-                    By default - false
+    --downstream           - Use the flag if downsteram images should be used.
+                             Submariner images could be sourced from two places:
+                               * Official Red Hat ragistry - registry.redhat.io
+                               * Downstream Quay registry - brew.registry.redhat.io
+                             (Optional)
+                             If flag is not used, official registry will be used
 
-    --downstream  - Use the flag if downsteram images should be used.
-                    Submariner images could be sourced from two places:
-                      * Official Red Hat ragistry - registry.redhat.io
-                      * Downstream Quay registry - brew.registry.redhat.io
-                    (Optional)
-                    If flag is not used, official registry will be used
+    --mirror               - Use local ocp registry.
+                             Due to https://issues.redhat.com/browse/RFE-1608,
+                             local ocp registry is required.
+                             The images are imported and used from the local registry.
+                             (Optional) (true/false)
+                             By default - true
+                             The flag is used only with "--downstream" flag.
+                             Otherwise, ignored.
 
-    --mirror      - Use local ocp registry.
-                    Due to https://issues.redhat.com/browse/RFE-1608,
-                    local ocp registry is required.
-                    The images are imported and used from the local registry.
-                    (Optional) (true/false)
-                    By default - true
-                    The flag is used only with "--downstream" flag.
-                    Otherwise, ignored.
+    --gather-logs          - Specify if logs gathering should be performed.
+                             The gathering will be done on all submariner configs.
+                             (Optional)
+                             By default - true
 
-    --gather-logs - Specify if logs gathering should be performed.
-                    The gathering will be done on all submariner configs.
-                    (Optional)
-                    By default - true
+    Submariner configuration arguments:
+    -----------------------------------
+    --globalnet            - Set the state of the Globalnet for the Submariner deployment.
+                             The globalnet configuration will be applied starting from
+                             ACM version 2.5.0 and Submariner 0.12.0
+                             (Optional)
+                             By default - false
+
+    --subm-ipsec-natt-port - IPSecNATTPort represents IPsec NAT-T port.
+                             (Optional)
+                             Submariner default - 4500.
+                             Deployment default - 4505.
+
+    --subm-cable-driver    - CableDriver represents the submariner cable driver implementation.
+                             Available options are libreswan (default) strongswan, wireguard,
+                             and vxlan.
+                             (Optional)
+
+    --subm-gateway-count   - Gateways represents the count of worker nodes that will be used
+                             to deploy the Submariner gateway component on the managed cluster.
+                             The default value is 1, if the value is greater than 1,
+                             the Submariner gateway HA will be enabled automatically.
+                             (Optional)
 
     --help|-h     - Print help
 EOF
