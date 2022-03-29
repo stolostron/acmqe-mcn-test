@@ -130,7 +130,7 @@ function verify_package_manifest() {
                             oc -n "$catalog_ns" get packagemanifest submariner \
                             -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
 
-            if [[ -n "$manifest_ver" ]]; then
+            if [[ -n "$manifest_ver" && "$manifest_ver" == "$submariner_version" ]]; then
                 continue 2
             fi
             sleep $(( timeout++ ))
