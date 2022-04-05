@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     GLOBALNET = ""
-                    if (params.GLOBALNET != '') {
+                    if (params.GLOBALNET) {
                         GLOBALNET = "--globalnet true"
                     }
 
