@@ -123,6 +123,7 @@ function verify_required_env_vars() {
 }
 
 function prepare() {
+    print_selected_options
     verify_required_env_vars
     verify_prerequisites_tools
 
