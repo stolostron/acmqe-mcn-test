@@ -59,7 +59,11 @@ function check_clusters_deployment() {
     clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
 
     if [[ "$clusters_count" -lt 2 ]]; then
-        ERROR "At least two managed clusters required for Submariner deployment. Found - $clusters_count"
+        if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
+            VALIDATION_STATE+="Not ready! Found $clusters_count managed clusters, required at least 2."
+        else
+            ERROR "At least two managed clusters required for Submariner deployment. Found - $clusters_count"
+        fi
     fi
 
     INFO "Found the following active managed clusters:"

@@ -74,6 +74,16 @@ function usage() {
 
     --test                 - Perform testing of the Submariner addon
 
+    --validate-prereq      - Perform prerequisites validation of the environment
+                             before deployment.
+                             The validation will consist of the following checks:
+                             - Verify ACM hub credentials
+                             - Verify at least two clusters available from provided platforms
+                             This is used by the ci flow to not fail the job if provided
+                             environment is not ready.
+                             The state will be written to validation_state.log file
+                             and will not fail the flow.
+
     Submariner deployment arguments:
     --------------------------------
     --platform             - Specify the platforms that should be used for testing
@@ -257,19 +267,24 @@ function catch_error() {
     fi
 }
 
+# Selected options will be printed only when deploy cmd is used.
+# The is because thos arguments are not used when running other
+# flows, so it does not reflect the actual state of the environment.
 function print_selected_options() {
-    echo -e "\n###############################\n"
-    INFO "The following arguments were selected for the execution:
-    Run command: $RUN_COMMAND
-    Platform: $PLATFORM
-    Specific submariner version: $SUBMARINER_VERSION_INSTALL
-    Globalnet: $SUBMARINER_GLOBALNET
-    Use downstream deployment: $DOWNSTREAM
-    Use downstream mirror: $LOCAL_MIRROR
-    Gather logs: $GATHER_LOGS
+    if [[ "$RUN_COMMAND" == "deploy" ]]; then
+        echo -e "\n###############################\n"
+        INFO "The following arguments were selected for the execution:
+        Run command: $RUN_COMMAND
+        Platform: $PLATFORM
+        Specific submariner version: $SUBMARINER_VERSION_INSTALL
+        Globalnet: $SUBMARINER_GLOBALNET
+        Use downstream deployment: $DOWNSTREAM
+        Use downstream mirror: $LOCAL_MIRROR
+        Gather logs: $GATHER_LOGS
 
-    Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT
-    Submariner cable driver: $SUBMARINER_CABLE_DRIVER
-    Submariner gateway count: $SUBMARINER_GATEWAY_COUNT"
-    echo -e "\n###############################\n"
+        Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT
+        Submariner cable driver: $SUBMARINER_CABLE_DRIVER
+        Submariner gateway count: $SUBMARINER_GATEWAY_COUNT"
+        echo -e "\n###############################\n"
+    fi
 }

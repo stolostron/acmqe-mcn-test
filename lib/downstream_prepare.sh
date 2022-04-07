@@ -36,6 +36,20 @@ function get_latest_iib() {
     umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
                   "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
     index_images=$(echo "$umb_output" | jq -r "$iib_query")
+
+    if [[ "$index_images" == "null" ]]; then
+        WARNING "Failed to retrieve IIB by using the last $number_of_days days.
+        Retrying with the number of days multiplied $number_of_days days x3."
+
+        delta=$((delta * 3))
+        umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
+                  "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+        index_images=$(echo "$umb_output" | jq -r "$iib_query")
+
+        if [[ "$index_images" == "null" ]]; then
+            ERROR "Unable to retrieve IIB images"
+        fi
+    fi
     INFO "Retrieved the following index images - $index_images"
 
     ocp_version=$(oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)

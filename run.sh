@@ -26,6 +26,7 @@ export SUPPORTED_PLATFORMS="aws,gcp"  # Supported platform definition
 # but the failure of the final result will be set.
 export FAILURES=""
 export TESTS_FAILURES="false"
+export VALIDATION_STATE=""
 
 # Submariner versioning and image sourcing
 # Declare a map to define submariner versions and channel to ACM versions
@@ -117,18 +118,36 @@ source "${SCRIPT_DIR}/lib/gather_info.sh"
 
 function verify_required_env_vars() {
     if [[ -z "${OC_CLUSTER_USER}" || -z "${OC_CLUSTER_PASS}" || -z "${OC_CLUSTER_URL}" ]]; then
-        ERROR "Execution of the script require all env variables provided:
-        'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_URL'"
+        if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
+            VALIDATION_STATE+="Not ready! Missing environment vars. Unable to login to the hub."
+        else
+            ERROR "Execution of the script require all env variables provided:
+            'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_URL'"
+        fi
     fi
+}
+
+# The function is used by ci to validate the environment for prerequisites.
+# This is required to not fail the job if prerequisites are not ready.
+# The job will be skipped.
+function validate_prerequisites() {
+    INFO "Validate prerequisites for deployment"
+    verify_required_env_vars
+    verify_prerequisites_tools
+    login_to_cluster "hub"
+    check_clusters_deployment
+
+    if [[ -z "$VALIDATION_STATE" ]]; then
+        VALIDATION_STATE+="The environment is ready for the test"
+    fi
+    echo -e "\n$VALIDATION_STATE" | tee validation_state.log
 }
 
 function prepare() {
     print_selected_options
     verify_required_env_vars
     verify_prerequisites_tools
-
     login_to_cluster "hub"
-
     check_clusters_deployment
     check_for_claim_cluster_with_pre_set_clusterset
     fetch_kubeconfig_contexts_and_pass
@@ -206,6 +225,11 @@ function parse_arguments() {
                 ;;
             --test)
                 RUN_COMMAND="test"
+                shift
+                ;;
+            --validate-prereq)
+                # The argument is used by the ci flow
+                RUN_COMMAND="validate-prereq"
                 shift
                 ;;
             --platform)
@@ -294,6 +318,9 @@ function main() {
             prepare
             test_submariner
             finalize
+            ;;
+        validate-prereq)
+            validate_prerequisites
             ;;
         *)
             echo "Invalid command given: $RUN_COMMAND"
