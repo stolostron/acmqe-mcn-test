@@ -132,10 +132,16 @@ function verify_required_env_vars() {
 # The job will be skipped.
 function validate_prerequisites() {
     INFO "Validate prerequisites for deployment"
+    local mch_ver
+
     verify_required_env_vars
     verify_prerequisites_tools
     login_to_cluster "hub"
     check_clusters_deployment
+
+    mch_ver=$(fetch_multiclusterhub_version)
+    echo "MultiClusterHub version:"
+    echo "$mch_ver" | tee mch_version.log
 
     if [[ -z "$VALIDATION_STATE" ]]; then
         VALIDATION_STATE+="The environment is ready for the test"
