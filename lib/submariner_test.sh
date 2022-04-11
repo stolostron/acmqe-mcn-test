@@ -52,7 +52,7 @@ function execute_submariner_tests() {
         # Due to https://github.com/submariner-io/submariner-operator/issues/1977
         if subctl verify --help | grep -q --no-messages junit-report; then
             subctl verify --only service-discovery,connectivity --verbose \
-                --junit-report "$TESTS_LOGS/submariner_e2e.xml" \
+                --junit-report "$TESTS_LOGS/submariner_e2e_${primary_test_cluster}_${secondary_test_cluster}.xml" \
                 --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
                 | tee "$TESTS_LOGS/subctl_e2e_tests_${primary_test_cluster}_${secondary_test_cluster}.log" \
                 || add_test_error $?
