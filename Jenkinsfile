@@ -14,7 +14,7 @@ pipeline {
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
             value: 'aws,gcp', defaultValue: 'aws,gcp', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
-        booleanParam(name: 'GLOBALNET', defaultValue: false, description: 'Deploy Globalnet on Submariner')
+        booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
@@ -24,6 +24,9 @@ pipeline {
         OC_CLUSTER_URL = "${params.OC_CLUSTER_URL}"
         OC_CLUSTER_USER = "${params.OC_CLUSTER_USER}"
         OC_CLUSTER_PASS = "${params.OC_CLUSTER_PASS}"
+        // Parameter will be used to disable globalnet in
+        // ACM version below 2.5.0 as it's not supported
+        GLOBALNET_TRIGGER = true
     }
     stages {
         // This stage will validate the environment for the job.
@@ -46,15 +49,32 @@ pipeline {
                 """
 
                 script {
-                    def result = readFile(file: 'validation_state.log')
-                    println(result)
+                    def state = readFile(file: 'validation_state.log')
+                    println(state)
                     // If validation_state.log file contains string "Not ready!",
                     // meaning environment prerequisites are not ready.
                     // The job will not be executed.
-                    if (result.contains('Not ready!')) {
+                    if (state.contains('Not ready!')) {
                         EXECUTE_JOB = false
                     } else {
                         EXECUTE_JOB = true
+                    }
+
+                    // Checks the version of the MultiClusterHub
+                    // If the version is below 2.5.0, globalnet
+                    // is not supported - disable it.
+                    // Otherwise, use parameter definition.
+                    def mch_ver = readFile(file: 'mch_version.log')
+                    println("MultiClusterHub version: " + mch_ver)
+
+                    // Compare the minor version
+                    check_version = '2.5.0'
+                    check_version_minor = check_version.split('\\.')[1] as Integer
+                    mch_ver_minor = mch_ver.split('\\.')[1] as Integer
+
+                    if (mch_ver_minor < check_version_minor) {
+                        println("Disable Globalnet as it's not supported in ACM " + mch_ver)
+                        GLOBALNET_TRIGGER = false
                     }
                 }
             }
@@ -68,7 +88,10 @@ pipeline {
             steps {
                 script {
                     GLOBALNET = ""
-                    if (params.GLOBALNET) {
+                    // The "GLOBALNET_TRIGGER" will be used as a
+                    // control point to for ACM versions below 2.5.0
+                    // As it's not supported.
+                    if (params.GLOBALNET && GLOBALNET_TRIGGER) {
                         GLOBALNET = "--globalnet true"
                     }
 
