@@ -141,7 +141,7 @@ function verify_package_manifest() {
         until [[ "$timeout" -eq "$wait_timeout" ]]; do
             INFO "Searching for Submariner version - $submariner_version in PackageManifest"
             manifest_ver=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
-                            oc -n "$catalog_ns" get packagemanifest submariner \
+                            oc -n "$catalog_ns" get packagemanifest submariner --ignore-not-found \
                             -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
 
             if [[ -n "$manifest_ver" && "$manifest_ver" == "$submariner_version" ]]; then
