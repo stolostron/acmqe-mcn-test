@@ -53,11 +53,29 @@ function verify_jq() {
     INFO "The jq command is found"
 }
 
+function verify_az_cli() {
+    if ! command -v az &> /dev/null; then
+        WARNING "Missing az command. Installing.."
+        if ! command -v python3 &> /dev/null; then
+            ERROR "Python is required for azure cli but missing"
+        fi
+        python3 -m pip install -U pip
+        pip install -U requests
+        pip install -U urllib3
+        pip install azure-cli
+    fi
+    INFO "The az command is found"
+}
+
 function verify_prerequisites_tools() {
     INFO "Verify prerequisites tools"
     verify_ocp_clients
     verify_yq
     verify_jq
+
+    if [[ "$PLATFORM" =~ "azure" && "$RUN_COMMAND" =~ ("all"|"deploy") ]]; then
+        verify_az_cli
+    fi
 }
 
 
