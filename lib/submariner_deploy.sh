@@ -2,20 +2,6 @@
 
 # Deploy Submariner addon on the clusterset managed clusters
 
-function get_cluster_credential_name() {
-    local cluster
-    local platform
-    local cluster_creds_name
-
-    cluster="$1"
-
-    platform=$(oc get clusterdeployment -n "$cluster" -o json --no-headers=true \
-                 -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
-    cluster_creds_name=$(oc get clusterdeployment -n "$cluster" "$cluster" \
-                           -o jsonpath={.spec.platform."$platform".credentialsSecretRef.name})
-    echo "$cluster_creds_name"
-}
-
 # Prepare configuration for managed clusters.
 # Create "gateway" instance and open required ports.
 function prepare_clusters_for_submariner() {

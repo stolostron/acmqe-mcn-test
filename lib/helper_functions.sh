@@ -180,6 +180,21 @@ function get_cluster_token() {
     login_to_cluster "hub" &> /dev/null
 }
 
+# Fetch the name of the cloud credentials for the cluster
+function get_cluster_credential_name() {
+    local cluster
+    local platform_type
+    local cluster_creds_name
+
+    cluster="$1"
+
+    platform_type=$(oc get clusterdeployment -n "$cluster" -o json --no-headers=true \
+                 -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
+    cluster_creds_name=$(oc get clusterdeployment -n "$cluster" "$cluster" \
+                           -o jsonpath={.spec.platform."$platform_type".credentialsSecretRef.name})
+    echo "$cluster_creds_name"
+}
+
 # Prepare kubeconfig and password of the managed clusters by fetching them from the hub
 function fetch_kubeconfig_contexts_and_pass() {
     INFO "Fetch kubeconfig and password for managed clusters"

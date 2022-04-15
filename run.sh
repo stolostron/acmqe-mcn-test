@@ -19,7 +19,7 @@ export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
 export SUBM_OPERATOR_URL="https://github.com/submariner-io/submariner-operator"
 export PLATFORM="aws,gcp"  # Default platform definition
-export SUPPORTED_PLATFORMS="aws,gcp"  # Supported platform definition
+export SUPPORTED_PLATFORMS="aws,gcp,azure"  # Supported platform definition
 # Non critial failures will be stored into the variable
 # and printed at the end of the execution.
 # The testing will be performed,
@@ -103,6 +103,8 @@ source "${SCRIPT_DIR}/lib/prerequisites.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/validate_acm_readiness.sh"
 # shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/azure_prepare.sh"
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/downstream_prepare.sh"
@@ -160,6 +162,13 @@ function prepare() {
 }
 
 function deploy_submariner() {
+    if [[ "$PLATFORM" =~ "azure" ]]; then
+        INFO "Perform manual cloud prepare for Azure.
+        Replace when patch is merged:
+        https://github.com/submariner-io/cloud-prepare/pull/203"
+        prepare_azure_cloud
+    fi
+
     if [[ -n "$SUBMARINER_VERSION_INSTALL" ]]; then
         validate_given_submariner_version
     else
