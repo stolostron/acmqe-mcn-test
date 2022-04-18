@@ -56,6 +56,7 @@ pipeline {
                     // The job will not be executed.
                     if (state.contains('Not ready!')) {
                         EXECUTE_JOB = false
+                        currentBuild.result = 'NOT_BUILT'
                     } else {
                         EXECUTE_JOB = true
                     }
