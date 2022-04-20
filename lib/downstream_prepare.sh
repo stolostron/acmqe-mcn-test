@@ -19,6 +19,8 @@ function create_icsp() {
 function get_latest_iib() {
     INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
 
+    local cluster="$1"
+    local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
     local latest_iib
     local ocp_version
@@ -52,7 +54,7 @@ function get_latest_iib() {
     fi
     INFO "Retrieved the following index images - $index_images"
 
-    ocp_version=$(oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
+    ocp_version=$(KUBECONFIG="$kube_conf" oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
     latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
 
     if [[ ! "$latest_iib" =~ iib:[0-9]+ ]]; then
@@ -60,7 +62,7 @@ function get_latest_iib() {
     fi
 
     LATEST_IIB="$BREW_REGISTRY/$(echo "$latest_iib" | cut -d'/' -f2-)"
-    INFO "Detected IIB - $LATEST_IIB"
+    INFO "Detected IIB - $LATEST_IIB for cluster $cluster"
 }
 
 # The CatalogSource will be created with the iib image
@@ -71,22 +73,18 @@ function create_catalog_source() {
     local ocp_registry_path
     local image_source="$LATEST_IIB"
 
-    if [[ -n "$LATEST_IIB" ]]; then
-        INFO "Detected IIB - $LATEST_IIB"
-    else
-        get_latest_iib
-        image_source="$LATEST_IIB"
-    fi
-
-    local catalog_ns="openshift-marketplace"
-    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
-        catalog_ns="$SUBMARINER_NS"
-        ocp_registry_url=$(oc registry info --internal)
-        ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
-        image_source="$ocp_registry_path"
-    fi
-
     for cluster in $MANAGED_CLUSTERS; do
+        get_latest_iib "$cluster"
+        image_source="$LATEST_IIB"
+
+        local catalog_ns="openshift-marketplace"
+        if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
+            catalog_ns="$SUBMARINER_NS"
+            ocp_registry_url=$(oc registry info --internal)
+            ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
+            image_source="$ocp_registry_path"
+        fi
+
         INFO "Create CatalogSource on $cluster cluster"
         IMG_SRC="$image_source" NS="$catalog_ns" \
             yq eval '.spec.image = env(IMG_SRC)
