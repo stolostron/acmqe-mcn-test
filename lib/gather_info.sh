@@ -41,6 +41,15 @@ function get_submariner_pods_content() {
     done
 }
 
+function get_gateway_state() {
+    local kube_conf="$1"
+    local cluster_log="$2"
+    LOG "Get cluster Gateway state"
+
+    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
+        describe Gateway 2>&1 | tee -a "$cluster_log"
+}
+
 function get_cluster_service_version() {
     LOG "Get ClusterServiceVersion"
     local kube_conf="$1"
@@ -146,6 +155,7 @@ function gather_cluster_info() {
         get_submariner_pods "$kube_conf" "$cluster_log"
         get_submariner_pods_images "$kube_conf" "$cluster_log"
         get_submariner_pods_content "$kube_conf" "$cluster_log"
+        get_gateway_state "$kube_conf" "$cluster_log"
         get_cluster_service_version "$kube_conf" "$cluster_log"
         get_submariner_config_crd "$kube_conf" "$cluster_log"
         get_icsp "$kube_conf" "$cluster_log"
