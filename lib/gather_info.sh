@@ -46,7 +46,7 @@ function get_gateway_state() {
     local cluster_log="$2"
     LOG "Get cluster Gateway state"
 
-    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" describe \
+    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
         describe Gateway 2>&1 | tee -a "$cluster_log"
 }
 
