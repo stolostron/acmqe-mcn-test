@@ -343,11 +343,7 @@ function import_images_into_local_registry() {
         done
 
         INFO "Import Submariner image index bundle into local registry"
-        if [[ -n "$LATEST_IIB" ]]; then
-            INFO "Detected IIB - $LATEST_IIB"
-        else
-            get_latest_iib
-        fi
+        get_latest_iib
         ocp_registry_url=$(oc registry info --internal)
         ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
 

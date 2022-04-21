@@ -19,7 +19,6 @@ function create_icsp() {
 function get_latest_iib() {
     INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
 
-    local cluster="$1"
     local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
     local latest_iib
@@ -74,7 +73,7 @@ function create_catalog_source() {
     local image_source="$LATEST_IIB"
 
     for cluster in $MANAGED_CLUSTERS; do
-        get_latest_iib "$cluster"
+        get_latest_iib
         image_source="$LATEST_IIB"
 
         local catalog_ns="openshift-marketplace"
