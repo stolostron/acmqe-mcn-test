@@ -13,7 +13,7 @@ pipeline {
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
-            value: 'aws,gcp', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
+            value: 'aws,gcp,azure', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
