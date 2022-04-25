@@ -9,7 +9,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 export CLUSTERSET="submariner"
 export SUBMARINER_NS="submariner-operator"
-export SUBMARINER_GLOBALNET="false"
+export SUBMARINER_GLOBALNET="true"
 export MANAGED_CLUSTERS=""
 export GATHER_LOGS="true"
 export LOGS="$SCRIPT_DIR/logs"
