@@ -39,6 +39,56 @@ function get_available_platforms() {
     INFO "Existing clusters using the following platform - $PLATFORM"
 }
 
+# When a non-globalnet deployment is used, need to ensure
+# that requested clusters does not using overlapping cidr
+# and exclude the overlapping clusters from the deployment list.
+function validate_non_globalnet_clusters() {
+    INFO "Non Globalnet deployment selected - Validate clusters"
+    local clusters
+    local discarded_clusters
+    local subnets=()
+    local cluster_net
+    local service_net
+    local platform_str
+    local platform_iter
+
+    for cluster in $MANAGED_CLUSTERS; do
+        cluster_net=$(oc -n "$cluster" get secret "$cluster"-install-config \
+            --template='{{index .data "install-config.yaml" | base64decode}}' \
+            | yq eval '.networking.clusterNetwork[].cidr' -)
+        service_net=$(oc -n "$cluster" get secret "$cluster"-install-config \
+            --template='{{index .data "install-config.yaml" | base64decode}}' \
+            | yq eval '.networking.serviceNetwork[]' -)
+
+        if [[ ! "${subnets[*]}" =~ $cluster_net || ! "${subnets[*]}" =~ $service_net ]]; then
+            clusters+="$cluster,"
+            subnets+=("$cluster_net")
+            subnets+=("$service_net")
+        else
+            discarded_clusters+="$cluster,"
+        fi
+    done
+    clusters=$(echo "${clusters%,}" | tr "," "\n")
+    discarded_clusters=$(echo "${discarded_clusters%,}" | tr "," "\n")
+
+    INFO "The following clusters have non overlapping CIDR:
+    $clusters
+    Overriding MANAGED_CLUSTERS list"
+    WARNING "A Non Globalnet deployment selected
+    The following clusters were discarded due to overlapping CIDR: $discarded_clusters"
+    MANAGED_CLUSTERS="$clusters"
+
+    for platform in $MANAGED_CLUSTERS; do
+        platform_iter=$(oc -n "$platform" get clusterdeployment "$platform" \
+                          --no-headers=true \
+                          -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
+        platform_str+="$platform_iter,"
+    done
+    PLATFORM="${platform_str%,}"
+    INFO "Update PLATFORM variable to met the updated clusters due to non globalnet deployment:
+    $PLATFORM"
+}
+
 # Check if cluster deployment exists in ACM
 function check_clusters_deployment() {
     local clusters_count
@@ -55,6 +105,10 @@ function check_clusters_deployment() {
         MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
                              --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                              -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.name}{"\n"}{end}')
+    fi
+
+    if [[ "$SUBMARINER_GLOBALNET" == "false" ]]; then
+        validate_non_globalnet_clusters
     fi
     clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
 
