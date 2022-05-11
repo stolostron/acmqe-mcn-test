@@ -66,9 +66,12 @@ function login_to_azure_cloud() {
 function fetch_resource_group_name() {
     INFO "Azure: Fetch resource group name of the resources"
     local cluster_name="$1"
+    local cluster_infra_id
 
+    cluster_infra_id=$(oc -n "$cluster_name" get clusterdeployment \
+        "$cluster_name" -o jsonpath='{.spec.clusterMetadata.infraID}')
     AZURE_RESOURCE_GROUP=$(az group list \
-                            --query "[?starts_with(name, '""$cluster_name""')].name" \
+                            --query "[?starts_with(name, '""$cluster_infra_id""')].name" \
                             -o tsv)
     INFO "Azure: Resource group is - $AZURE_RESOURCE_GROUP"
 }

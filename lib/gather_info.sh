@@ -136,7 +136,8 @@ function get_submariner_pods_logs() {
              get pods -o jsonpath='{.items[*].metadata.name}')
     for pod in $pods; do
         KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-            logs "$pod" >> "$cluster_log"
+            logs "$pod" >> "$cluster_log" \
+            || echo "No logs found for pod $pod" >> "$cluster_log"
     done
 }
 
