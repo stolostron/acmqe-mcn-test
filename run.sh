@@ -42,7 +42,7 @@ declare -A ACM_2_4=(
 export ACM_2_4
 declare -A ACM_2_5=(
     [acm_version]='2.5'
-    [submariner_version]='0.12.0'
+    [submariner_version]='0.12.1'
     [channel]='stable'
 )
 export ACM_2_5
@@ -63,7 +63,7 @@ export LOCAL_MIRROR="true"
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
-export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.0")
+export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.1")
 export SUBMARINER_CHANNEL_RELEASE=""
 # The default IPSEC NATT port is - 4500
 export SUBMARINER_IPSEC_NATT_PORT=4505
@@ -149,6 +149,9 @@ function validate_prerequisites() {
         VALIDATION_STATE+="The environment is ready for the test"
     fi
     echo -e "\n$VALIDATION_STATE" | tee validation_state.log
+
+    WARNING "The following Cluster Deployments present"
+    oc get clusterdeployment -A
 }
 
 function prepare() {
