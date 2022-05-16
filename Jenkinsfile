@@ -45,7 +45,7 @@ pipeline {
             }
             steps {
                 sh """
-                ./run.sh --validate-prereq
+                ./run.sh --validate-prereq --platform "${params.PLATFORM}"
                 """
 
                 script {
