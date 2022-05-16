@@ -149,6 +149,9 @@ function validate_prerequisites() {
         VALIDATION_STATE+="The environment is ready for the test"
     fi
     echo -e "\n$VALIDATION_STATE" | tee validation_state.log
+
+    WARNING "The following Cluster Deployments present"
+    oc get clusterdeployment -A
 }
 
 function prepare() {
