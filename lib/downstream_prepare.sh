@@ -68,21 +68,13 @@ function get_latest_iib() {
 # and used to fetch the submariner components images
 function create_catalog_source() {
     INFO "Create CatalogSource on the managed clusters"
-    local ocp_registry_url
-    local ocp_registry_path
     local image_source="$LATEST_IIB"
+    local catalog_ns="openshift-marketplace"
 
     for cluster in $MANAGED_CLUSTERS; do
         get_latest_iib
         image_source="$LATEST_IIB"
 
-        local catalog_ns="openshift-marketplace"
-        if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
-            catalog_ns="$SUBMARINER_NS"
-            ocp_registry_url=$(oc registry info --internal)
-            ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
-            image_source="$ocp_registry_path"
-        fi
 
         INFO "Create CatalogSource on $cluster cluster"
         IMG_SRC="$image_source" NS="$catalog_ns" \
@@ -124,10 +116,6 @@ function verify_package_manifest() {
     local wait_timeout=30
     local timeout
     local catalog_ns="openshift-marketplace"
-
-    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
-        catalog_ns="$SUBMARINER_NS"
-    fi
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Verify package manifest for cluster $cluster"
@@ -178,9 +166,6 @@ function create_brew_secret() {
     brew_sec=$(verify_brew_secret_existence)
 
     local secret_ns=("openshift-config" "openshift-marketplace")
-    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
-        secret_ns+=("$SUBMARINER_NS")
-    fi
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create Brew secret on $cluster cluster"

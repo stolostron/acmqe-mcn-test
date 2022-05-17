@@ -166,20 +166,6 @@ function login_to_cluster() {
     fi
 }
 
-# The function will return token of the given cluster name
-# The token information will be received based on the
-# available kubeconfig file within the "$LOGS" dir.
-function get_cluster_token() {
-    local cluster="$1"
-    local token="$2"
-
-    login_to_cluster "$cluster"
-    token=$(oc whoami -t)
-    echo "$token"
-
-    login_to_cluster "hub" &> /dev/null
-}
-
 # Fetch the name of the cloud credentials for the cluster
 function get_cluster_credential_name() {
     local cluster
