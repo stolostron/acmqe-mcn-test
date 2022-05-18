@@ -16,32 +16,43 @@
 # internal registry. And those images will be used during the deployment.
 # https://issues.redhat.com/browse/RFE-1608
 
+function create_service_account_for_internal_registry() {
+    local cluster="$1"
+    local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+    local sa_name="$2"
+
+    INFO "Create Service Account on $cluster cluster"
+    SA="$sa_name" NS="$SUBMARINER_NS" yq eval \
+        'with(.metadata; .name = env(SA) | .namespace = env(NS))' \
+        "$SCRIPT_DIR/resources/service-account.yaml" \
+        | KUBECONFIG="$kube_conf" oc apply -f -
+
+    INFO "Create RoleBinding for SA on $cluster cluster"
+    SA="$sa_name" NS="$SUBMARINER_NS" yq eval \
+        'with(.metadata; .name = env(SA)
+        | .namespace = env(SUBMARINER_NS))
+        | with(.subjects[]; .name = env(SA)
+        | .namespace = env(SUBMARINER_NS))' \
+        "$SCRIPT_DIR/resources/service-account-role-config.yaml" \
+        | KUBECONFIG="$kube_conf" oc apply -f -
+}
+
 function create_internal_registry_secret() {
     INFO "Create internal ocp registry secret"
-
-    local ocp_token
     local ocp_registry_url
-    local reg_username="kubeadmin"
+    local sa_secret_name
+    local sa_name="submariner-registry-sa"
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create internal regsitry secret on $cluster cluster"
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
-        ocp_token=$(get_cluster_token "$cluster")
         ocp_registry_url=$(oc registry info --internal)
+        create_service_account_for_internal_registry "$cluster" "$sa_name"
 
-        INFO "Create internal registry secret in globally available namespace"
-        INFO "Create internal registry secret to be reachable for the catalog source"
-        for namespace in 'openshift-config' 'openshift-marketplace' $SUBMARINER_NS; do
-            KUBECONFIG="$kube_conf" oc -n "$namespace" delete secret \
-                internal-registry --ignore-not-found=true
-
-            KUBECONFIG="$kube_conf" oc create secret docker-registry \
-                -n "$namespace" internal-registry \
-                --docker-server="$ocp_registry_url" \
-                --docker-username="$reg_username" \
-                --docker-password="$ocp_token"
-        done
+        sa_secret_name=$(KUBECONFIG="$kube_conf" \
+            oc -n "$SUBMARINER_NS" get sa "$sa_name" -o json \
+            | jq -r '.secrets[] | select(.name | contains("dockercfg")).name')
 
         INFO "Update the cluster global pull-secret"
         KUBECONFIG="$kube_conf" oc patch secret pull-secret -n openshift-config \
@@ -49,9 +60,9 @@ function create_internal_registry_secret() {
             secret pull-secret -n openshift-config \
             --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
             | jq -r -c '.auths |= . + '"$(KUBECONFIG="$kube_conf" oc get secret \
-            internal-registry -n openshift-config \
-            --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
-            | jq -r -c '.auths')"'' | base64 -w 0)"'"}}'
+            "$sa_secret_name" -n "$SUBMARINER_NS" \
+            --output="jsonpath={.data.\.dockercfg}" | base64 --decode)"'' \
+            | base64 -w 0)"'"}}'
     done
     INFO "Internal secret has been updated on all managed clusters"
 }
@@ -289,7 +300,7 @@ function set_custom_registry_mirror() {
     create_internal_registry_secret
 
     ocp_registry_url=$(oc registry info --internal)
-    ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS"
+    ocp_registry_path="$ocp_registry_url/openshift"
 
     add_custom_registry_to_node "master" "$ocp_registry_path"
     add_custom_registry_to_node "worker" "$ocp_registry_path"
@@ -301,8 +312,6 @@ function set_custom_registry_mirror() {
 function import_images_into_local_registry() {
     INFO "Import images into local cluster registry"
     local import_state
-    local ocp_registry_url
-    local ocp_registry_path
     local submariner_ga="0.12.0"
     local registry_image_prefix_path
     version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
@@ -332,8 +341,12 @@ function import_images_into_local_registry() {
           $SUBM_IMG_GLOBALNET \
           ; do
             local img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$registry_image_prefix_path-$image:v$SUBMARINER_VERSION_INSTALL"
-            import_state=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" import-image \
-                "$image:v$SUBMARINER_VERSION_INSTALL" --from="$img_src" --confirm 2>&1) || true
+            IMG_NAME="$image" IMG_NAME_TAG="$img_src" TAG="v$SUBMARINER_VERSION_INSTALL" \
+                yq eval '.metadata.name = env(IMG_NAME)
+                | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
+                | .name = env(TAG))' \
+                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                | KUBECONFIG="$kube_conf" oc apply -f -
 
             if [[ "$import_state" =~ ("Import failed"|"error") ]]; then
                 ERROR "Image import failed.
@@ -344,11 +357,13 @@ function import_images_into_local_registry() {
 
         INFO "Import Submariner image index bundle into local registry"
         get_latest_iib
-        ocp_registry_url=$(oc registry info --internal)
-        ocp_registry_path="$ocp_registry_url/$SUBMARINER_NS/$SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
 
-        import_state=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" import-image \
-            "$ocp_registry_path" --from="$LATEST_IIB" --confirm 2>&1) || true
+        IMG_NAME="$SUBM_IMG_BUNDLE-index" IMG_NAME_TAG="$LATEST_IIB" TAG="v$SUBMARINER_VERSION_INSTALL" \
+            yq eval '.metadata.name = env(IMG_NAME)
+                | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
+                | .name = env(TAG))' \
+                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                | KUBECONFIG="$kube_conf" oc apply -f -
 
         if [[ "$import_state" =~ ("Import failed"|"error") ]]; then
             ERROR "Image import failed.
