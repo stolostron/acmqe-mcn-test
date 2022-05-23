@@ -17,7 +17,7 @@ export TESTS_LOGS="$LOGS/tests_logs"
 export DEBUG_LOGS="$LOGS/debug_logs"
 export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
-export SUBM_OPERATOR_URL="https://github.com/submariner-io/submariner-operator"
+export SUBCTL_UPSTREAM_URL="https://github.com/submariner-io/subctl"
 export PLATFORM="aws,gcp"  # Default platform definition
 export SUPPORTED_PLATFORMS="aws,gcp,azure"  # Supported platform definition
 # Non critial failures will be stored into the variable
