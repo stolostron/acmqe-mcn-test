@@ -45,6 +45,10 @@ pipeline {
             }
             steps {
                 sh """
+                # Delete the cached test results from previous executions.
+                # Otherwise, it the job fails, cached results may be reported.
+                rm -rf logs/
+
                 ./run.sh --validate-prereq --platform "${params.PLATFORM}"
                 """
 
