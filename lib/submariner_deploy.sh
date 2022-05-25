@@ -11,10 +11,6 @@ function prepare_clusters_for_submariner() {
     local submariner_version
     local catalog_ns="openshift-marketplace"
 
-    if [[ "$DOWNSTREAM" == "true" && "$LOCAL_MIRROR" == "true" ]]; then
-        catalog_ns="$SUBMARINER_NS"
-    fi
-
     submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
     submariner_version="submariner.v$SUBMARINER_VERSION_INSTALL"
 

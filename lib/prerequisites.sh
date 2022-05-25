@@ -96,32 +96,51 @@ function fetch_submariner_addon_version() {
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
+    local image_prefix
     local subctl_version
     local subctl_download_url
+    local subctl_archive
     local subctl_bin
     subctl_version=$(fetch_submariner_addon_version)
 
-    if [[ "$subctl_version" == "v0.11"*  ]]; then
-        subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
+    if [[ "$DOWNSTREAM" == "true" ]]; then
+        INFO "Download downstream subctl binary for testing"
+
+        if [[ "$subctl_version" == "v0.11"* ]]; then
+            image_prefix="$REGISTRY_IMAGE_PREFIX_TECH_PREVIEW"
+        else
+            image_prefix="$REGISTRY_IMAGE_PREFIX"
+        fi
+        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
+
+        oc image extract "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
     else
-        WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
-        subctl_download_url="$SUBM_OPERATOR_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
+        INFO "Download upstream subctl binary for testing"
+
+        if [[ "$subctl_version" == "v0.11"*  ]]; then
+            subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
+        else
+            WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
+            subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
+        fi
+        wget -qO- "$subctl_download_url" -O subctl.tar.xz
     fi
 
     INFO "Submariner addon version - $subctl_version"
     INFO "Download subctl from - $subctl_download_url"
 
-    wget -qO- "$subctl_download_url" -O subctl.tar.xz
-    tar xfJ subctl.tar.xz --strip-components 1
+    subctl_archive=$(find . -maxdepth 1 -name "subctl*tar.xz")
+    tar xfJ "$subctl_archive" --strip-components 1
     subctl_bin=$(find . -maxdepth 1 -name "subctl*linux-amd64")
 
     mkdir -p "$HOME"/.local/bin
     cp "$subctl_bin" "$HOME"/.local/bin/subctl
-    rm -rf "$subctl_bin" subctl.tar.xz
+    rm -rf "$subctl_bin" "$subctl_archive"
 
     # Add local BIN dir to PATH
-    [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
-    INFO "Subctl $subctl_version has been donwload and placed under $HOME/.local/bin/"
+    [[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+    INFO "Subctl has been donwload and placed under $HOME/.local/bin/"
+    subctl version
 }
 
 function get_subctl_version() {
