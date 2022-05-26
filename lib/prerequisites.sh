@@ -113,7 +113,7 @@ function get_subctl_for_testing() {
         fi
         subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
 
-        oc image extract "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
+        oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
     else
         INFO "Download upstream subctl binary for testing"
 
