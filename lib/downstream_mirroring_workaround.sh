@@ -47,7 +47,7 @@ function create_internal_registry_secret() {
         INFO "Create internal regsitry secret on $cluster cluster"
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
-        ocp_registry_url=$(oc registry info --internal)
+        ocp_registry_url=$(KUBECONFIG="$kube_conf" oc registry info --internal)
         create_service_account_for_internal_registry "$cluster" "$sa_name"
 
         sa_secret_name=$(KUBECONFIG="$kube_conf" \
@@ -81,7 +81,8 @@ function create_namespace() {
 function add_custom_registry_to_node() {
     # could be "master" or "worker"
     local node="$1"
-    local local_registry_path="$2"
+    local ocp_registry_url
+    local local_registry_path
     local config_source
     local submariner_ga="0.12.0"
     local registry_image_prefix_path
@@ -93,117 +94,120 @@ function add_custom_registry_to_node() {
         export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
     fi
 
-    if [[ -z "$local_registry_path" ]] || [[ ! "$node" =~ ^(master|worker)$ ]]; then
-        ERROR "Openshift Registry values are missing: node or registry path"
-    else
-        INFO "Add the custom registry to $node node:
-        * ${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX} -->
-            - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}
-        * ${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX} -->
-            - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}
-        * ${VPN_REGISTRY} -->
-            - ${BREW_REGISTRY}
-        * ${OFFICIAL_REGISTRY}/${registry_image_prefix_path} -->
-            - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
-        * ${STAGING_REGISTRY}/${registry_image_prefix_path} -->
-            - ${local_registry_path}
-            - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
-        * ${CATALOG_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH} -->
-            - ${OFFICIAL_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}
-        "
-    fi
-
-    config_source=$(cat <<EOF | raw_to_url_encode
-    [[registry]]
-      prefix = ""
-      location = "${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
-      mirror-by-digest-only = false
-      insecure = false
-      blocked = false
-
-      [[registry.mirror]]
-        location = "${local_registry_path}"
-        insecure = false
-
-      [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
-        insecure = false
-
-    [[registry]]
-      prefix = ""
-      location = "${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
-      mirror-by-digest-only = false
-      insecure = false
-      blocked = false
-
-      [[registry.mirror]]
-        location = "${local_registry_path}"
-        insecure = false
-
-      [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
-        insecure = false
-
-    [[registry]]
-      prefix = ""
-      location = "${VPN_REGISTRY}"
-      mirror-by-digest-only = false
-      insecure = false
-      blocked = false
-
-      [[registry.mirror]]
-        location = "${BREW_REGISTRY}"
-        insecure = false
-
-    [[registry]]
-      prefix = ""
-      location = "${OFFICIAL_REGISTRY}/${registry_image_prefix_path}"
-      mirror-by-digest-only = false
-      insecure = false
-      blocked = false
-
-      [[registry.mirror]]
-        location = "${local_registry_path}"
-        insecure = false
-
-      [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
-        insecure = false
-
-    [[registry]]
-      prefix = ""
-      location = "${STAGING_REGISTRY}/${registry_image_prefix_path}"
-      mirror-by-digest-only = false
-      insecure = false
-      blocked = false
-
-      [[registry.mirror]]
-        location = "${local_registry_path}"
-        insecure = false
-
-      [[registry.mirror]]
-        location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
-        insecure = false
-
-      [[registry]]
-        prefix = ""
-        location = "${CATALOG_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}"
-        mirror-by-digest-only = true
-        insecure = false
-        blocked = false
-
-        [[registry.mirror]]
-          location = "${OFFICIAL_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}"
-          insecure = false
-EOF
-    )
-
     for cluster in $MANAGED_CLUSTERS; do
         local ocp_version
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+
+        ocp_registry_url=$(KUBECONFIG="$kube_conf" oc registry info --internal)
+        local_registry_path="$ocp_registry_url/openshift"
+
+        if [[ -z "$local_registry_path" ]] || [[ ! "$node" =~ ^(master|worker)$ ]]; then
+            ERROR "Openshift Registry values are missing: node or registry path"
+        else
+            INFO "Add the custom registry to $node node:
+            * ${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX} -->
+                - ${local_registry_path}
+                - ${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}
+            * ${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX} -->
+                - ${local_registry_path}
+                - ${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}
+            * ${VPN_REGISTRY} -->
+                - ${BREW_REGISTRY}
+            * ${OFFICIAL_REGISTRY}/${registry_image_prefix_path} -->
+                - ${local_registry_path}
+                - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
+            * ${STAGING_REGISTRY}/${registry_image_prefix_path} -->
+                - ${local_registry_path}
+                - ${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}
+            * ${CATALOG_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH} -->
+                - ${OFFICIAL_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}
+            "
+        fi
+
+        config_source=$(cat <<EOF | raw_to_url_encode
+        [[registry]]
+          prefix = ""
+          location = "${OFFICIAL_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
+          mirror-by-digest-only = false
+          insecure = false
+          blocked = false
+
+          [[registry.mirror]]
+            location = "${local_registry_path}"
+            insecure = false
+
+          [[registry.mirror]]
+            location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
+            insecure = false
+
+        [[registry]]
+          prefix = ""
+          location = "${STAGING_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
+          mirror-by-digest-only = false
+          insecure = false
+          blocked = false
+
+          [[registry.mirror]]
+            location = "${local_registry_path}"
+            insecure = false
+
+          [[registry.mirror]]
+            location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_PREFIX}"
+            insecure = false
+
+        [[registry]]
+          prefix = ""
+          location = "${VPN_REGISTRY}"
+          mirror-by-digest-only = false
+          insecure = false
+          blocked = false
+
+          [[registry.mirror]]
+            location = "${BREW_REGISTRY}"
+            insecure = false
+
+        [[registry]]
+          prefix = ""
+          location = "${OFFICIAL_REGISTRY}/${registry_image_prefix_path}"
+          mirror-by-digest-only = false
+          insecure = false
+          blocked = false
+
+          [[registry.mirror]]
+            location = "${local_registry_path}"
+            insecure = false
+
+          [[registry.mirror]]
+            location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
+            insecure = false
+
+        [[registry]]
+          prefix = ""
+          location = "${STAGING_REGISTRY}/${registry_image_prefix_path}"
+          mirror-by-digest-only = false
+          insecure = false
+          blocked = false
+
+          [[registry.mirror]]
+            location = "${local_registry_path}"
+            insecure = false
+
+          [[registry.mirror]]
+            location = "${BREW_REGISTRY}/${REGISTRY_IMAGE_IMPORT_PATH}/${registry_image_prefix_path}"
+            insecure = false
+
+          [[registry]]
+            prefix = ""
+            location = "${CATALOG_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}"
+            mirror-by-digest-only = true
+            insecure = false
+            blocked = false
+
+            [[registry.mirror]]
+              location = "${OFFICIAL_REGISTRY}/${CATALOG_IMAGE_PREFIX}/${CATALOG_IMAGE_IMPORT_PATH}"
+              insecure = false
+EOF
+        )
 
         INFO "Enable auto-reboot of $node node when changing Machine Config Pool on cluster $cluster"
         KUBECONFIG="$kube_conf" oc patch --type=merge \
@@ -294,17 +298,10 @@ function verify_custom_registry_on_nodes() {
 
 function set_custom_registry_mirror() {
     INFO "Set custom registry mirror on the nodes by using MachineConfig"
-    local ocp_registry_url
-    local ocp_registry_path
 
     create_internal_registry_secret
-
-    ocp_registry_url=$(oc registry info --internal)
-    ocp_registry_path="$ocp_registry_url/openshift"
-
-    add_custom_registry_to_node "master" "$ocp_registry_path"
-    add_custom_registry_to_node "worker" "$ocp_registry_path"
-
+    add_custom_registry_to_node "master"
+    add_custom_registry_to_node "worker"
     check_for_nodes_ready_state
     verify_custom_registry_on_nodes
 }
