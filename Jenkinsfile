@@ -41,6 +41,7 @@ pipeline {
                     environment name: 'TEST_TAGS', value: ''
                     environment name: 'TEST_TAGS', value: '@e2e'
                     environment name: 'TEST_TAGS', value: '@Submariner'
+                    environment name: 'TEST_TAGS', value: '@post-release'
                 }
             }
             steps {
@@ -105,6 +106,13 @@ pipeline {
                     if (params.DOWNSTREAM) {
                         DOWNSTREAM = "--downstream"
                     }
+
+                    // The '@post-release' tag meant to test post GA release
+                    // thus don't use the downstream tag.
+                    // Override the any state of the DOWNSTREAM param.
+                    if (params.TEST_TAGS == '@post-release') {
+                        DOWNSTREAM = ""
+                    }
                 }
 
                 sh """
@@ -123,6 +131,13 @@ pipeline {
                     DOWNSTREAM = ""
                     if (params.DOWNSTREAM) {
                         DOWNSTREAM = "--downstream"
+                    }
+
+                    // The '@post-release' tag meant to test post GA release
+                    // thus don't use the downstream tag.
+                    // Override the any state of the DOWNSTREAM param.
+                    if (params.TEST_TAGS == '@post-release') {
+                        DOWNSTREAM = ""
                     }
                 }
 
