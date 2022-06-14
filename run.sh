@@ -198,8 +198,8 @@ function deploy_submariner() {
         fi
 
         create_catalog_source
-        verify_package_manifest
     fi
+    verify_package_manifest
 
     create_clusterset
     assign_clusters_to_clusterset
