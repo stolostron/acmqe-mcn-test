@@ -28,11 +28,22 @@ function get_latest_iib() {
 
     local bundle_name="submariner-operator-bundle"
     local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
-    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete") | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
     local latest_builds_number=5
     local rows=$((latest_builds_number * 5))
     local number_of_days=30
     local delta=$((number_of_days * 86400))  # 1296000 = 15 days * 86400 seconds
+
+    # The query component changed started from submariner version 0.12.* and for older version remain the same
+    # For 0.12.* the component name is - "cvp-teamredhatadvancedclustermanagement"
+    # For 0.11.* the component name is - "cvp-teamsubmariner"
+    local submariner_component="cvp-teamredhatadvancedclustermanagement"
+    if [[ "$submariner_version" == "0.11"* ]]; then
+        submariner_component="cvp-teamsubmariner"
+    fi
+
+    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
+        and .artifact.component=="'"$submariner_component"'" and .artifact.issuer=="contra/pipeline") 
+        | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
 
     umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
                   "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
