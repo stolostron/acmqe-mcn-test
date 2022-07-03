@@ -64,8 +64,8 @@ function execute_submariner_tests() {
                 | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
                 || add_test_error $?
         fi
+        unset KUBECONFIG
     done
-    unset KUBECONFIG
     INFO "Tests execution finished"
     INFO "All the logs are placed within the $TESTS_LOGS directory"
 }
