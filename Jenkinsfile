@@ -18,6 +18,7 @@ pipeline {
         string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
+        booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
     }
     environment {
         EXECUTE_JOB = false
@@ -27,6 +28,9 @@ pipeline {
         // Parameter will be used to disable globalnet in
         // ACM version below 2.5.0 as it's not supported
         GLOBALNET_TRIGGER = true
+        // The secret contains polarion authentication
+        // and other details for report publish
+        POLARION_SECRET = credentials('submariner-polarion-secret')
     }
     stages {
         // This stage will validate the environment for the job.
@@ -143,6 +147,25 @@ pipeline {
 
                 sh """
                 ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM
+                """
+            }
+        }
+        stage('Report to Polarion') {
+            when {
+                expression {
+                    EXECUTE_JOB == true
+                }
+            }
+            steps {
+                script {
+                    POLARION = ""
+                    if (params.POLARION) {
+                        POLARION = "--polarion-vars-file ${POLARION_SECRET}"
+                    }
+                }
+
+                sh """
+                ./run.sh --report $POLARION
                 """
             }
         }
