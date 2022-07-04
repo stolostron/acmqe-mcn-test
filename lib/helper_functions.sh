@@ -74,6 +74,8 @@ function usage() {
 
     --test                 - Perform testing of the Submariner addon
 
+    --report               - Report tests results to Polarion
+
     --validate-prereq      - Perform prerequisites validation of the environment
                              before deployment.
                              The validation will consist of the following checks:
@@ -140,6 +142,29 @@ function usage() {
                              The default value is 1, if the value is greater than 1,
                              the Submariner gateway HA will be enabled automatically.
                              (Optional)
+
+    Reporting arguments:
+    --------------------
+    --polarion-vars-file   - A path to the file that contains Polarion details.
+                             Internal only (used by QE)
+                             (Optional)
+                             The file should contains the following variables:
+                             """
+                             export POLARION_SERVER=<polarion_server>
+                             export POLARION_USER=<polarion_username>
+                             export POLARION_PASS=<polarion_password>
+                             export POLARION_PROJECT_ID=<project_id>
+                             export POLARION_TEAM_NAME=<team_name>
+                             export POLARION_TESTRUN_TEMPLATE=<testrun_template>
+                             export POLARION_COMPONENT_ID=<component_id>
+                             """
+                             Alternatively, those environment variables could be exported.
+
+    --polarion_add_skipped - Add skipped tests to polarion report.
+                             Will deplay junit skipped tests as "Waiting" in Polarion (i.e. test not run yet)
+                             Internal only (used by QE)
+                             (Optional)
+                             By default - false
 
     --help|-h     - Print help
 EOF

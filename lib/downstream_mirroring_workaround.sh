@@ -250,24 +250,68 @@ function check_for_nodes_ready_state() {
           ERROR "Timeout ($nodes_duration) exceeded while waiting for all nodes to be ready on cluster $cluster"
         fi
 
+        # The "until" iteration is done below because when the MachineConfig applied in SNO cluster
+        # and it got rebooted after configuration applied, the api call will return a "refused connection"
+        # error, since the node is reboot and no api is available.
+        # In that case, iterate 5 times to ensure connection is restored.
+        iteration_timeout=5
+        iteration=0
         INFO "Check for Machine Config Daemon to be rolled out by openshift-machine-config-operator"
-        KUBECONFIG="$kube_conf" oc -n openshift-machine-config-operator rollout status \
-            daemonset machine-config-daemon --timeout="$machine_duration" || machine_state="down"
+        until [[ "$iteration" -eq "$iteration_timeout" ]]; do
+            machine_state=$(KUBECONFIG="$kube_conf" oc -n openshift-machine-config-operator rollout status \
+                daemonset machine-config-daemon --timeout="$machine_duration" || echo "down")
 
+            if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
+                INFO "Still waiting for Machine Config Daemon to be rolled out..."
+                ((iteration="$iteration"+1))
+                sleep 3m
+            else
+                break
+            fi
+        done
+        if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
+          ERROR "Timeout exceeded while waiting for Machine Config Daemon to be ready on cluster $cluster"
+        fi
+
+        iteration=0
         INFO "Check for Machine Config Pool to be updated"
-        KUBECONFIG="$kube_conf" oc wait machineconfigpool --all --for=condition=updated \
-            --timeout="$machine_duration" || machine_state="down"
+        until [[ "$iteration" -eq "$iteration_timeout" ]]; do
+            machine_state=$(KUBECONFIG="$kube_conf" oc wait machineconfigpool --all --for=condition=updated \
+                --timeout="$machine_duration" || echo "down")
 
+            if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
+                INFO "Still waiting for Machine Config Pool to be updated..."
+                ((iteration="$iteration"+1))
+                sleep 3m
+            else
+                break
+            fi
+        done
+        if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
+          ERROR "Timeout exceeded while waiting for Machine Config Pool to be updated on cluster $cluster"
+        fi
+
+        iteration=0
         INFO "Check for Machine Config Pool ready state"
         for node in "master" "worker"; do
-            KUBECONFIG="$kube_conf" oc wait machineconfigpool "$node" \
-                --for=condition=Degraded=False \
-                --timeout="$machine_duration" || machine_state="down"
-        done
+            until [[ "$iteration" -eq "$iteration_timeout" ]]; do
+                machine_state=$(KUBECONFIG="$kube_conf" oc wait machineconfigpool "$node" \
+                    --for=condition=Degraded=False \
+                    --timeout="$machine_duration" || echo "down")
 
-        if [[ "$machine_state" == "down" ]]; then
+                if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
+                    INFO "Still waiting for Machine Config Pool ready state..."
+                    ((iteration="$iteration"+1))
+                    sleep 3m
+                else
+                    break
+                fi
+            done
+        done
+        if [[ "$machine_state" == "down" || "$machine_state" =~ "was refused" ]]; then
           ERROR "Timeout exceeded while waiting for Machine Config to be ready on cluster $cluster"
         fi
+
         INFO "MachineConfig was applied correctly on cluster $cluster"
     done
 }

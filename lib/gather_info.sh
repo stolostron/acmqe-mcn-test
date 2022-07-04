@@ -144,11 +144,14 @@ function get_submariner_pods_logs() {
 function gather_cluster_info() {
     local kube_conf
     local cluster_log
+    local cluster_platform
 
     for cluster in $MANAGED_CLUSTERS; do
         LOG "Gather information for $cluster cluster"
         kube_conf="$LOGS/$cluster-kubeconfig.yaml"
-        cluster_log="$DEBUG_LOGS/$cluster.log"
+        cluster_platform=$(oc -n "$cluster" get clusterdeployment \
+            "$cluster" -o jsonpath='{.metadata.labels.cloud}')
+        cluster_log="$DEBUG_LOGS/${cluster_platform}_cluster.log"
         # The LOG_PATH env is set to append the LOG
         # messages into the log files.
         LOG_PATH="$cluster_log"

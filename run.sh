@@ -15,6 +15,7 @@ export GATHER_LOGS="true"
 export LOGS="$SCRIPT_DIR/logs"
 export TESTS_LOGS="$LOGS/tests_logs"
 export DEBUG_LOGS="$LOGS/debug_logs"
+export POLARION_REPORTS="$TESTS_LOGS/polarion"
 export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
 export SUBCTL_UPSTREAM_URL="https://github.com/submariner-io/subctl"
@@ -92,6 +93,9 @@ export SUBM_IMG_LIGHTHOUSE="lighthouse-agent-rhel8"
 export SUBM_IMG_COREDNS="lighthouse-coredns-rhel8"
 export SUBM_IMG_GLOBALNET="submariner-globalnet-rhel8"
 
+export POLARION_VARS_FILE=""
+export POLARION_ADD_SKIPPED="false"
+
 export LATEST_IIB=""
 
 
@@ -116,6 +120,8 @@ source "${SCRIPT_DIR}/lib/submariner_deploy.sh"
 source "${SCRIPT_DIR}/lib/submariner_test.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/gather_info.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/reporting/polarion.sh"
 
 
 function verify_required_env_vars() {
@@ -219,6 +225,11 @@ function test_submariner() {
     fi
 }
 
+function report() {
+    source_and_verify_polarion_params
+    report_polarion
+}
+
 function finalize() {
     if [[ "$TESTS_FAILURES" == "true" ]]; then
         WARNING "Tests execution contains failures"
@@ -243,6 +254,10 @@ function parse_arguments() {
                 ;;
             --test)
                 RUN_COMMAND="test"
+                shift
+                ;;
+            --report)
+                RUN_COMMAND="report"
                 shift
                 ;;
             --validate-prereq)
@@ -302,6 +317,16 @@ function parse_arguments() {
                     shift 2
                 fi
                 ;;
+            --polarion-vars-file)
+                if [[ -n "$2" ]]; then
+                    POLARION_VARS_FILE="$2"
+                    shift 2
+                fi
+                ;;
+            --polarion_add_skipped)
+                POLARION_ADD_SKIPPED="true"
+                shift
+                ;;
             --help|-h)
                 usage
                 exit 0
@@ -325,6 +350,7 @@ function main() {
             prepare
             deploy_submariner
             test_submariner
+            report
             finalize
             ;;
         deploy)
@@ -335,6 +361,10 @@ function main() {
         test)
             prepare
             test_submariner
+            finalize
+            ;;
+        report)
+            report
             finalize
             ;;
         validate-prereq)
