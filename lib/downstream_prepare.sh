@@ -138,9 +138,11 @@ function verify_package_manifest() {
             INFO "Searching for Submariner version - $submariner_version in PackageManifest"
             manifest_ver=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
                             oc -n "$catalog_ns" get packagemanifest submariner --ignore-not-found \
-                            -o jsonpath='{.status.channels[?(@.currentCSV == "'"submariner.v$submariner_version"'")].currentCSVDesc.version}')
+                            -o json | jq -r '.status.channels[] | select(.currentCSV
+                            | test("'"submariner.v$submariner_version"'")).currentCSVDesc.version')
 
-            if [[ -n "$manifest_ver" && "$manifest_ver" == "$submariner_version" ]]; then
+            if [[ -n "$manifest_ver" && "$manifest_ver" =~ $submariner_version ]]; then
+                INFO "Submariner package manifest contains version $manifest_ver"
                 continue 2
             fi
             sleep $(( timeout++ ))
@@ -149,7 +151,6 @@ function verify_package_manifest() {
         if [[ "$manifest_ver" != "$submariner_version" ]]; then
             ERROR "Submariner package manifest is missing $submariner_version version"
         fi
-        INFO "Submariner package manifest contains version $submariner_version"
     done
 }
 
