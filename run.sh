@@ -47,6 +47,12 @@ declare -A ACM_2_5=(
     [channel]='stable'
 )
 export ACM_2_5
+declare -A ACM_2_6=(
+    [acm_version]='2.6'
+    [submariner_version]='0.13.0'
+    [channel]='stable'
+)
+export ACM_2_6
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
 
@@ -64,7 +70,7 @@ export LOCAL_MIRROR="true"
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
-export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.1")
+export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.1" "0.13.0")
 export SUBMARINER_CHANNEL_RELEASE=""
 # The default IPSEC NATT port is - 4500
 export SUBMARINER_IPSEC_NATT_PORT=4505
