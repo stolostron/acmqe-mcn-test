@@ -92,6 +92,8 @@ export SUBM_IMG_NETWORK="submariner-networkplugin-syncer-rhel8"
 export SUBM_IMG_LIGHTHOUSE="lighthouse-agent-rhel8"
 export SUBM_IMG_COREDNS="lighthouse-coredns-rhel8"
 export SUBM_IMG_GLOBALNET="submariner-globalnet-rhel8"
+export SUBM_IMG_NETTEST_UPSTREAM="nettest"
+export SUBM_IMG_NETTEST_PATH_UPSTREAM="quay.io/submariner"
 
 export POLARION_VARS_FILE=""
 export POLARION_ADD_SKIPPED="false"
