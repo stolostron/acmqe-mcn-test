@@ -65,7 +65,7 @@ function generate_polarion_testplan_id() {
 
     junit_name=$(fetch_polarion_test_name_from_file "$junit_xml")
     acm_ver=$(echo "$junit_name" | grep -Po '(?<=ACM-)[[0-9].[0-9].[0-9]]*' | tr "." "_" || :)
-    subm_ver=$(echo "$junit_name" | grep -Po '(?<=Submariner-)[[0-9].[0-9]2.[0-9]]*' | tr "." "_" || :)
+    subm_ver=$(echo "$junit_name" | grep -Po '(?<=Submariner-)[[0-9].[0-9][0-9].[0-9]]*' | tr "." "_" || :)
 
     if [[ -z "$acm_ver" || -z "$subm_ver" ]]; then
         ERROR "Polarion: Unable to generate TestPlan ID. Missing ACM or Submariner version vars"
