@@ -430,7 +430,7 @@ function import_images_into_local_registry() {
             INFO "Import nettest used for e2e testing"
             IMG_NAME="$SUBM_IMG_NETTEST_UPSTREAM" \
                 IMG_NAME_TAG="$SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL" \
-                TAG="v$SUBMARINER_VERSION_INSTALL-rc1" \
+                TAG="v$SUBMARINER_VERSION_INSTALL" \
                 yq eval '.metadata.name = env(IMG_NAME)
                 | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
                 | .name = env(TAG))' \
