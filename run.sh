@@ -34,7 +34,7 @@ export VALIDATION_STATE=""
 # The key will define the version of ACM
 # The value will define the version of Submariner and a channel
 
-# Declare associative arrays
+# Declare associative arrays for acm/submariner versions
 declare -A ACM_2_4=(
     [acm_version]='2.4'
     [submariner_version]='0.11.2'
@@ -47,6 +47,18 @@ declare -A ACM_2_5=(
     [channel]='stable'
 )
 export ACM_2_5
+declare -A ACM_2_5_2=(
+    [acm_version]='2.5.2'
+    [submariner_version]='0.12.2'
+    [channel]='stable'
+)
+export ACM_2_5_2
+declare -A ACM_2_6=(
+    [acm_version]='2.6'
+    [submariner_version]='0.13.0'
+    [channel]='stable'
+)
+export ACM_2_6
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
 
@@ -64,7 +76,7 @@ export LOCAL_MIRROR="true"
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
 export SUBMARINER_VERSION_INSTALL=""
-export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.1")
+export SUPPORTED_SUBMARINER_VERSIONS=("0.11.0" "0.11.2" "0.12.1" "0.12.2" "0.13.0")
 export SUBMARINER_CHANNEL_RELEASE=""
 # The default IPSEC NATT port is - 4500
 export SUBMARINER_IPSEC_NATT_PORT=4505
@@ -92,6 +104,8 @@ export SUBM_IMG_NETWORK="submariner-networkplugin-syncer-rhel8"
 export SUBM_IMG_LIGHTHOUSE="lighthouse-agent-rhel8"
 export SUBM_IMG_COREDNS="lighthouse-coredns-rhel8"
 export SUBM_IMG_GLOBALNET="submariner-globalnet-rhel8"
+export SUBM_IMG_NETTEST_UPSTREAM="nettest"
+export SUBM_IMG_NETTEST_PATH_UPSTREAM="quay.io/submariner"
 
 export POLARION_VARS_FILE=""
 export POLARION_ADD_SKIPPED="false"

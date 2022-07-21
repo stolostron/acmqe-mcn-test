@@ -355,12 +355,24 @@ function import_images_into_local_registry() {
     local import_state
     local submariner_ga="0.12.0"
     local registry_image_prefix_path
-    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
 
+    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
     if [[ "$version_state" == "valid" ]]; then
         export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
     elif [[ "$version_state" == "not_valid" ]]; then
         export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
+    fi
+
+    # Starting 0.13.0 the subctl will use a new flow for the nettest image
+    # The subctl will search the image as per the other images repository
+    # It means that starting 0.13.0 we need to import the nettest image into the cluster
+    local subctl_e2e_new_img_flow="0.13.0"
+    local subctl_import_nettest_img="false"
+    local subctl_state
+
+    subctl_state=$(validate_version "$subctl_e2e_new_img_flow" "$SUBMARINER_VERSION_INSTALL")
+    if [[ "$subctl_state" == "valid" ]]; then
+        subctl_import_nettest_img="true"
     fi
 
     for cluster in $MANAGED_CLUSTERS; do
@@ -411,5 +423,21 @@ function import_images_into_local_registry() {
             $import_state"
         fi
         INFO "Imported image - $SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
+
+        if [[ "$subctl_import_nettest_img" == "true" ]]; then
+            # Pulling only the upstream image until downstream image is created
+            # https://github.com/stolostron/backlog/issues/23675
+            INFO "Import nettest used for e2e testing"
+            IMG_NAME="$SUBM_IMG_NETTEST_UPSTREAM" \
+                IMG_NAME_TAG="$SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL" \
+                TAG="v$SUBMARINER_VERSION_INSTALL" \
+                yq eval '.metadata.name = env(IMG_NAME)
+                | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
+                | .name = env(TAG))' \
+                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                | KUBECONFIG="$kube_conf" oc apply -f -
+
+                INFO "Imported image - $SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL"
+        fi
     done
 }
