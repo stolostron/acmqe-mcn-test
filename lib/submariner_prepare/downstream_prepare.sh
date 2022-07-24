@@ -9,7 +9,7 @@ function create_icsp() {
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create Brew ICSP mirror on $cluster"
         yq eval '.spec.repositoryDigestMirrors[].mirrors[] = env(BREW_REGISTRY)' \
-            "$SCRIPT_DIR/resources/image-content-source-policy.yaml" \
+            "$SCRIPT_DIR/manifests/image-content-source-policy.yaml" \
             | KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" oc apply -f -
     done
 }
@@ -91,7 +91,7 @@ function create_catalog_source() {
         IMG_SRC="$image_source" NS="$catalog_ns" \
             yq eval '.spec.image = env(IMG_SRC)
             | .metadata.namespace = env(NS)' \
-            "$SCRIPT_DIR/resources/catalog-source.yaml" \
+            "$SCRIPT_DIR/manifests/catalog-source.yaml" \
             | KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" oc apply -f -
     done
 
@@ -190,7 +190,7 @@ function create_brew_secret() {
                 yq eval '.metadata.name = "brew-registry"
                 | .metadata.namespace = env(NS)
                 | .data.".dockerconfigjson" = env(HASH)' \
-                "$SCRIPT_DIR/resources/secret.yaml" \
+                "$SCRIPT_DIR/manifests/secret.yaml" \
                 | KUBECONFIG="$kube_conf" oc apply -f -
         done
 

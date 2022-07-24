@@ -115,25 +115,25 @@ export LATEST_IIB=""
 
 # Import functions
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/helper_functions.sh"
+source "${SCRIPT_DIR}/lib/common/helper_functions.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/prerequisites.sh"
+source "${SCRIPT_DIR}/lib/common/prerequisites.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/validate_acm_readiness.sh"
+source "${SCRIPT_DIR}/lib/common/gather_info.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/azure_prepare.sh"
+source "${SCRIPT_DIR}/lib/submariner_prepare/validate_acm_readiness.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/acm_prepare_for_submariner.sh"
+source "${SCRIPT_DIR}/lib/submariner_prepare/azure_prepare.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/downstream_prepare.sh"
+source "${SCRIPT_DIR}/lib/submariner_prepare/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/downstream_mirroring_workaround.sh"
+source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_prepare.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/submariner_deploy.sh"
+source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_mirroring_workaround.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/submariner_test.sh"
+source "${SCRIPT_DIR}/lib/submariner_deploy/submariner_deploy.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/gather_info.sh"
+source "${SCRIPT_DIR}/lib/submariner_test/submariner_test.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/reporting/polarion.sh"
 
