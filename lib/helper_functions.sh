@@ -33,18 +33,7 @@ function ERROR() {
 # The output will be redirected to the log file as well.
 function LOG() {
     local message="$1"
-    local log_file=""
-
-    if [[ -n "$LOG_PATH" ]]; then
-        log_file="$LOG_PATH"
-    fi
-
-    echo -e "\n${CYAN}LOG: ${NO_COLOR}${message}"
-    {
-    echo -e "\n===================="
-    echo -e "LOG: ${message}"
-    echo -e "===================="
-    }  >> "${log_file}"
+    echo -e "${CYAN}LOG: ${NO_COLOR}${message}"
 }
 
 function usage() {
