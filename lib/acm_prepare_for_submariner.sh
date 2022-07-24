@@ -26,7 +26,7 @@ function assign_clusters_to_clusterset() {
                           -l cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
                           --no-headers=true -o custom-columns=NAME:.metadata.name)
     
-    if [[ "$MANAGED_CLUSTERS" != "$assigned_clusters" ]]; then
+    if [[ $(echo "$MANAGED_CLUSTERS" |sort) != $(echo "$assigned_clusters" |sort) ]]; then
         ERROR "Failed to assign managed clusters to HUB. Assigned: $assigned_clusters"
     fi
     INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $assigned_clusters"
