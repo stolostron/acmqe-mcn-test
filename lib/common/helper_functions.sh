@@ -55,7 +55,7 @@ function usage() {
     export OC_CLUSTER_PASS=<password of the cluster user>
 
     Arguments:
-    Global arguments:
+    Main arguments:
     -----------------
     --all                  - Perform deployment and testing of the Submariner addon
 

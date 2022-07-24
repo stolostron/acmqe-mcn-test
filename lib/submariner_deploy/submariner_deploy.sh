@@ -36,7 +36,7 @@ function prepare_clusters_for_submariner() {
             | .spec.subscriptionConfig.source = env(SUBM_SOURCE)
             | .spec.subscriptionConfig.sourceNamespace = env(NS)
             | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \
-            "$SCRIPT_DIR/resources/submariner-config.yaml" | oc apply -f -
+            "$SCRIPT_DIR/manifests/submariner-config.yaml" | oc apply -f -
     done
 }
 
@@ -56,7 +56,7 @@ function deploy_submariner_broker() {
 
         NS="$broker_ns" yq eval '.metadata.namespace = env(NS)
             | .spec.globalnetEnabled = env(SUBMARINER_GLOBALNET)' \
-            "$SCRIPT_DIR/resources/broker.yaml" | oc apply -f -
+            "$SCRIPT_DIR/manifests/broker.yaml" | oc apply -f -
     fi
 }
 
@@ -67,7 +67,7 @@ function deploy_submariner_addon() {
         INFO "Deploy Submariner addon on cluster - $cluster"
 
         CL="$cluster" yq eval '.metadata.namespace = env(CL)' \
-            "$SCRIPT_DIR/resources/submariner-addon.yaml" | oc apply -f -
+            "$SCRIPT_DIR/manifests/submariner-addon.yaml" | oc apply -f -
     done
 }
 
