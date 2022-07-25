@@ -4,7 +4,7 @@
 
 function create_clusterset() {
     yq eval '.metadata.name = env(CLUSTERSET)' \
-        "$SCRIPT_DIR/resources/cluster-set.yaml" | oc apply -f -
+        "$SCRIPT_DIR/manifests/cluster-set.yaml" | oc apply -f -
     oc get managedclusterset "$CLUSTERSET"
 }
 
@@ -13,20 +13,20 @@ function assign_clusters_to_clusterset() {
 
     INFO "Add the RBAC ClusterRole entry to allow cluster join"
     yq eval '.rules[0].resourceNames = [env(CLUSTERSET)]' \
-        "$SCRIPT_DIR/resources/cluster-role.yaml" | oc apply -f -
+        "$SCRIPT_DIR/manifests/cluster-role.yaml" | oc apply -f -
 
     INFO "Add managed clusters to the clusterset"
     for cluster in $MANAGED_CLUSTERS; do
         CL="$cluster" yq eval 'with(.metadata; .name = env(CL)
             | .labels."cluster.open-cluster-management.io/clusterset" = env(CLUSTERSET))' \
-            resources/managed-cluster.yaml | oc apply -f -
+            manifests/managed-cluster.yaml | oc apply -f -
     done
 
     assigned_clusters=$(oc get managedclusters \
                           -l cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
                           --no-headers=true -o custom-columns=NAME:.metadata.name)
     
-    if [[ "$MANAGED_CLUSTERS" != "$assigned_clusters" ]]; then
+    if [[ $(echo "$MANAGED_CLUSTERS" |sort) != $(echo "$assigned_clusters" |sort) ]]; then
         ERROR "Failed to assign managed clusters to HUB. Assigned: $assigned_clusters"
     fi
     INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $assigned_clusters"

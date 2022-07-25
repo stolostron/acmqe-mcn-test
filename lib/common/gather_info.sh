@@ -8,25 +8,11 @@ function get_submariner_pods() {
     local kube_conf="$1"
     local cluster_log="$2"
 
-    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" get pods \
-        2>&1 | tee -a "$cluster_log"
+    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" get pods > \
+        "${cluster_log}_pods_state.log"
 }
 
-function get_submariner_pods_images() {
-    LOG "Get Submariner pods images"
-    local kube_conf="$1"
-    local cluster_log="$2"
-
-    pods=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-             get pods -o jsonpath='{.items[*].metadata.name}')
-    for pod in $pods; do
-        KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" get pods \
-            "$pod" -o jsonpath='{.status.containerStatuses[0].imageID}'
-        echo
-    done
-}
-
-function get_submariner_pods_content() {
+function get_submariner_describe_pods() {
     LOG "Get Submariner pods content"
     local kube_conf="$1"
     local cluster_log="$2"
@@ -35,19 +21,9 @@ function get_submariner_pods_content() {
     pods=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
              get pods -o jsonpath='{.items[*].metadata.name}')
     for pod in $pods; do
-        LOG "Pod $pod content"
         KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" describe \
-            pod "$pod" 2>&1 | tee -a "$cluster_log"
+            pod "$pod" > "${cluster_log}_describe_${pod}.log"
     done
-}
-
-function get_gateway_state() {
-    local kube_conf="$1"
-    local cluster_log="$2"
-    LOG "Get cluster Gateway state"
-
-    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-        describe Gateway 2>&1 | tee -a "$cluster_log"
 }
 
 function get_cluster_service_version() {
@@ -63,24 +39,13 @@ function get_cluster_service_version() {
     if [[ -n "$csv_version" ]]; then
         KUBECONFIG="$kube_conf" \
             oc -n "$SUBMARINER_NS" get csv "$csv_version" \
-            -o yaml 2>&1 | tee -a "$cluster_log"
+            -o yaml > "${cluster_log}_csv.yaml"
     else
         LOG "No Submariner ClusterServiceVersion has been found"
     fi
 }
 
-function get_submariner_config_crd() {
-    LOG "Get SubmarinerConfig CRD"
-    local kube_conf="$1"
-    local cluster_log="$2"
-
-    KUBECONFIG="$kube_conf" oc get crd \
-        submarinerconfigs.submarineraddon.open-cluster-management.io \
-        -o yaml --ignore-not-found 2>&1 | tee -a "$cluster_log"
-}
-
 function get_icsp() {
-    LOG "Get ICSP"
     local kube_conf="$1"
     local cluster_log="$2"
     local icsp=""
@@ -88,8 +53,9 @@ function get_icsp() {
     icsp=$(KUBECONFIG="$kube_conf" oc get imagecontentsourcepolicy \
         -o jsonpath='{.items[?(@.metadata.name=="brew-registry")].metadata.name}')
     if [[ -n "$icsp" ]]; then
+        LOG "Get ICSP"
         KUBECONFIG="$kube_conf" oc get imagecontentsourcepolicy "$icsp" \
-            -o yaml 2>&1 | tee -a "$cluster_log"
+            -o yaml > "${cluster_log}_icsp.yaml"
     else
         LOG "No ICSP for brew-registry has been found"
     fi
@@ -108,7 +74,7 @@ function get_catalog_source() {
         catalog_ns=$(KUBECONFIG="$kube_conf" oc get catalogsource -A \
                 -o jsonpath='{.items[?(@.metadata.name=="submariner-catalog")].metadata.namespace}')
         KUBECONFIG="$kube_conf" oc -n "$catalog_ns" get catalogsource \
-            "$catalog_name" -o yaml 2>&1 | tee -a "$cluster_log"
+            "$catalog_name" -o yaml > "${cluster_log}_catalog_source.yaml"
     else
         LOG "No Submariner CatalogSource has been found"
     fi
@@ -121,95 +87,104 @@ function get_package_manifest() {
 
     KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
         get packagemanifest submariner -o yaml \
-        --ignore-not-found 2>&1 | tee -a "$cluster_log"
+        --ignore-not-found > "${cluster_log}_package_manifest.yaml"
 }
 
-function get_submariner_pods_logs() {
-    LOG "Gather Submariner pods logs"
-    LOG "The logs will be stored in the $cluster_log-pod_logs path"
+function get_submariner_addon_log() {
+    LOG "Get submariner-addon log"
     local kube_conf="$1"
-    local cluster_log="$2-pod_logs"
-    local pods=""
-    export LOG_PATH="$cluster_log"
+    local cluster_log="$2"
+    local addon_pod
 
-    pods=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-             get pods -o jsonpath='{.items[*].metadata.name}')
-    for pod in $pods; do
-        KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-            logs "$pod" >> "$cluster_log" \
-            || echo "No logs found for pod $pod" >> "$cluster_log"
-    done
+    addon_pod=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
+        get pods -l app=submariner-addon --no-headers=true \
+        -o custom-columns=NAME:.metadata.name)
+    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
+        logs "$addon_pod" >> "${cluster_log}_submariner_addon.log" \
+        || echo "No logs found for pod $addon_pod" > "${cluster_log}_submariner_addon.log"
 }
 
 function gather_cluster_info() {
     local kube_conf
     local cluster_log
-    local cluster_platform
+    local kubecfg
 
     for cluster in $MANAGED_CLUSTERS; do
         LOG "Gather information for $cluster cluster"
+        kubecfg+="$LOGS/$cluster-kubeconfig.yaml:"
         kube_conf="$LOGS/$cluster-kubeconfig.yaml"
-        cluster_platform=$(oc -n "$cluster" get clusterdeployment \
-            "$cluster" -o jsonpath='{.metadata.labels.cloud}')
-        cluster_log="$DEBUG_LOGS/${cluster_platform}_cluster.log"
-        # The LOG_PATH env is set to append the LOG
-        # messages into the log files.
-        LOG_PATH="$cluster_log"
+        cluster_log="$DEBUG_LOGS/$cluster"
 
         get_submariner_pods "$kube_conf" "$cluster_log"
-        get_submariner_pods_images "$kube_conf" "$cluster_log"
-        get_submariner_pods_content "$kube_conf" "$cluster_log"
-        get_gateway_state "$kube_conf" "$cluster_log"
+        get_submariner_describe_pods "$kube_conf" "$cluster_log"
         get_cluster_service_version "$kube_conf" "$cluster_log"
-        get_submariner_config_crd "$kube_conf" "$cluster_log"
         get_icsp "$kube_conf" "$cluster_log"
         get_catalog_source "$kube_conf" "$cluster_log"
         get_package_manifest "$kube_conf" "$cluster_log"
-        get_submariner_pods_logs "$kube_conf" "$cluster_log"
+        get_submariner_addon_log "$kube_conf" "$cluster_log"
     done
+
+    KUBECONFIG="${kubecfg%:}"
+    export KUBECONFIG
+    LOG "Gather logs with subctl gather"
+    subctl gather --dir "$DEBUG_LOGS"/ &> "$DEBUG_LOGS"/subctl_gather_state
+    unset KUBECONFIG
 }
 
 function gather_hub_info() {
-    local acm_hub_log="$DEBUG_LOGS/acm_hub.log"
-    # The LOG_PATH env is set to append the LOG
-    # messages into the log files.
-    LOG_PATH="$acm_hub_log"
-    LOG "Gather ACM Hub information"
+    local acm_hub_log="$DEBUG_LOGS/acm_hub"
+    local addon_pod_ns
+    local addon_pod_name
 
-    LOG "Get ClusterDeployments clusters"
+    LOG "Gather ACM Hub Cluster Deployments state"
     oc get clusterdeployment -A \
-        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+        --ignore-not-found > "${acm_hub_log}_cluster_deployment_state"
 
-    LOG "Get ClusterDeployments clusters details"
+    LOG "Gather ACM Hub ClusterDeployments details"
     oc get clusterdeployment -A -o yaml \
-        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+        --ignore-not-found > "${acm_hub_log}_cluster_deployment.yaml"
 
-    LOG "Get MultiClusterHub details"
+    LOG "Gather ACM Hub MultiClusterHub details"
     oc get multiclusterhub -A -o yaml \
-        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+        --ignore-not-found > "${acm_hub_log}_multiclusterhub.yaml"
 
-    LOG "Get Submariner ClusterSet details"
+    LOG "Gather ACM Hub Submariner ClusterSet details"
     oc get managedclusterset "$CLUSTERSET" -o yaml \
-        --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+        --ignore-not-found > "${acm_hub_log}_managed_cluster_set.yaml"
+
+    LOG "Gather ACM Hub Submariner Addon pod log"
+    addon_pod_ns=$(oc get pod -A -l app=submariner-addon \
+        --no-headers=true -o custom-columns=NAMESPACE:.metadata.namespace)
+    addon_pod_name=$(oc get pod -A -l app=submariner-addon \
+        --no-headers=true -o custom-columns=NAME:.metadata.name)
+    oc -n "$addon_pod_ns" \
+        logs "$addon_pod_name" > "${acm_hub_log}_submariner_addon_pod.log" \
+        || echo "No logs found for pod $addon_pod" > "${acm_hub_log}_submariner_addon_pod.log"
 
     for cluster_ns in $MANAGED_CLUSTERS; do
-        LOG "Get SubmarinerConfig from $cluster cluster"
+        LOG "Gather ACM Hub SubmarinerConfig for $cluster cluster"
         oc -n "$cluster_ns" get submarinerconfig submariner \
-            -o yaml --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+            -o yaml --ignore-not-found > \
+            "${acm_hub_log}_${cluster_ns}_submariner_config.yaml"
 
-        LOG "Get ManagedClusterAddon from $cluster cluster"
+        LOG "Gather ACM Hub ManagedClusterAddon for $cluster cluster"
         oc -n "$cluster_ns" get managedclusteraddon submariner \
-            -o yaml --ignore-not-found 2>&1 | tee -a "$acm_hub_log"
+            -o yaml --ignore-not-found > \
+            "${acm_hub_log}_${cluster_ns}_managed_cluster_addon.yaml"
     done
 }
 
 function gather_debug_info() {
     INFO "Gather debug info from ACM Hub and managed clusters"
+    local logs_filename="environment_logs.tar.gz"
     
     rm -rf "$DEBUG_LOGS"
     mkdir -p "$DEBUG_LOGS"
 
     gather_hub_info
     gather_cluster_info
-    INFO "Debug logs have been gathered"
+    tar -czf "$LOGS/$logs_filename" \
+        --remove-files -C "$LOGS" debug_logs
+    INFO "Debug logs have been gathered and stored in -
+    $LOGS/$logs_filename"
 }

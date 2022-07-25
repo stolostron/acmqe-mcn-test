@@ -24,7 +24,7 @@ function create_service_account_for_internal_registry() {
     INFO "Create Service Account on $cluster cluster"
     SA="$sa_name" NS="$SUBMARINER_NS" yq eval \
         'with(.metadata; .name = env(SA) | .namespace = env(NS))' \
-        "$SCRIPT_DIR/resources/service-account.yaml" \
+        "$SCRIPT_DIR/manifests/service-account.yaml" \
         | KUBECONFIG="$kube_conf" oc apply -f -
 
     INFO "Create RoleBinding for SA on $cluster cluster"
@@ -33,7 +33,7 @@ function create_service_account_for_internal_registry() {
         | .namespace = env(SUBMARINER_NS))
         | with(.subjects[]; .name = env(SA)
         | .namespace = env(SUBMARINER_NS))' \
-        "$SCRIPT_DIR/resources/service-account-role-config.yaml" \
+        "$SCRIPT_DIR/manifests/service-account-role-config.yaml" \
         | KUBECONFIG="$kube_conf" oc apply -f -
 }
 
@@ -73,7 +73,7 @@ function create_namespace() {
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
         NS="$SUBMARINER_NS" yq eval '.metadata.name = env(NS)' \
-            "$SCRIPT_DIR/resources/namespace.yaml" \
+            "$SCRIPT_DIR/manifests/namespace.yaml" \
             | KUBECONFIG="$kube_conf" oc apply -f -
     done
 }
@@ -228,7 +228,7 @@ EOF
             | .metadata.name = env(CONFIG_NAME)
             | .spec.config.ignition.version = env(IGNITION)
             | .spec.config.storage.files[].contents.source = env(CONFIG_SOURCE)' \
-            "$SCRIPT_DIR/resources/machine_config.yaml" \
+            "$SCRIPT_DIR/manifests/machine_config.yaml" \
             | KUBECONFIG="$kube_conf" oc apply -f -
     done
 }
@@ -398,7 +398,7 @@ function import_images_into_local_registry() {
                 yq eval '.metadata.name = env(IMG_NAME)
                 | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
                 | .name = env(TAG))' \
-                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                "$SCRIPT_DIR/manifests/image-stream.yaml" \
                 | KUBECONFIG="$kube_conf" oc apply -f -
 
             if [[ "$import_state" =~ ("Import failed"|"error") ]]; then
@@ -415,7 +415,7 @@ function import_images_into_local_registry() {
             yq eval '.metadata.name = env(IMG_NAME)
                 | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
                 | .name = env(TAG))' \
-                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                "$SCRIPT_DIR/manifests/image-stream.yaml" \
                 | KUBECONFIG="$kube_conf" oc apply -f -
 
         if [[ "$import_state" =~ ("Import failed"|"error") ]]; then
@@ -434,7 +434,7 @@ function import_images_into_local_registry() {
                 yq eval '.metadata.name = env(IMG_NAME)
                 | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
                 | .name = env(TAG))' \
-                "$SCRIPT_DIR/resources/image-stream.yaml" \
+                "$SCRIPT_DIR/manifests/image-stream.yaml" \
                 | KUBECONFIG="$kube_conf" oc apply -f -
 
                 INFO "Imported image - $SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL"
