@@ -133,6 +133,8 @@ function gather_cluster_info() {
 
 function gather_hub_info() {
     local acm_hub_log="$DEBUG_LOGS/acm_hub"
+    local addon_pod_ns
+    local addon_pod_name
 
     LOG "Gather ACM Hub Cluster Deployments state"
     oc get clusterdeployment -A \
@@ -149,6 +151,15 @@ function gather_hub_info() {
     LOG "Gather ACM Hub Submariner ClusterSet details"
     oc get managedclusterset "$CLUSTERSET" -o yaml \
         --ignore-not-found > "${acm_hub_log}_managed_cluster_set.yaml"
+
+    LOG "Gather ACM Hub Submariner Addon pod log"
+    addon_pod_ns=$(oc get pod -A -l app=submariner-addon \
+        --no-headers=true -o custom-columns=NAMESPACE:.metadata.namespace)
+    addon_pod_name=$(oc get pod -A -l app=submariner-addon \
+        --no-headers=true -o custom-columns=NAME:.metadata.name)
+    oc -n "$addon_pod_ns" \
+        logs "$addon_pod_name" > "${acm_hub_log}_submariner_addon_pod.log" \
+        || echo "No logs found for pod $addon_pod" > "${acm_hub_log}_submariner_addon_pod.log"
 
     for cluster_ns in $MANAGED_CLUSTERS; do
         LOG "Gather ACM Hub SubmarinerConfig for $cluster cluster"
