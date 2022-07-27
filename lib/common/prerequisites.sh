@@ -72,10 +72,6 @@ function verify_prerequisites_tools() {
     verify_ocp_clients
     verify_yq
     verify_jq
-
-    if [[ "$PLATFORM" =~ "azure" && "$RUN_COMMAND" =~ ("all"|"deploy") ]]; then
-        verify_az_cli
-    fi
 }
 
 
