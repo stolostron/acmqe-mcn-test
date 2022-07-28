@@ -199,8 +199,8 @@ function deploy_submariner() {
         version_state=$(validate_version "$azure_cloud_support" "$SUBMARINER_VERSION_INSTALL")
         if [[ "$version_state" == "not_valid" ]]; then
             INFO "Perform manual cloud prepare for Azure"
-            # verify_az_cli
-            # prepare_azure_cloud
+            verify_az_cli
+            prepare_azure_cloud
         fi
     fi
 
