@@ -185,17 +185,23 @@ function prepare() {
 }
 
 function deploy_submariner() {
-    if [[ "$PLATFORM" =~ "azure" ]]; then
-        INFO "Perform manual cloud prepare for Azure.
-        Replace when patch is merged:
-        https://github.com/submariner-io/cloud-prepare/pull/203"
-        prepare_azure_cloud
-    fi
-
     if [[ -n "$SUBMARINER_VERSION_INSTALL" ]]; then
         validate_given_submariner_version
     else
         select_submariner_version_and_channel_to_deploy
+    fi
+
+    if [[ "$PLATFORM" =~ "azure" ]]; then
+        # Starting from submariner 0.13.0, cloud prepare
+        # is done automatically.
+        # Only older versions require manual steps.
+        local azure_cloud_support="0.13.0"
+        version_state=$(validate_version "$azure_cloud_support" "$SUBMARINER_VERSION_INSTALL")
+        if [[ "$version_state" == "not_valid" ]]; then
+            INFO "Perform manual cloud prepare for Azure"
+            verify_az_cli
+            prepare_azure_cloud
+        fi
     fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
