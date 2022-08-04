@@ -116,6 +116,7 @@ function create_nsg_and_rules_for_gateway() {
     # so no need to provide them as global parameters
     local submariner_vxlan_port=4800
     local submariner_metrics_port=8080
+    local submariner_nat_discovery_port=4490
 
     # Declare associative arrays
     declare -A RULE_1=(
@@ -160,6 +161,48 @@ function create_nsg_and_rules_for_gateway() {
         [rule_priority]=3505
     )
     export RULE_6
+    declare -A RULE_7=(
+        [dest_port]="$submariner_nat_discovery_port"
+        [direction]='Inbound'
+        [protocol]='Udp'
+        [rule_priority]=3506
+    )
+    export RULE_7
+    declare -A RULE_8=(
+        [dest_port]="$submariner_nat_discovery_port"
+        [direction]='Outbound'
+        [protocol]='Udp'
+        [rule_priority]=3507
+    )
+    export RULE_8
+    declare -A RULE_9=(
+        [dest_port]="0-0"
+        [direction]='Inbound'
+        [protocol]='Ah'  # Authentication Header (AH)
+        [rule_priority]=3508
+    )
+    export RULE_9
+    declare -A RULE_10=(
+        [dest_port]="0-0"
+        [direction]='Outbound'
+        [protocol]='Ah'  # Authentication Header (AH)
+        [rule_priority]=3509
+    )
+    export RULE_10
+    declare -A RULE_11=(
+        [dest_port]="0-0"
+        [direction]='Inbound'
+        [protocol]='Esp'  # Encapsulated Security Payload (ESP)
+        [rule_priority]=3510
+    )
+    export RULE_11
+    declare -A RULE_12=(
+        [dest_port]="0-0"
+        [direction]='Outbound'
+        [protocol]='Esp'  # Encapsulated Security Payload (ESP)
+        [rule_priority]=3511
+    )
+    export RULE_12
     # Declare array of GW_NSG_RULES of associative arrays
     export GW_NSG_RULES=("${!RULE@}")
 
