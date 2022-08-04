@@ -125,6 +125,15 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              the Submariner gateway HA will be enabled automatically.
                              (Optional)
 
+    --subm-gateway-random  - Set the deployment flow to randomize the gateway deployment
+                             between clusters. When used, the flow will deploy 2 gateway nodes
+                             on the first cluster and 1 gateway node on all other clusters.
+                             Used by the internal QE flow to test random states of gateways.
+                             Note - The use of this flag will ignore the "--subm-gateway-count"
+                             flag.
+                             (Optional)
+                             By default - false
+
     Reporting arguments:
     --------------------
     --polarion-vars-file   - A path to the file that contains Polarion details.
