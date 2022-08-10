@@ -164,6 +164,7 @@ function validate_prerequisites() {
     verify_prerequisites_tools
     login_to_cluster "hub"
     check_clusters_deployment
+    check_for_claim_cluster_with_pre_set_clusterset
 
     mch_ver=$(fetch_multiclusterhub_version)
     echo "MultiClusterHub version:"
