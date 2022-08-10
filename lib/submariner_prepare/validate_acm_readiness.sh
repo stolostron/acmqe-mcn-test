@@ -131,9 +131,11 @@ function check_clusters_deployment() {
 # It will reset the CLUSTERSET environment variable.
 function check_for_claim_cluster_with_pre_set_clusterset() {
     INFO "Check for claim cluster"
-
+    local clusters
+    local clusters_count
     local claim_cluster
     local claim_clusterset
+    local clusterset_defined="false"
 
     for cluster in $MANAGED_CLUSTERS; do
         claim_cluster=$(oc get clusterdeployment -n "$cluster" "$cluster" \
@@ -144,15 +146,45 @@ function check_for_claim_cluster_with_pre_set_clusterset() {
             claim_clusterset=$(oc get clusterdeployment -n "$cluster" "$cluster" \
                 -o json | jq -r '.metadata.labels."cluster.open-cluster-management.io/clusterset"')
 
-            if [[ "$claim_clusterset" != "null" ]]; then
+            if [[ "$claim_clusterset" != "null" && "$clusterset_defined" == "false" ]]; then
+                INFO "Detected claim cluster $cluster with clusterset $claim_clusterset"
                 WARNING "Claim cluster has a pre-defined clusterset.
                 That clusterset should be used for the Submariner deployment
                 due to ACM limitations.
                 Set Submariner ClusterSet to - $claim_clusterset"
                 export CLUSTERSET=$claim_clusterset
+                clusterset_defined="true"
+                clusters+="$cluster,"
+            elif [[ "$claim_clusterset" != "null" && "$claim_clusterset" == "$CLUSTERSET" ]]; then
+                INFO "Detected claim cluster $cluster with clusterset $claim_clusterset"
+                clusters+="$cluster,"
+            elif [[ "$claim_clusterset" != "null" && "$claim_clusterset" != "$CLUSTERSET" ]]; then
+                WARNING "Detected claim cluster $cluster with conflicting clusterset $claim_clusterset
+                    Excluding the cluster from execution list"
+            elif [[ "$claim_clusterset" == "null" ]]; then
+                INFO "Detected claim cluster $cluster with no clusterset"
+                clusters+="$cluster,"
             fi
         else
             INFO "Claim not detected for cluster - $cluster"
+            clusters+="$cluster,"
         fi
     done
+
+    clusters=$(echo "${clusters%,}" | tr "," "\n")
+    if [[ "$MANAGED_CLUSTERS" != "$clusters" && "$clusterset_defined" == "true" ]]; then
+        MANAGED_CLUSTERS="$clusters"
+
+        INFO "Claim clusters clustersets conflicts.
+            The new MANAGED CLUSTERS list - $MANAGED_CLUSTERS"
+    fi
+
+    clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
+    if [[ "$clusters_count" -lt 2 ]]; then
+        if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
+            VALIDATION_STATE+="Not ready! Found $clusters_count managed clusters, required at least 2."
+        else
+            ERROR "At least two managed clusters required for Submariner deployment. Found - $clusters_count"
+        fi
+    fi
 }

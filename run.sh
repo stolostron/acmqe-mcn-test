@@ -82,6 +82,10 @@ export SUBMARINER_CHANNEL_RELEASE=""
 export SUBMARINER_IPSEC_NATT_PORT=4505
 export SUBMARINER_CABLE_DRIVER="libreswan"
 export SUBMARINER_GATEWAY_COUNT=1
+# When set to true, the deployment will set 2 gateways
+# on first cluster and 1 gateway on other clusters
+# Used by the testing pipeline
+export SUBMARINER_GATEWAY_RANDOM="false"
 # Official RedHat registry
 export OFFICIAL_REGISTRY="registry.redhat.io"
 export STAGING_REGISTRY="registry.stage.redhat.io"
@@ -160,6 +164,7 @@ function validate_prerequisites() {
     verify_prerequisites_tools
     login_to_cluster "hub"
     check_clusters_deployment
+    check_for_claim_cluster_with_pre_set_clusterset
 
     mch_ver=$(fetch_multiclusterhub_version)
     echo "MultiClusterHub version:"
@@ -334,6 +339,12 @@ function parse_arguments() {
             --subm-gateway-count)
                 if [[ -n "$2" ]]; then
                     SUBMARINER_GATEWAY_COUNT="$2"
+                    shift 2
+                fi
+                ;;
+            --subm-gateway-random)
+                if [[ -n "$2" ]]; then
+                    SUBMARINER_GATEWAY_RANDOM="$2"
                     shift 2
                 fi
                 ;;

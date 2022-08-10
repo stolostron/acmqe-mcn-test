@@ -132,6 +132,15 @@ function usage() {
                              the Submariner gateway HA will be enabled automatically.
                              (Optional)
 
+    --subm-gateway-random  - Set the deployment flow to randomize the gateway deployment
+                             between clusters. When used, the flow will deploy 2 gateway nodes
+                             on the first cluster and 1 gateway node on all other clusters.
+                             Used by the internal QE flow to test random states of gateways.
+                             Note - The use of this flag will ignore the "--subm-gateway-count"
+                             flag.
+                             (Optional)
+                             By default - false
+
     Reporting arguments:
     --------------------
     --polarion-vars-file   - A path to the file that contains Polarion details.
@@ -299,7 +308,8 @@ function print_selected_options() {
 
         Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT
         Submariner cable driver: $SUBMARINER_CABLE_DRIVER
-        Submariner gateway count: $SUBMARINER_GATEWAY_COUNT"
+        Submariner gateway count: $SUBMARINER_GATEWAY_COUNT
+        Submariner gateway random: $SUBMARINER_GATEWAY_RANDOM"
         echo -e "\n###############################\n"
     fi
 }

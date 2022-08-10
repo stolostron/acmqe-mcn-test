@@ -19,10 +19,15 @@ function prepare_clusters_for_submariner() {
         catalog_source="submariner-catalog"
     fi
 
+    if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
+        SUBMARINER_GATEWAY_COUNT=2
+    fi
+
     for cluster in $MANAGED_CLUSTERS; do
         creds=$(get_cluster_credential_name "$cluster")
         INFO "Using $creds credentials for $cluster cluster"
-        INFO "Prepare cloud for cluster $cluster"
+        INFO "Apply SubmarinerConfig on cluster $cluster"
+        INFO "Use $SUBMARINER_GATEWAY_COUNT for $cluster cluster"
 
         CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
             SUBM_VER="$submariner_version" NS="$catalog_ns" \
@@ -37,6 +42,10 @@ function prepare_clusters_for_submariner() {
             | .spec.subscriptionConfig.sourceNamespace = env(NS)
             | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \
             "$SCRIPT_DIR/manifests/submariner-config.yaml" | oc apply -f -
+
+        if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
+            SUBMARINER_GATEWAY_COUNT=1
+        fi
     done
 }
 
