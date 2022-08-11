@@ -93,12 +93,12 @@ pipeline {
             }
             steps {
                 script {
-                    GLOBALNET = ""
+                    GLOBALNET = "--globalnet ${params.GLOBALNET}"
                     // The "GLOBALNET_TRIGGER" will be used as a
                     // control point to for ACM versions below 2.5.0
                     // As it's not supported.
-                    if (params.GLOBALNET && GLOBALNET_TRIGGER) {
-                        GLOBALNET = "--globalnet true"
+                    if (!GLOBALNET_TRIGGER) {
+                        GLOBALNET = "--globalnet false"
                     }
 
                     VERSION = ""
