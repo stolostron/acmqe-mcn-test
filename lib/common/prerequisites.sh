@@ -81,8 +81,18 @@ function fetch_submariner_addon_version() {
     local sub_version
 
     sub_cluster_ns=$(oc get clusterdeployment -A \
-                   --selector=cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
-                   -o jsonpath='{.items[0].metadata.namespace}')
+        --selector=cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
+        -o jsonpath='{range.items[?(@.status.powerState=="Running")]}{.metadata.namespace}{"\n"}{end}' \
+        | head -n 1)
+    # ACM 2.4.x missing ".status.powerState", which is added in 2.5.x
+    # In case first quesry return empty var, execute a different query
+    if [[ -z "$sub_cluster_ns" ]]; then
+        sub_cluster_ns=$(oc get clusterdeployment -A \
+            --selector=cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
+            -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.namespace}{"\n"}{end}' \
+            | head -n 1)
+    fi
+
     sub_version=$(oc get managedclusteraddon/submariner -n "$sub_cluster_ns" \
                     -o jsonpath='{.status.conditions[?(@.type == "SubmarinerAgentDegraded")].message}' \
                     | grep -Po '(?<=submariner.)[^)]*')
