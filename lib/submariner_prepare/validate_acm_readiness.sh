@@ -39,6 +39,42 @@ function get_available_platforms() {
     INFO "Existing clusters using the following platform - $PLATFORM"
 }
 
+# The SNO (Single Node Openshift) cluster is not supported by the Submariner as ACM Hub Addon
+# Detect and exclude the sno cluster from submariner clusters execution
+function detect_sno_clusters() {
+    local clusters
+    local sno_clusters
+    local master_count
+    local worker_count
+
+    for cluster in $MANAGED_CLUSTERS; do
+        master_count=$(oc -n "$cluster" get secret "$cluster"-install-config \
+            --template='{{index .data "install-config.yaml" | base64decode}}' \
+            | yq eval '.controlPlane.replicas' -)
+        worker_count=$(oc -n "$cluster" get secret "$cluster"-install-config \
+            --template='{{index .data "install-config.yaml" | base64decode}}' \
+            | yq eval '.compute[0].replicas' -)
+
+        if [[ "$master_count" -eq 1 && "$worker_count" -eq 0 ]]; then
+            sno_clusters+="$cluster,"
+        else
+            clusters+="$cluster,"
+        fi
+    done
+    clusters=$(echo "${clusters%,}" | tr "," "\n")
+    sno_clusters=$(echo "${sno_clusters%,}" | tr "," "\n")
+
+    if [[ -n "$sno_clusters" ]]; then
+        INFO "Detected SNO (Single Node Openshift) clusters
+        $sno_clusters
+        Excluding as not supported.
+        Overriding MANAGED_CLUSTERS list:
+        $clusters"
+
+        MANAGED_CLUSTERS="$clusters"
+    fi
+}
+
 # When a non-globalnet deployment is used, need to ensure
 # that requested clusters does not using overlapping cidr
 # and exclude the overlapping clusters from the deployment list.
@@ -106,6 +142,8 @@ function check_clusters_deployment() {
                              --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                              -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.name}{"\n"}{end}')
     fi
+
+    detect_sno_clusters
 
     if [[ "$SUBMARINER_GLOBALNET" == "false" ]]; then
         validate_non_globalnet_clusters
