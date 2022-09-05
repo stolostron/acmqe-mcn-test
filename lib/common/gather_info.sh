@@ -99,9 +99,13 @@ function get_submariner_addon_log() {
     addon_pod=$(KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
         get pods -l app=submariner-addon --no-headers=true \
         -o custom-columns=NAME:.metadata.name)
-    KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
-        logs "$addon_pod" >> "${cluster_log}_submariner_addon.log" \
-        || echo "No logs found for pod $addon_pod" > "${cluster_log}_submariner_addon.log"
+
+    if [[ -n "$addon_pod" ]]; then
+        KUBECONFIG="$kube_conf" oc -n "$SUBMARINER_NS" \
+            logs "$addon_pod" >> "${cluster_log}_submariner_addon.log"
+    else
+        echo "No addon pod has been found" > "${cluster_log}_submariner_addon.log"
+    fi
 }
 
 function gather_cluster_info() {

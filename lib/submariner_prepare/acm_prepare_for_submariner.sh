@@ -10,6 +10,7 @@ function create_clusterset() {
 
 function assign_clusters_to_clusterset() {
     local assigned_clusters
+    local fail_assigned_clusters
 
     INFO "Add the RBAC ClusterRole entry to allow cluster join"
     yq eval '.rules[0].resourceNames = [env(CLUSTERSET)]' \
@@ -25,11 +26,16 @@ function assign_clusters_to_clusterset() {
     assigned_clusters=$(oc get managedclusters \
                           -l cluster.open-cluster-management.io/clusterset="$CLUSTERSET" \
                           --no-headers=true -o custom-columns=NAME:.metadata.name)
-    
-    if [[ $(echo "$MANAGED_CLUSTERS" |sort) != $(echo "$assigned_clusters" |sort) ]]; then
-        ERROR "Failed to assign managed clusters to HUB. Assigned: $assigned_clusters"
+
+    for cluster in $assigned_clusters; do
+        if [[ "$cluster" =~ $MANAGED_CLUSTERS ]]; then
+            fail_assigned_clusters+=" $cluster"
+        fi
+    done
+    if [[ -n "$fail_assigned_clusters" ]]; then
+        ERROR "Failed to assign some managed clusters to the clusterset: $fail_assigned_clusters"
     fi
-    INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $assigned_clusters"
+    INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $MANAGED_CLUSTERS"
 }
 
 function fetch_multiclusterhub_version() {

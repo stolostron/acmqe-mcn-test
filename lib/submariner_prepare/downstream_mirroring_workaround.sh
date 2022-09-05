@@ -378,10 +378,6 @@ function import_images_into_local_registry() {
     for cluster in $MANAGED_CLUSTERS; do
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
-        INFO "Disable the default remote OperatorHub sources for OLM"
-        KUBECONFIG="$kube_conf" oc patch OperatorHub cluster --type json \
-            -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-
         INFO "Import Submariner images into cluster $cluster"
         for image in \
           $SUBM_IMG_BUNDLE \
