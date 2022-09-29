@@ -29,7 +29,8 @@ The versions of ACM Hub and Submariner defined in `run.sh` file and used during 
 | 2.4.*         | 0.11.2     |
 | 2.5.0 / 2.5.1 | 0.12.1     |
 | 2.5.2         | 0.12.2     |
-| 2.6.0         | 0.13.0     |
+| 2.6.0 / 2.6.1 | 0.13.0     |
+| 2.6.2         | 0.13.1     |
 
 ## Execution
 Execution of deployment, testing and reporting requires connection details to the ACM HUB cluster.  
@@ -43,7 +44,7 @@ export OC_CLUSTER_URL=<hub cluster url>
 export OC_CLUSTER_USER=<cluster user name (kubeadmin)>
 export OC_CLUSTER_PASS=<password of the cluster user>
 
-./run.sh --deploy --platform aws,gcp --downstream --globalnet true
+./run.sh --deploy --platform aws,gcp --downstream true --globalnet true
 ```
 
 ### Command arguments
@@ -80,12 +81,12 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              If not specified, submariner version will be chosen
                              based of the ACM hub support
 
-    --downstream           - Use the flag if downsteram images should be used.
+    --downstream           - Use the flag if downstream images should be used.
                              Submariner images could be sourced from two places:
                                * Official Red Hat ragistry - registry.redhat.io
                                * Downstream Quay registry - brew.registry.redhat.io
                              (Optional)
-                             If flag is not used, official registry will be used
+                             By default - false
 
     --mirror               - Use local ocp registry.
                              Due to https://issues.redhat.com/browse/RFE-1608,
