@@ -59,6 +59,12 @@ declare -A ACM_2_6=(
     [channel]='stable'
 )
 export ACM_2_6
+declare -A ACM_2_6_2=(
+    [acm_version]='2.6.2'
+    [submariner_version]='0.13.1'
+    [channel]='stable'
+)
+export ACM_2_6_2
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
 
@@ -309,8 +315,10 @@ function parse_arguments() {
                 fi
                 ;;
             --downstream)
-                DOWNSTREAM="true"
-                shift
+                if [[ -n "$2" ]]; then
+                    DOWNSTREAM="$2"
+                    shift 2
+                fi
                 ;;
             --mirror)
                 if [[ -n "$2" ]]; then

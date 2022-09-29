@@ -87,12 +87,12 @@ function usage() {
                              If not specified, submariner version will be chosen
                              based of the ACM hub support
 
-    --downstream           - Use the flag if downsteram images should be used.
+    --downstream           - Use the flag if downstream images should be used.
                              Submariner images could be sourced from two places:
                                * Official Red Hat ragistry - registry.redhat.io
                                * Downstream Quay registry - brew.registry.redhat.io
                              (Optional)
-                             If flag is not used, official registry will be used
+                             By default - false
 
     --mirror               - Use local ocp registry.
                              Due to https://issues.redhat.com/browse/RFE-1608,
