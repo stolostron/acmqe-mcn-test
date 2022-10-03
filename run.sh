@@ -53,6 +53,12 @@ declare -A ACM_2_5_2=(
     [channel]='stable'
 )
 export ACM_2_5_2
+declare -A ACM_2_5_3=(
+    [acm_version]='2.5.3'
+    [submariner_version]='0.12.2'
+    [channel]='stable'
+)
+export ACM_2_5_3
 declare -A ACM_2_6=(
     [acm_version]='2.6'
     [submariner_version]='0.13.0'
