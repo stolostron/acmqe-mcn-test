@@ -108,7 +108,7 @@ pipeline {
 
                     DOWNSTREAM = ""
                     if (params.DOWNSTREAM) {
-                        DOWNSTREAM = "--downstream"
+                        DOWNSTREAM = "--downstream true"
                     }
 
                     // The '@post-release' tag meant to test post GA release
@@ -134,7 +134,7 @@ pipeline {
                 script {
                     DOWNSTREAM = ""
                     if (params.DOWNSTREAM) {
-                        DOWNSTREAM = "--downstream"
+                        DOWNSTREAM = "--downstream true"
                     }
 
                     // The '@post-release' tag meant to test post GA release
