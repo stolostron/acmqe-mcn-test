@@ -20,7 +20,7 @@ export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
 export SUBCTL_UPSTREAM_URL="https://github.com/submariner-io/subctl"
 export PLATFORM="aws,gcp"  # Default platform definition
-export SUPPORTED_PLATFORMS="aws,gcp,azure"  # Supported platform definition
+export SUPPORTED_PLATFORMS="aws,gcp,azure,vsphere"  # Supported platform definition
 # Non critial failures will be stored into the variable
 # and printed at the end of the execution.
 # The testing will be performed,
@@ -199,6 +199,7 @@ function prepare() {
     check_clusters_deployment
     check_for_claim_cluster_with_pre_set_clusterset
     fetch_kubeconfig_contexts_and_pass
+    validate_internal_registry
 }
 
 function deploy_submariner() {
