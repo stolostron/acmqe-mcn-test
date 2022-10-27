@@ -83,7 +83,8 @@ function combine_tests_basename() {
     acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
     subm_ver=$(KUBECONFIG="$LOGS/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get subs submariner \
-        -o jsonpath='{.status.currentCSV}' | grep -Po '(?<=submariner.v)[^)]*')
+        -o jsonpath='{.status.currentCSV}' \
+        | grep -Po '(?<=submariner.v)[^)]*' | cut -d '-' -f1)
     primary_cl_platform=$(oc -n "$primary_cluster" get clusterdeployment \
         "$primary_cluster" -o jsonpath='{.metadata.labels.cloud}')
     secondary_cl_platform=$(oc -n "$secondary_cluster" get clusterdeployment \
