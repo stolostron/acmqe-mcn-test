@@ -239,6 +239,35 @@ function validate_given_submariner_version() {
     INFO "Submariner version provided manually - $SUBMARINER_VERSION_INSTALL"
 }
 
+function validate_internal_registry() {
+    INFO "Validate proper configuration of cluster internal registry"
+    local registry_state
+    local registry_config
+
+    for cluster in $MANAGED_CLUSTERS; do
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        registry_state=$(KUBECONFIG="$kube_conf" oc get \
+            configs.imageregistry.operator.openshift.io cluster -o jsonpath='{.spec.managementState}')
+
+        if [[ "$registry_state" == "Removed" ]]; then
+            INFO "The $cluster cluster internal registry is not configured. Setting up non prod registry..."
+            KUBECONFIG="$kube_conf" oc patch configs.imageregistry.operator.openshift.io \
+                cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
+
+            KUBECONFIG="$kube_conf" oc patch configs.imageregistry.operator.openshift.io \
+                cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+
+            sleep 3m
+
+            registry_config=$(KUBECONFIG="$kube_conf" \
+                oc registry info --internal || echo "not_ready")
+            if [[ "$registry_config" == "not_ready" ]]; then
+                ERROR "The internal registry of $cluster cluster is not ready"
+            fi
+        fi
+    done
+}
+
 # Function to convert raw text (e.g. yaml) to encoded url format
 function raw_to_url_encode() {
     local string

@@ -75,6 +75,38 @@ function detect_sno_clusters() {
     fi
 }
 
+# No POWERSTATE state is awailable for the vsphere managed clusters
+# Checking the running state by fetching the ManagedClusterConditionAvailable
+function check_available_vsphere_platform_clusters() {
+    INFO "Validate VSphere clusters"
+    local vsphere_clusters
+    local vsphere_ready_clusters
+
+    vsphere_clusters=$(oc get clusterdeployment -A \
+                    --selector "hive.openshift.io/cluster-platform in (vsphere)" \
+                    --no-headers=true -o custom-columns=NAME:".metadata.name")
+    for vsphere_cluster in $vsphere_clusters; do
+        local state=""
+        state=$(oc get managedclusters "$vsphere_cluster" \
+                 -o jsonpath='{.status.conditions[?(@.type == "ManagedClusterConditionAvailable")].status}')
+
+        if [[ "$state" == "True" ]]; then
+            vsphere_ready_clusters+="$vsphere_cluster,"
+        fi
+    done
+    vsphere_ready_clusters=$(echo "${vsphere_ready_clusters%,}" | tr "," "\n")
+
+    if [[ -n "$vsphere_ready_clusters" ]]; then
+        INFO "Found ready VSphere clusters"
+        MANAGED_CLUSTERS=$(echo "$vsphere_ready_clusters $MANAGED_CLUSTERS" | tr " " "\n")
+        MANAGED_CLUSTERS="${MANAGED_CLUSTERS%$'\n'}"
+
+        INFO "Updating MANAGED_CLUSTERS to - $MANAGED_CLUSTERS"
+    else
+        INFO "No ready VSphere clusters found"
+    fi
+}
+
 # When a non-globalnet deployment is used, need to ensure
 # that requested clusters does not using overlapping cidr
 # and exclude the overlapping clusters from the deployment list.
@@ -145,11 +177,15 @@ function check_clusters_deployment() {
 
     detect_sno_clusters
 
+    if [[ "$PLATFORM" =~ "vsphere" ]]; then
+        check_available_vsphere_platform_clusters
+    fi
+
     if [[ "$SUBMARINER_GLOBALNET" == "false" ]]; then
         validate_non_globalnet_clusters
     fi
-    clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
 
+    clusters_count=$(echo "$MANAGED_CLUSTERS" | wc -w)
     if [[ "$clusters_count" -lt 2 ]]; then
         if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
             VALIDATION_STATE+="Not ready! Found $clusters_count managed clusters, required at least 2."

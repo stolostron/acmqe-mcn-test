@@ -15,8 +15,8 @@ The following clusters platforms are supported by the Submariner Addon deploymen
 - [X] AWS
 - [X] GCP
 - [X] Azure
+- [X] VMware
 - [ ] OSP
-- [ ] VMware
 
 The user is able to define manually which platforms should be deployed and tested.  
 Multiple platforms should be separated by a comma.
