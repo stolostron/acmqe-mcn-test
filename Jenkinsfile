@@ -7,6 +7,7 @@ pipeline {
     }
     options {
         ansiColor('xterm')
+        buildDiscarder(logRotator(daysToKeepStr: '30'))
     }
     parameters {
         string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
