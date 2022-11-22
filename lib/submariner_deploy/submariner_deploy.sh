@@ -27,7 +27,7 @@ function prepare_clusters_for_submariner() {
         creds=$(get_cluster_credential_name "$cluster")
         INFO "Using $creds credentials for $cluster cluster"
         INFO "Apply SubmarinerConfig on cluster $cluster"
-        INFO "Use $SUBMARINER_GATEWAY_COUNT for $cluster cluster"
+        INFO "Use $SUBMARINER_GATEWAY_COUNT gateway node for $cluster cluster"
 
         CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
             SUBM_VER="$submariner_version" NS="$catalog_ns" \

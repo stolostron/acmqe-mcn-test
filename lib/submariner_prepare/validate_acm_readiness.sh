@@ -142,8 +142,11 @@ function validate_non_globalnet_clusters() {
     INFO "The following clusters have non overlapping CIDR:
     $clusters
     Overriding MANAGED_CLUSTERS list"
-    WARNING "A Non Globalnet deployment selected
-    The following clusters were discarded due to overlapping CIDR: $discarded_clusters"
+
+    if [[ -n "$discarded_clusters" ]]; then
+        WARNING "A Non Globalnet deployment selected
+        The following clusters were discarded due to overlapping CIDR: $discarded_clusters"
+    fi
     MANAGED_CLUSTERS="$clusters"
 
     for platform in $MANAGED_CLUSTERS; do
