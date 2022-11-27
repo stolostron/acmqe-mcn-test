@@ -75,36 +75,61 @@ function detect_sno_clusters() {
     fi
 }
 
-# No POWERSTATE state is awailable for the vsphere managed clusters
+# No POWERSTATE state is available for the managed clusters
 # Checking the running state by fetching the ManagedClusterConditionAvailable
-function check_available_vsphere_platform_clusters() {
-    INFO "Validate VSphere clusters"
-    local vsphere_clusters
-    local vsphere_ready_clusters
+# The function will check the platform that will be provided as an input.
+function check_managed_clusters_readiness() {
+    local clusters="$1"
+    local platform="$2"
+    local ready_clusters
 
-    vsphere_clusters=$(oc get clusterdeployment -A \
-                    --selector "hive.openshift.io/cluster-platform in (vsphere)" \
-                    --no-headers=true -o custom-columns=NAME:".metadata.name")
-    for vsphere_cluster in $vsphere_clusters; do
+    for cluster in $clusters; do
         local state=""
-        state=$(oc get managedclusters "$vsphere_cluster" \
+        state=$(oc get managedclusters "$cluster" \
                  -o jsonpath='{.status.conditions[?(@.type == "ManagedClusterConditionAvailable")].status}')
 
         if [[ "$state" == "True" ]]; then
-            vsphere_ready_clusters+="$vsphere_cluster,"
+            ready_clusters+="$cluster,"
         fi
     done
-    vsphere_ready_clusters=$(echo "${vsphere_ready_clusters%,}" | tr "," "\n")
+    ready_clusters=$(echo "${ready_clusters%,}" | tr "," "\n")
 
-    if [[ -n "$vsphere_ready_clusters" ]]; then
-        INFO "Found ready VSphere clusters"
-        MANAGED_CLUSTERS=$(echo "$vsphere_ready_clusters $MANAGED_CLUSTERS" | tr " " "\n")
+    if [[ -n "$ready_clusters" ]]; then
+        INFO "Found ready $platform clusters"
+        MANAGED_CLUSTERS=$(echo "$ready_clusters $MANAGED_CLUSTERS" | tr " " "\n")
         MANAGED_CLUSTERS="${MANAGED_CLUSTERS%$'\n'}"
 
         INFO "Updating MANAGED_CLUSTERS to - $MANAGED_CLUSTERS"
     else
-        INFO "No ready VSphere clusters found"
+        INFO "No ready $platform clusters found"
     fi
+}
+
+function check_managed_clusters_available_platform() {
+    local platform="$1"
+    local clusters
+    INFO "Validate $platform clusters"
+
+    clusters=$(oc get clusterdeployment -A \
+        --selector "hive.openshift.io/cluster-platform in ($platform)" \
+        --no-headers=true -o custom-columns=NAME:".metadata.name")
+
+    check_managed_clusters_readiness "$clusters" "$platform"
+}
+
+# Fetch the cluster from ManagedClusters resources by defined product (ex: ARO/ROSA).
+# Looking for "product.open-cluster-management.io" value of clusterClaims.
+function fetch_managed_cluster_by_product() {
+    local product="$1"
+    local clusters
+    INFO "Validate $product clusters"
+
+    clusters=$(oc get managedcluster -o json \
+        | jq -r '.items[] | select(.status.clusterClaims | from_entries
+        | select(."product.open-cluster-management.io"
+        | contains("'"$product"'"))).metadata.name')
+
+    check_managed_clusters_readiness "$clusters" "$product"
 }
 
 # When a non-globalnet deployment is used, need to ensure
@@ -181,7 +206,9 @@ function check_clusters_deployment() {
     detect_sno_clusters
 
     if [[ "$PLATFORM" =~ "vsphere" ]]; then
-        check_available_vsphere_platform_clusters
+        check_managed_clusters_available_platform "vsphere"
+    elif [[ "$PLATFORM" =~ "aro" ]]; then
+        fetch_managed_cluster_by_product "ARO"
     fi
 
     if [[ "$SUBMARINER_GLOBALNET" == "false" ]]; then
@@ -215,10 +242,10 @@ function check_for_claim_cluster_with_pre_set_clusterset() {
     local clusterset_defined="false"
 
     for cluster in $MANAGED_CLUSTERS; do
-        claim_cluster=$(oc get clusterdeployment -n "$cluster" "$cluster" \
+        claim_cluster=$(oc get clusterdeployment -n "$cluster" "$cluster" --ignore-not-found \
             -o json | jq '.metadata.annotations."hive.openshift.io/cluster-pool-spec-hash"')
 
-        if [[ "$claim_cluster" != "null" ]]; then
+        if [[ "$claim_cluster" != @(null|"") ]]; then
             INFO "Claim detected for cluster - $cluster"
             claim_clusterset=$(oc get clusterdeployment -n "$cluster" "$cluster" \
                 -o json | jq -r '.metadata.labels."cluster.open-cluster-management.io/clusterset"')
