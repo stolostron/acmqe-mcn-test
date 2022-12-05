@@ -65,6 +65,8 @@ function usage() {
 
     --report               - Report tests results to Polarion
 
+    --gather-logs          - Gather debug info and logs for environment
+
     --validate-prereq      - Perform prerequisites validation of the environment
                              before deployment.
                              The validation will consist of the following checks:
@@ -103,10 +105,10 @@ function usage() {
                              The flag is used only with "--downstream" flag.
                              Otherwise, ignored.
 
-    --gather-logs          - Specify if logs gathering should be performed.
+    --skip-gather-logs     - Specify if logs gathering should be skipped.
                              The gathering will be done on all submariner configs.
                              (Optional)
-                             By default - true
+                             By default - false
 
     Submariner configuration arguments:
     -----------------------------------
@@ -311,7 +313,7 @@ function validate_version() {
 
 function catch_error() {
     if [[ "$1" != "0" ]]; then
-        if [[ "$GATHER_LOGS" == "true" ]]; then
+        if [[ "$SKIP_GATHER_LOGS" == "false" ]]; then
             gather_debug_info
             if [[ -n "$FAILURES" ]]; then
                 echo -e "\nExecution aborted. The following failures detected:\n$FAILURES"
@@ -333,7 +335,7 @@ function print_selected_options() {
         Globalnet: $SUBMARINER_GLOBALNET
         Use downstream deployment: $DOWNSTREAM
         Use downstream mirror: $LOCAL_MIRROR
-        Gather logs: $GATHER_LOGS
+        Skip gather logs: $SKIP_GATHER_LOGS
 
         Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT
         Submariner cable driver: $SUBMARINER_CABLE_DRIVER
