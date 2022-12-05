@@ -189,13 +189,31 @@ function login_to_cluster() {
     fi
 }
 
+# Fetch platform of the cluster
+function get_cluster_platform() {
+    local cluster="$1"
+    local cluster_platform
+
+    cluster_platform=$(oc get managedcluster "$cluster" \
+        -o jsonpath='{.status.clusterClaims[?(@.name == "platform.open-cluster-management.io")].value}')
+    echo "$cluster_platform"
+}
+
+# Fetch product of the cluster
+function get_cluster_product() {
+    local cluster="$1"
+    local cluster_product
+
+    cluster_product=$(oc get managedcluster "$cluster" \
+        -o jsonpath='{.status.clusterClaims[?(@.name == "product.open-cluster-management.io")].value}')
+    echo "$cluster_product"
+}
+
 # Fetch the name of the cloud credentials for the cluster
 function get_cluster_credential_name() {
-    local cluster
+    local cluster="$1"
     local platform_type
     local cluster_creds_name
-
-    cluster="$1"
 
     platform_type=$(oc get clusterdeployment -n "$cluster" -o json --no-headers=true \
                  -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
