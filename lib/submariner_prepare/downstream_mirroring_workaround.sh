@@ -363,18 +363,6 @@ function import_images_into_local_registry() {
         export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
     fi
 
-    # Starting 0.13.0 the subctl will use a new flow for the nettest image
-    # The subctl will search the image as per the other images repository
-    # It means that starting 0.13.0 we need to import the nettest image into the cluster
-    local subctl_e2e_new_img_flow="0.13.0"
-    local subctl_import_nettest_img="false"
-    local subctl_state
-
-    subctl_state=$(validate_version "$subctl_e2e_new_img_flow" "$SUBMARINER_VERSION_INSTALL")
-    if [[ "$subctl_state" == "valid" ]]; then
-        subctl_import_nettest_img="true"
-    fi
-
     for cluster in $MANAGED_CLUSTERS; do
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
@@ -420,20 +408,46 @@ function import_images_into_local_registry() {
         fi
         INFO "Imported image - $SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
 
+        # Starting 0.13.0 the subctl will use a new flow for the nettest image
+        # The subctl will search the image as per the other images repository
+        # It means that starting 0.13.0 we need to import the nettest image into the cluster
+        #
+        # Starting 0.13.2 the downstream subctl should use downstream version of nettest image.
+        local subctl_e2e_new_img_flow="0.13.0"
+        local subctl_import_nettest_img="false"
+        local nettest_downstream_version="0.13.2"
+        local nettest_import_downstream_img="false"
+        local subctl_state
+        local nettest_downstream
+
+        subctl_state=$(validate_version "$subctl_e2e_new_img_flow" "$SUBMARINER_VERSION_INSTALL")
+        if [[ "$subctl_state" == "valid" ]]; then
+            subctl_import_nettest_img="true"
+
+            nettest_downstream=$(validate_version "$nettest_downstream_version" "$SUBMARINER_VERSION_INSTALL")
+            if [[ "$nettest_downstream" == "valid" ]]; then
+                nettest_import_downstream_img="true"
+            fi
+        fi
+
         if [[ "$subctl_import_nettest_img" == "true" ]]; then
-            # Pulling only the upstream image until downstream image is created
-            # https://github.com/stolostron/backlog/issues/23675
             INFO "Import nettest used for e2e testing"
-            IMG_NAME="$SUBM_IMG_NETTEST_UPSTREAM" \
-                IMG_NAME_TAG="$SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL" \
-                TAG="v$SUBMARINER_VERSION_INSTALL" \
+            local img_name="$SUBM_IMG_NETTEST_UPSTREAM"
+            local img_src="$SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL"
+
+            if [[ "$nettest_import_downstream_img" == "true" ]]; then
+                img_name="$SUBM_IMG_NETTEST_DOWNSTREAM"
+                img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$registry_image_prefix_path-$SUBM_IMG_NETTEST_DOWNSTREAM:v$SUBMARINER_VERSION_INSTALL"
+            fi
+
+            IMG_NAME="$img_name" IMG_NAME_TAG="$img_src" TAG="v$SUBMARINER_VERSION_INSTALL" \
                 yq eval '.metadata.name = env(IMG_NAME)
                 | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
                 | .name = env(TAG))' \
                 "$SCRIPT_DIR/manifests/image-stream.yaml" \
                 | KUBECONFIG="$kube_conf" oc apply -f -
 
-                INFO "Imported image - $SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL"
+            INFO "Imported image - $img_src"
         fi
     done
 }

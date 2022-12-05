@@ -85,10 +85,8 @@ function combine_tests_basename() {
         oc -n submariner-operator get subs submariner \
         -o jsonpath='{.status.currentCSV}' \
         | grep -Po '(?<=submariner.v)[^)]*' | cut -d '-' -f1)
-    primary_cl_platform=$(oc -n "$primary_cluster" get clusterdeployment \
-        "$primary_cluster" -o jsonpath='{.metadata.labels.cloud}')
-    secondary_cl_platform=$(oc -n "$secondary_cluster" get clusterdeployment \
-        "$secondary_cluster" -o jsonpath='{.metadata.labels.cloud}')
+    primary_cl_platform=$(set_cluster_platform_for_test_report "$primary_cluster")
+    secondary_cl_platform=$(set_cluster_platform_for_test_report "$secondary_cluster")
 
     globalnet_state=$(KUBECONFIG="$LOGS/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get pods -l=app=submariner-globalnet \
@@ -100,6 +98,19 @@ function combine_tests_basename() {
     fi
 
     echo "ACM-${acm_ver}-Submariner-${subm_ver}-${primary_cl_platform}-${secondary_cl_platform}-${globalnet}"
+}
+
+function set_cluster_platform_for_test_report() {
+    local cluster="$1"
+    local platform
+    local product
+
+    platform=$(get_cluster_platform "$cluster")
+    product=$(get_cluster_product "$cluster")
+    if [[ "$product" != "OpenShift" ]]; then
+        platform="$product"
+    fi
+    echo "$platform"
 }
 
 # When one of the tests fails, add the error note to a global variable.
