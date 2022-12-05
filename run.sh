@@ -138,7 +138,7 @@ function test_submariner() {
     verify_subctl_command
     execute_submariner_tests
 
-    if [[ "$GATHER_LOGS" == "true" ]]; then
+    if [[ "$SKIP_GATHER_LOGS" == "false" ]]; then
         INFO "Gather ACM Hub and managed clusters information"
         gather_debug_info
     fi
@@ -179,6 +179,10 @@ function parse_arguments() {
                 RUN_COMMAND="report"
                 shift
                 ;;
+            --gather-logs)
+                RUN_COMMAND="gather-logs"
+                shift
+                ;;
             --validate-prereq)
                 # The argument is used by the ci flow
                 RUN_COMMAND="validate-prereq"
@@ -214,9 +218,9 @@ function parse_arguments() {
                     shift 2
                 fi
                 ;;
-            --gather-logs)
+            --skip-gather-logs)
                 if [[ -n "$2" ]]; then
-                    export GATHER_LOGS="$2"
+                    export SKIP_GATHER_LOGS="$2"
                     shift 2
                 fi
                 ;;
@@ -293,6 +297,10 @@ function main() {
         report)
             report
             finalize
+            ;;
+        gather-logs)
+            prepare
+            gather_debug_info
             ;;
         validate-prereq)
             validate_prerequisites
