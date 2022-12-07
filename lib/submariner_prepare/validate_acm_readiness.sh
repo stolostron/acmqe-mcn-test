@@ -146,12 +146,12 @@ function validate_non_globalnet_clusters() {
     local platform_iter
 
     for cluster in $MANAGED_CLUSTERS; do
-        cluster_net=$(oc -n "$cluster" get secret "$cluster"-install-config \
-            --template='{{index .data "install-config.yaml" | base64decode}}' \
-            | yq eval '.networking.clusterNetwork[].cidr' -)
-        service_net=$(oc -n "$cluster" get secret "$cluster"-install-config \
-            --template='{{index .data "install-config.yaml" | base64decode}}' \
-            | yq eval '.networking.serviceNetwork[]' -)
+        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+
+        cluster_net=$(KUBECONFIG="$kube_conf" oc get network.config.openshift.io \
+            cluster -o jsonpath='{.status.clusterNetwork[*].cidr}')
+        service_net=$(KUBECONFIG="$kube_conf" oc get network.config.openshift.io \
+            cluster -o jsonpath='{.status.serviceNetwork[*]}')
 
         if [[ ! "${subnets[*]}" =~ $cluster_net || ! "${subnets[*]}" =~ $service_net ]]; then
             clusters+="$cluster,"
@@ -175,9 +175,7 @@ function validate_non_globalnet_clusters() {
     MANAGED_CLUSTERS="$clusters"
 
     for platform in $MANAGED_CLUSTERS; do
-        platform_iter=$(oc -n "$platform" get clusterdeployment "$platform" \
-                          --no-headers=true \
-                          -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
+        platform_iter=$(locate_cluster_platform "$platform" | tr '[:upper:]' '[:lower:]')
         platform_str+="$platform_iter,"
     done
     PLATFORM="${platform_str%,}"
@@ -210,6 +208,11 @@ function check_clusters_deployment() {
     elif [[ "$PLATFORM" =~ "aro" ]]; then
         fetch_managed_cluster_by_product "ARO"
     fi
+
+    # The fetch is a workaround to get kubeconfig files from imported clusters
+    # to validate information. Later this function will run again to fetch
+    # the relevant kubeconfigs
+    fetch_kubeconfig_contexts_and_pass
 
     if [[ "$SUBMARINER_GLOBALNET" == "false" ]]; then
         validate_non_globalnet_clusters

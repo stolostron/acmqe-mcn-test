@@ -209,6 +209,26 @@ function get_cluster_product() {
     echo "$cluster_product"
 }
 
+# The function located cluster platform based
+# on the output of cluster platform and product.
+# Since ARO managed OCP based on Azure,
+# and ROSA managed OCP based on AWS,
+# those values defined in the product field.
+# So in case, the product field does not equal to "OpenShift",
+# it will be ARO or ROSA cluster and this value will be taken.
+function locate_cluster_platform() {
+    local cluster="$1"
+    local cluster_platform
+    local cluster_product
+
+    cluster_platform=$(get_cluster_platform "$cluster")
+    cluster_product=$(get_cluster_product "$cluster")
+    if [[ "$cluster_product" != "OpenShift" ]]; then
+        cluster_platform="$cluster_product"
+    fi
+    echo "$cluster_platform"
+}
+
 # Fetch the name of the cloud credentials for the cluster
 function get_cluster_credential_name() {
     local cluster="$1"

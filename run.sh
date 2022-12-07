@@ -78,6 +78,7 @@ function prepare() {
     login_to_cluster "hub"
     check_clusters_deployment
     check_for_claim_cluster_with_pre_set_clusterset
+    INFO "Fetch the kubeconfigs for selected clusters only"
     fetch_kubeconfig_contexts_and_pass
     validate_internal_registry
 }
