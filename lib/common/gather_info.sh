@@ -185,6 +185,7 @@ function gather_debug_info() {
     rm -rf "$DEBUG_LOGS"
     mkdir -p "$DEBUG_LOGS"
 
+    verify_subctl_command
     gather_hub_info
     gather_cluster_info
     tar -czf "$LOGS/$logs_filename" \
