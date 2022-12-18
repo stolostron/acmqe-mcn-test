@@ -116,7 +116,7 @@ pipeline {
                     // thus don't use the downstream tag.
                     // Override the any state of the DOWNSTREAM param.
                     if (params.TEST_TAGS == '@post-release') {
-                        DOWNSTREAM = ""
+                        DOWNSTREAM = "--downstream false"
                     }
                 }
 
@@ -142,7 +142,7 @@ pipeline {
                     // thus don't use the downstream tag.
                     // Override the any state of the DOWNSTREAM param.
                     if (params.TEST_TAGS == '@post-release') {
-                        DOWNSTREAM = ""
+                        DOWNSTREAM = "--downstream false"
                     }
                 }
 
