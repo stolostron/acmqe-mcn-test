@@ -2,9 +2,9 @@ name: 'Test code with Shellcheck'
 
 on:
   push:
-    branches: [ main, devel ]
+    branches: [ main, devel, 'release*' ]
   pull_request:
-    branches: [ main, devel ]
+    branches: [ main, devel, 'release*' ]
 
 jobs:
   shellcheck:
