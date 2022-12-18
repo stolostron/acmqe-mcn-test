@@ -59,6 +59,8 @@ export OC_CLUSTER_PASS=<password of the cluster user>
 
     --report               - Report tests results to Polarion
 
+    --gather-logs          - Gather debug info and logs for environment
+
     --validate-prereq      - Perform prerequisites validation of the environment
                              before deployment.
                              The validation will consist of the following checks:
@@ -97,10 +99,10 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              The flag is used only with "--downstream" flag.
                              Otherwise, ignored.
 
-    --gather-logs          - Specify if logs gathering should be performed.
+    --skip-gather-logs     - Specify if logs gathering should be skipped.
                              The gathering will be done on all submariner configs.
                              (Optional)
-                             By default - true
+                             By default - false
 
     Submariner configuration arguments:
     -----------------------------------
