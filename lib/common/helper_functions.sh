@@ -84,11 +84,6 @@ function usage() {
                              (Optional)
                              By default - aws,gcp
 
-    --version              - Specify Submariner version to be deployed
-                             (Optional)
-                             If not specified, submariner version will be chosen
-                             based of the ACM hub support
-
     --downstream           - Use the flag if downstream images should be used.
                              Submariner images could be sourced from two places:
                                * Official Red Hat ragistry - registry.redhat.io
@@ -271,14 +266,6 @@ function fetch_kubeconfig_contexts_and_pass() {
     done
 }
 
-function validate_given_submariner_version() {
-    INFO "Validate given Submariner version with supported versions"
-    if [[ ! "${SUPPORTED_SUBMARINER_VERSIONS[*]}" =~ $SUBMARINER_VERSION_INSTALL ]]; then
-        ERROR "Suplied Submariner version is not supported. Supported versions - ${SUPPORTED_SUBMARINER_VERSIONS[*]}"
-    fi
-    INFO "Submariner version provided manually - $SUBMARINER_VERSION_INSTALL"
-}
-
 function validate_internal_registry() {
     INFO "Validate proper configuration of cluster internal registry"
     local registry_state
@@ -369,7 +356,6 @@ function print_selected_options() {
         INFO "The following arguments were selected for the execution:
         Run command: $RUN_COMMAND
         Platform: $PLATFORM
-        Specific submariner version: $SUBMARINER_VERSION_INSTALL
         Globalnet: $SUBMARINER_GLOBALNET
         Use downstream deployment: $DOWNSTREAM
         Use downstream mirror: $LOCAL_MIRROR
