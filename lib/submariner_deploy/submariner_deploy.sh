@@ -25,6 +25,15 @@ function prepare_clusters_for_submariner() {
 
     for cluster in $MANAGED_CLUSTERS; do
         creds=$(get_cluster_credential_name "$cluster")
+        product=$(get_cluster_product "$cluster")
+        # The ARO cluster does not need cloud credentials
+        # The ARO cluster should use "loadBalancerEnable: true"
+        local load_balancer="false"
+        if [[ "$product" == "ARO" ]]; then
+            creds="null"
+            load_balancer="true"
+        fi
+
         INFO "Using $creds credentials for $cluster cluster"
         INFO "Apply SubmarinerConfig on cluster $cluster"
         INFO "Use $SUBMARINER_GATEWAY_COUNT gateway node for $cluster cluster"
@@ -32,10 +41,12 @@ function prepare_clusters_for_submariner() {
         CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
             SUBM_VER="$submariner_version" NS="$catalog_ns" \
             SUBM_SOURCE="$catalog_source" \
+            LB="$load_balancer" \
             yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)
             | .spec.IPSecNATTPort = env(SUBMARINER_IPSEC_NATT_PORT)
             | .spec.cableDriver = env(SUBMARINER_CABLE_DRIVER)
+            | .spec.loadBalancerEnable = env(LB)
             | .spec.gatewayConfig.gateways = env(SUBMARINER_GATEWAY_COUNT)
             | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
             | .spec.subscriptionConfig.source = env(SUBM_SOURCE)

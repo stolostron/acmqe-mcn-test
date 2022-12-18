@@ -6,6 +6,7 @@ metadata:
 spec:
   IPSecNATTPort: $IPSEC_NATT_PORT
   cableDriver: libreswan
+  loadBalancerEnable: false
   gatewayConfig:
     gateways: 1
     aws:
