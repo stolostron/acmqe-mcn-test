@@ -84,15 +84,8 @@ function add_custom_registry_to_node() {
     local ocp_registry_url
     local local_registry_path
     local config_source
-    local submariner_ga="0.12.0"
-    local registry_image_prefix_path
-    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
 
-    if [[ "$version_state" == "valid" ]]; then
-        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
-    elif [[ "$version_state" == "not_valid" ]]; then
-        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
-    fi
+    export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
 
     for cluster in $MANAGED_CLUSTERS; do
         local ocp_version
@@ -353,15 +346,7 @@ function set_custom_registry_mirror() {
 function import_images_into_local_registry() {
     INFO "Import images into local cluster registry"
     local import_state
-    local submariner_ga="0.12.0"
-    local registry_image_prefix_path
-
-    version_state=$(validate_version "$submariner_ga" "$SUBMARINER_VERSION_INSTALL")
-    if [[ "$version_state" == "valid" ]]; then
-        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
-    elif [[ "$version_state" == "not_valid" ]]; then
-        export registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX_TECH_PREVIEW}"
-    fi
+    local registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
 
     for cluster in $MANAGED_CLUSTERS; do
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
@@ -376,6 +361,7 @@ function import_images_into_local_registry() {
           $SUBM_IMG_LIGHTHOUSE \
           $SUBM_IMG_COREDNS \
           $SUBM_IMG_GLOBALNET \
+          $SUBM_IMG_NETTEST_DOWNSTREAM \
           ; do
             local img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$registry_image_prefix_path-$image:v$SUBMARINER_VERSION_INSTALL"
             IMG_NAME="$image" IMG_NAME_TAG="$img_src" TAG="v$SUBMARINER_VERSION_INSTALL" \
@@ -407,47 +393,5 @@ function import_images_into_local_registry() {
             $import_state"
         fi
         INFO "Imported image - $SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
-
-        # Starting 0.13.0 the subctl will use a new flow for the nettest image
-        # The subctl will search the image as per the other images repository
-        # It means that starting 0.13.0 we need to import the nettest image into the cluster
-        #
-        # Starting 0.13.2 the downstream subctl should use downstream version of nettest image.
-        local subctl_e2e_new_img_flow="0.13.0"
-        local subctl_import_nettest_img="false"
-        local nettest_downstream_version="0.13.2"
-        local nettest_import_downstream_img="false"
-        local subctl_state
-        local nettest_downstream
-
-        subctl_state=$(validate_version "$subctl_e2e_new_img_flow" "$SUBMARINER_VERSION_INSTALL")
-        if [[ "$subctl_state" == "valid" ]]; then
-            subctl_import_nettest_img="true"
-
-            nettest_downstream=$(validate_version "$nettest_downstream_version" "$SUBMARINER_VERSION_INSTALL")
-            if [[ "$nettest_downstream" == "valid" ]]; then
-                nettest_import_downstream_img="true"
-            fi
-        fi
-
-        if [[ "$subctl_import_nettest_img" == "true" ]]; then
-            INFO "Import nettest used for e2e testing"
-            local img_name="$SUBM_IMG_NETTEST_UPSTREAM"
-            local img_src="$SUBM_IMG_NETTEST_PATH_UPSTREAM/$SUBM_IMG_NETTEST_UPSTREAM:$SUBMARINER_VERSION_INSTALL"
-
-            if [[ "$nettest_import_downstream_img" == "true" ]]; then
-                img_name="$SUBM_IMG_NETTEST_DOWNSTREAM"
-                img_src="$BREW_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$registry_image_prefix_path-$SUBM_IMG_NETTEST_DOWNSTREAM:v$SUBMARINER_VERSION_INSTALL"
-            fi
-
-            IMG_NAME="$img_name" IMG_NAME_TAG="$img_src" TAG="v$SUBMARINER_VERSION_INSTALL" \
-                yq eval '.metadata.name = env(IMG_NAME)
-                | with(.spec.tags[0]; .from.name = env(IMG_NAME_TAG)
-                | .name = env(TAG))' \
-                "$SCRIPT_DIR/manifests/image-stream.yaml" \
-                | KUBECONFIG="$kube_conf" oc apply -f -
-
-            INFO "Imported image - $img_src"
-        fi
     done
 }

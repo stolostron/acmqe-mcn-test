@@ -19,8 +19,6 @@ source "${SCRIPT_DIR}/lib/common/gather_info.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/validate_acm_readiness.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/submariner_prepare/azure_prepare.sh"
-# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_prepare.sh"
@@ -84,24 +82,7 @@ function prepare() {
 }
 
 function deploy_submariner() {
-    if [[ -n "$SUBMARINER_VERSION_INSTALL" ]]; then
-        validate_given_submariner_version
-    else
-        select_submariner_version_and_channel_to_deploy
-    fi
-
-    if [[ "$PLATFORM" =~ "azure" ]]; then
-        # Starting from submariner 0.13.0, cloud prepare
-        # is done automatically.
-        # Only older versions require manual steps.
-        local azure_cloud_support="0.13.0"
-        version_state=$(validate_version "$azure_cloud_support" "$SUBMARINER_VERSION_INSTALL")
-        if [[ "$version_state" == "not_valid" ]]; then
-            INFO "Perform manual cloud prepare for Azure"
-            verify_az_cli
-            prepare_azure_cloud
-        fi
-    fi
+    select_submariner_version_and_channel_to_deploy
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         if [[ "$LOCAL_MIRROR" == "true" ]]; then

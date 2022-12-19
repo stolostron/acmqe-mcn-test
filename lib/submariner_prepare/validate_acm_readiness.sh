@@ -203,9 +203,7 @@ function check_clusters_deployment() {
 
     detect_sno_clusters
 
-    if [[ "$PLATFORM" =~ "vsphere" ]]; then
-        check_managed_clusters_available_platform "vsphere"
-    elif [[ "$PLATFORM" =~ "aro" ]]; then
+    if [[ "$PLATFORM" =~ "aro" ]]; then
         fetch_managed_cluster_by_product "ARO"
     fi
 
