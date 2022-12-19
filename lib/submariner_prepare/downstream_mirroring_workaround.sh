@@ -392,6 +392,12 @@ function import_images_into_local_registry() {
             ERROR "Image import failed.
             $import_state"
         fi
+
+        INFO "Apply workaround for https://issues.redhat.com/browse/ACM-2387"
+        KUBECONFIG="$kube_conf" oc -n openshift tag \
+            "$SUBM_IMG_NETTEST_DOWNSTREAM:v$SUBMARINER_VERSION_INSTALL" \
+            "$SUBM_IMG_NETTEST_DOWNSTREAM:$SUBMARINER_VERSION_INSTALL"
+
         INFO "Imported image - $SUBM_IMG_BUNDLE-index:v$SUBMARINER_VERSION_INSTALL"
     done
 }
