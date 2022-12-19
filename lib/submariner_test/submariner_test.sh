@@ -39,21 +39,24 @@ function execute_submariner_tests() {
             || add_test_error $?
 
         INFO "Execute diagnose all tests"
-        subctl diagnose all 2>&1 \
+        subctl diagnose all --verbose \
+            --context "$primary_test_cluster" \
+            --context "$secondary_test_cluster" 2>&1 \
             | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose firewall inter-cluster tests"
-        subctl diagnose firewall inter-cluster \
-            "$LOGS/$primary_test_cluster-kubeconfig.yaml" \
-            "$LOGS/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
+        subctl diagnose firewall inter-cluster --verbose \
+            --context "$primary_test_cluster" \
+            --remotecontext "$secondary_test_cluster" 2>&1 \
             |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
         subctl verify --only service-discovery,connectivity --verbose \
             --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
-            --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
+            --context "$primary_test_cluster" \
+            --tocontext "$secondary_test_cluster" 2>&1 \
             | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
             || add_test_error $?
         unset KUBECONFIG
