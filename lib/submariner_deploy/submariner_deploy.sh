@@ -17,6 +17,11 @@ function prepare_clusters_for_submariner() {
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         catalog_source="submariner-catalog"
+    else
+        # When deploying from the official source, OLM will choose the right version
+        # automatically based on the PackageManifest fetches from the official CatalogSource.
+        # Thus the "startingCSV" parameter will be supplied as "null".
+        submariner_version="null"
     fi
 
     if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
