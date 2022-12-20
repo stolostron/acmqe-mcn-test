@@ -51,19 +51,11 @@ function execute_submariner_tests() {
             || add_test_error $?
 
         INFO "Execute E2E tests"
-        # Due to https://github.com/submariner-io/submariner-operator/issues/1977
-        if subctl verify --help | grep -q --no-messages junit-report; then
-            subctl verify --only service-discovery,connectivity --verbose \
-                --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
-                --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
-                | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
-                || add_test_error $?
-        else
-            subctl verify --only service-discovery,connectivity --verbose \
-                --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
-                | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
-                || add_test_error $?
-        fi
+        subctl verify --only service-discovery,connectivity --verbose \
+            --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
+            --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
+            || add_test_error $?
         unset KUBECONFIG
     done
     INFO "Tests execution finished"

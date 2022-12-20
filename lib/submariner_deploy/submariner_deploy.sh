@@ -49,24 +49,14 @@ function prepare_clusters_for_submariner() {
     done
 }
 
-# Starting ACM 2.5.0 and Submariner version 0.12.0
-# a new object has been introdused - Broker.
 function deploy_submariner_broker() {
-    local subm_broker_ver="0.12.0"
-    local version_state
-    version_state=$(validate_version "$subm_broker_ver" "$SUBMARINER_VERSION_INSTALL")
+    INFO "Deploy Submariner broker"
+    INFO "The Globalnet conditiona has been set to - $SUBMARINER_GLOBALNET"
+    local broker_ns="$CLUSTERSET-broker"
 
-    if [[ "$version_state" == "not_valid" ]]; then
-        INFO "The ACM version if lower that 2.5.0. Broker resource will not be created"
-    elif [[ "$version_state" == "valid" ]]; then
-        INFO "Deploy Submariner broker"
-        INFO "The Globalnet conditiona has been set to - $SUBMARINER_GLOBALNET"
-        local broker_ns="$CLUSTERSET-broker"
-
-        NS="$broker_ns" yq eval '.metadata.namespace = env(NS)
-            | .spec.globalnetEnabled = env(SUBMARINER_GLOBALNET)' \
-            "$SCRIPT_DIR/manifests/broker.yaml" | oc apply -f -
-    fi
+    NS="$broker_ns" yq eval '.metadata.namespace = env(NS)
+        | .spec.globalnetEnabled = env(SUBMARINER_GLOBALNET)' \
+        "$SCRIPT_DIR/manifests/broker.yaml" | oc apply -f -
 }
 
 function deploy_submariner_addon() {
