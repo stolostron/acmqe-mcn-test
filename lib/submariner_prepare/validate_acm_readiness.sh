@@ -80,12 +80,11 @@ function detect_sno_clusters() {
 # The function will check the platform that will be provided as an input.
 function check_managed_clusters_readiness() {
     local clusters="$1"
-    local platform="$2"
     local ready_clusters
 
     for cluster in $clusters; do
         local state=""
-        state=$(oc get managedclusters "$cluster" \
+        state=$(oc get managedclusters "$cluster" --ignore-not-found \
                  -o jsonpath='{.status.conditions[?(@.type == "ManagedClusterConditionAvailable")].status}')
 
         if [[ "$state" == "True" ]]; then
@@ -95,13 +94,8 @@ function check_managed_clusters_readiness() {
     ready_clusters=$(echo "${ready_clusters%,}" | tr "," "\n")
 
     if [[ -n "$ready_clusters" ]]; then
-        INFO "Found ready $platform clusters"
         MANAGED_CLUSTERS=$(echo "$ready_clusters $MANAGED_CLUSTERS" | tr " " "\n")
         MANAGED_CLUSTERS="${MANAGED_CLUSTERS%$'\n'}"
-
-        INFO "Updating MANAGED_CLUSTERS to - $MANAGED_CLUSTERS"
-    else
-        INFO "No ready $platform clusters found"
     fi
 }
 
@@ -114,7 +108,7 @@ function check_managed_clusters_available_platform() {
         --selector "hive.openshift.io/cluster-platform in ($platform)" \
         --no-headers=true -o custom-columns=NAME:".metadata.name")
 
-    check_managed_clusters_readiness "$clusters" "$platform"
+    check_managed_clusters_readiness "$clusters"
 }
 
 # Fetch the cluster from ManagedClusters resources by defined product (ex: ARO/ROSA).
@@ -129,7 +123,7 @@ function fetch_managed_cluster_by_product() {
         | select(."product.open-cluster-management.io"
         | contains("'"$product"'"))).metadata.name')
 
-    check_managed_clusters_readiness "$clusters" "$product"
+    check_managed_clusters_readiness "$clusters"
 }
 
 # When a non-globalnet deployment is used, need to ensure
@@ -186,20 +180,25 @@ function validate_non_globalnet_clusters() {
 # Check if cluster deployment exists in ACM
 function check_clusters_deployment() {
     local clusters_count
+    local platform_clusters
 
     check_requested_platforms
     get_available_platforms
 
-    MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
+    platform_clusters=$(oc get clusterdeployment -A \
                          --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                          -o jsonpath='{range.items[?(@.status.powerState=="Running")]}{.metadata.name}{"\n"}{end}')
     # ACM 2.4.x missing ".status.powerState", which is added in 2.5.x
     # In case first quesry return empty var, execute a different query
-    if [[ -z "$MANAGED_CLUSTERS" ]]; then
-        MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
+    if [[ -z "$platform_clusters" ]]; then
+        platform_clusters=$(oc get clusterdeployment -A \
                              --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                              -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.name}{"\n"}{end}')
     fi
+
+    for cluster in $platform_clusters; do
+        check_managed_clusters_readiness "$cluster"
+    done
 
     detect_sno_clusters
 
