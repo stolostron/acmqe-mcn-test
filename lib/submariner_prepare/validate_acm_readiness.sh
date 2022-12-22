@@ -75,6 +75,30 @@ function detect_sno_clusters() {
     fi
 }
 
+# No POWERSTATE state is available for the managed clusters
+# Checking the running state by fetching the ManagedClusterConditionAvailable
+# The function will check the platform that will be provided as an input.
+function check_managed_clusters_readiness() {
+    local clusters="$1"
+    local ready_clusters
+
+    for cluster in $clusters; do
+        local state=""
+        state=$(oc get managedclusters "$cluster" --ignore-not-found \
+                 -o jsonpath='{.status.conditions[?(@.type == "ManagedClusterConditionAvailable")].status}')
+
+        if [[ "$state" == "True" ]]; then
+            ready_clusters+="$cluster,"
+        fi
+    done
+    ready_clusters=$(echo "${ready_clusters%,}" | tr "," "\n")
+
+    if [[ -n "$ready_clusters" ]]; then
+        MANAGED_CLUSTERS=$(echo "$ready_clusters $MANAGED_CLUSTERS" | tr " " "\n")
+        MANAGED_CLUSTERS="${MANAGED_CLUSTERS%$'\n'}"
+    fi
+}
+
 # No POWERSTATE state is awailable for the vsphere managed clusters
 # Checking the running state by fetching the ManagedClusterConditionAvailable
 function check_available_vsphere_platform_clusters() {
@@ -163,20 +187,25 @@ function validate_non_globalnet_clusters() {
 # Check if cluster deployment exists in ACM
 function check_clusters_deployment() {
     local clusters_count
+    local platform_clusters
 
     check_requested_platforms
     get_available_platforms
 
-    MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
+    platform_clusters=$(oc get clusterdeployment -A \
                          --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                          -o jsonpath='{range.items[?(@.status.powerState=="Running")]}{.metadata.name}{"\n"}{end}')
     # ACM 2.4.x missing ".status.powerState", which is added in 2.5.x
     # In case first quesry return empty var, execute a different query
-    if [[ -z "$MANAGED_CLUSTERS" ]]; then
-        MANAGED_CLUSTERS=$(oc get clusterdeployment -A \
+    if [[ -z "$platform_clusters" ]]; then
+        platform_clusters=$(oc get clusterdeployment -A \
                              --selector "hive.openshift.io/cluster-platform in ($PLATFORM)" \
                              -o jsonpath='{range.items[?(@.status.conditions[0].reason=="Running")]}{.metadata.name}{"\n"}{end}')
     fi
+
+    for cluster in $platform_clusters; do
+        check_managed_clusters_readiness "$cluster"
+    done
 
     detect_sno_clusters
 
