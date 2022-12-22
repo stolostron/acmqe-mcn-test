@@ -102,7 +102,7 @@ function fetch_submariner_addon_version() {
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
-    local image_prefix
+    local image_prefix="$REGISTRY_IMAGE_PREFIX"
     local subctl_version
     local subctl_download_url
     local subctl_archive
@@ -112,11 +112,6 @@ function get_subctl_for_testing() {
     if [[ "$DOWNSTREAM" == "true" ]]; then
         INFO "Download downstream subctl binary for testing"
 
-        if [[ "$subctl_version" == "v0.11"* ]]; then
-            image_prefix="$REGISTRY_IMAGE_PREFIX_TECH_PREVIEW"
-        else
-            image_prefix="$REGISTRY_IMAGE_PREFIX"
-        fi
         subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
         INFO "Download subctl from - $subctl_download_url"
 
@@ -124,12 +119,8 @@ function get_subctl_for_testing() {
     else
         INFO "Download upstream subctl binary for testing"
 
-        if [[ "$subctl_version" == "v0.11"*  ]]; then
-            subctl_download_url="$SUBCTL_URL_DOWNLOAD/download/$subctl_version/subctl-$subctl_version-linux-amd64.tar.xz"
-        else
-            WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
-            subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
-        fi
+        WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
+        subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
         wget -qO- "$subctl_download_url" -O subctl.tar.xz
     fi
 
