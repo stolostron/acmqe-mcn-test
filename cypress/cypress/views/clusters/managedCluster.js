@@ -1,6 +1,6 @@
 /** *****************************************************************************
  * Licensed Materials - Property of Red Hat, Inc.
- * Copyright (c) 2021 Red Hat, Inc.
+ * Copyright (c) 2022 Red Hat, Inc.
  ****************************************************************************** */
 
 /// <reference types="cypress" />
