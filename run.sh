@@ -29,6 +29,10 @@ source "${SCRIPT_DIR}/lib/submariner_deploy/submariner_deploy.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_test/submariner_test.sh"
 # shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/submariner_test/submariner_e2e.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/submariner_test/submariner_ui.sh"
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/reporting/polarion.sh"
 
 
@@ -116,7 +120,6 @@ function deploy_submariner() {
 }
 
 function test_submariner() {
-    verify_subctl_command
     execute_submariner_tests
 
     if [[ "$SKIP_GATHER_LOGS" == "false" ]]; then
@@ -202,6 +205,12 @@ function parse_arguments() {
             --skip-gather-logs)
                 if [[ -n "$2" ]]; then
                     export SKIP_GATHER_LOGS="$2"
+                    shift 2
+                fi
+                ;;
+            --test-type)
+                if [[ -n "$2" ]]; then
+                    export TEST_TYPE="$2"
                     shift 2
                 fi
                 ;;
