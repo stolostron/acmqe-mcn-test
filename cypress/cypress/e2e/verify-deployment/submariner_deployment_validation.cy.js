@@ -26,13 +26,13 @@ describe('submariner - Deployment validation', {
     })
     
     let testTheDataLabel = (dataLabel, textToHave, messageToHave) => {
-        let len = cy.get(dataLabel)
-        var size = Object.keys(len).length+1;
-        for (let i = 1; i <= size; i++) {
-            cy.get(dataLabel).eq(i).click(40, 30).should('have.text', textToHave)
-            cy.get('.pf-c-popover__content').contains(messageToHave).should('exist').and('be.visible')
-        }
-        cy.get(dataLabel).eq(-1).click(40, 30 , {multiple: true})
+        cy.get(dataLabel).each(($el, index) => {
+            if (index > 0){
+                cy.wrap($el).click(40, 30).should('have.text', textToHave)
+                cy.get('.pf-c-popover__content').contains(messageToHave).should('exist').and('be.visible')
+            }
+        })
+        cy.get(dataLabel).eq(-1).click(40, 30)
     }
 
     it('test the Connection status label', { tags: ['Connection'] }, function () {
