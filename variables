@@ -107,3 +107,9 @@ export POLARION_VARS_FILE=""
 export POLARION_ADD_SKIPPED="false"
 
 export LATEST_IIB=""
+
+# Test type that should be executed.
+# e2e (api testing), ui (cypress testing)
+export TEST_TYPE="e2e,ui"
+# Execute or skip UI tests. By default, execute.
+export UI_TESTS="true"

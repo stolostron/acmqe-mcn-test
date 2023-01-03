@@ -136,3 +136,18 @@ function verify_subctl_command() {
         INFO "The subctl client exists and has the required version - $subctl_client"
     fi
 }
+
+# Verify system readiness for cypress testing.
+# Since cypress requirements like npm and nodejs requires
+# system administration priviliges, prerequisites will not be installed.
+# The function only report readiness state.
+function verify_cypress() {
+    INFO "Verify cypress readiness"
+
+    if ! command -v npm &> /dev/null || ! command -v node &> /dev/null; then
+        INFO "Cypress prerequisites are not ready"
+        export UI_TESTS="false"
+    else
+        INFO "Cypress requirements fulfilled"
+    fi
+}

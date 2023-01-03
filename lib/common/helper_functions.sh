@@ -105,6 +105,14 @@ function usage() {
                              (Optional)
                              By default - false
 
+    Tests arguments:
+    ----------------
+    --test-type            - Select test type that should be executed.
+                             - e2e (api based testing)
+                             - ui (cypress testing)
+                             (Optional)
+                             By default - e2e,ui
+
     Submariner configuration arguments:
     -----------------------------------
     --globalnet            - Set the state of the Globalnet for the Submariner deployment.
