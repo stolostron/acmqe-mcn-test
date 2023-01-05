@@ -22,7 +22,7 @@ export const getClusterSet = (clusterSet) => {
         method: "GET",
         url:
             constants.apiUrl +
-            constants.ocm_cluster_api_v1beta2_path +
+            constants.ocm_cluster_api_v1beta1_path +
             constants.managedclustersets_path +
             '/' + clusterSet,
         headers: headers,
