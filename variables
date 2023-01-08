@@ -48,7 +48,7 @@ declare -A ACM_2_6_3=(
 export ACM_2_6_3
 declare -A ACM_2_6_4=(
     [acm_version]='2.6.4'
-    [submariner_version]='0.13.2'
+    [submariner_version]='0.13.3'
     [channel]='stable'
 )
 export ACM_2_6_4

@@ -31,7 +31,7 @@ Before deployment execution, switch to the relevant branch - release-2.6, releas
 | 2.5.6                         | 0.12.3     |
 | 2.6.0 / 2.6.1                 | 0.13.0     |
 | 2.6.2 / 2.6.3                 | 0.13.1     |
-| 2.6.4                         | 0.13.2     |
+| 2.6.4                         | 0.13.3     |
 
 ## Execution
 Execution of deployment, testing and reporting requires connection details to the ACM HUB cluster.  
