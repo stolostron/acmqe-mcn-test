@@ -1,2 +1,5 @@
 # Ignore logs/ directory which will contain tests results and debug info
 logs/
+
+# Ignore the directory with installed npm packages
+cypress/node_modules/
