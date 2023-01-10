@@ -39,7 +39,6 @@ function create_service_account_for_internal_registry() {
 
 function create_internal_registry_secret() {
     INFO "Create internal ocp registry secret"
-    local ocp_registry_url
     local sa_secret_name
     local sa_name="submariner-registry-sa"
 
@@ -47,7 +46,6 @@ function create_internal_registry_secret() {
         INFO "Create internal regsitry secret on $cluster cluster"
         local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
 
-        ocp_registry_url=$(KUBECONFIG="$kube_conf" oc registry info --internal)
         create_service_account_for_internal_registry "$cluster" "$sa_name"
 
         sa_secret_name=$(KUBECONFIG="$kube_conf" \
