@@ -4,20 +4,37 @@
 # The cypress tests located within the current repository.
 function execute_submariner_ui_tests() {
     INFO "Execute Submariner UI tests"
+    local primary_cluster
+    local base_url
+    local subm_state
 
     pushd "$SCRIPT_DIR/cypress/" || return
     prepare_cypress_env
 
-    local base_url
+    primary_cluster=$(echo "$MANAGED_CLUSTERS" | head -n 1)
+    tests_basename=$(combine_tests_basename "ui" "$primary_cluster")
+
     base_url=$(oc whoami --show-console)
     export CYPRESS_BASE_URL="$base_url"
     export CYPRESS_OPTIONS_HUB_USER="$OC_CLUSTER_USER"
     export CYPRESS_OPTIONS_HUB_PASSWORD="$OC_CLUSTER_PASS"
 
-    npx cypress run --browser chrome --headless
-    combine_cypress_reports
+    npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e
+
+    INFO "Combine cypress reports"
+    npx jrm "$TESTS_LOGS/${tests_basename}_junit.xml" results/test-results-*.xml
 
     popd || return
+
+    # Rstore submariner deployment in case it was deleted by one of the tests
+    subm_state=$(oc -n "$primary_cluster" get managedclusteraddon submariner \
+        --no-headers=true -o custom-columns=NAME:".metadata.name" --ignore-not-found)
+    if [[ "$subm_state" != "submariner" ]]; then
+        INFO "Restore submariner deployment to initial state"
+        # Wait for 30 sec to ensure that all the resources properly deleted from the managed clusters
+        sleep 30s
+        (restore_submariner_deployment)
+    fi
 }
 
 function prepare_cypress_env() {
@@ -29,12 +46,11 @@ function prepare_cypress_env() {
     npm_config_yes=true npx browserslist@latest --update-db
 }
 
-function combine_cypress_reports() {
-    INFO "Combine cypress reports"
-
-    local primary_cluster
-    primary_cluster=$(echo "$MANAGED_CLUSTERS" | head -n 1)
-    tests_basename=$(combine_tests_basename "ui" "$primary_cluster")
-
-    npx jrm "$TESTS_LOGS/${tests_basename}_junit.xml" results/test-results-*.xml
+function restore_submariner_deployment() {
+    select_submariner_version_and_channel_to_deploy
+    create_namespace
+    create_internal_registry_secret
+    prepare_clusters_for_submariner
+    deploy_submariner_addon
+    wait_for_submariner_ready_state
 }
