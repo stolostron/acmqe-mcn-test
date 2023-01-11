@@ -109,10 +109,10 @@ function wait_for_submariner_ready_state() {
     local cmd_output
 
     INFO "Check Submariner Gateway node state on clusters"
-    cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Checking Submariner Gateway node state on $cluster cluster"
         timeout=0
+        cmd_output=""
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "SubmarinerGatewayNodesLabeled" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerGatewayNodesLabeled")
@@ -127,10 +127,10 @@ function wait_for_submariner_ready_state() {
     INFO "Submariner Gateway node has been sucesfully deployed on each cluster"
 
     INFO "Check Submariner Agent state on clusters"
-    cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Checking Submariner Agent state on $cluster cluster"
         timeout=0
+        cmd_output=""
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "SubmarinerAgentDeployed" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerAgentDegraded")
@@ -145,10 +145,10 @@ function wait_for_submariner_ready_state() {
     INFO "Submariner Agent has been sucesfully deployed on each cluster"
 
     INFO "Check Submariner connectivity between clusters"
-    cmd_output=""
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Checking Submariner connectivity on $cluster cluster"
         timeout=0
+        cmd_output=""
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "ConnectionsEstablished" ]]; do
             INFO "Deploying..."
             cmd_output=$(check_submariner_deployment_state "$cluster" "SubmarinerConnectionDegraded")
