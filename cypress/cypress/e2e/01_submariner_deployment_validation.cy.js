@@ -5,7 +5,7 @@
 
 /// <reference types="cypress" />
 
-import { submarinerClusterSetMethods } from '../../views/submariner/actions/submariner_actions'
+import { submarinerClusterSetMethods } from '../views/submariner/actions/submariner_actions'
 
 describe('submariner - Deployment validation', {
     tags: ['@submariner', '@e2e'],

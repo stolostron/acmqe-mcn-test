@@ -38,7 +38,14 @@ describe('submariner - uninstall validation', {
                 cy.get('.pf-c-dropdown__menu-item').should('be.visible').click()
                 cy.get('.pf-c-form__actions > .pf-m-primary').click()
 
-                cy.get('[data-label="Cluster"]', {timeout: 210000}).should('not.exist')
+                // Submariner uninstall process requires deletion of resource on the cloud,
+                // where the actual resources exist.
+                // Resource deletion may take time and from the UI testing we are unable to
+                // fetch the deletion state.
+                // Some of the clouds may take more time to delete the resource.
+                // Set the final timeout to 5 minutes.
+                // If the resources still exist after the timeout, fail the test.
+                cy.get('[data-label="Cluster"]', {timeout: 300000}).should('not.exist')
             }
         })
     }) 
