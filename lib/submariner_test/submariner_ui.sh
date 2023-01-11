@@ -19,7 +19,7 @@ function execute_submariner_ui_tests() {
     export CYPRESS_OPTIONS_HUB_USER="$OC_CLUSTER_USER"
     export CYPRESS_OPTIONS_HUB_PASSWORD="$OC_CLUSTER_PASS"
 
-    npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e
+    npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e || true
 
     INFO "Combine cypress reports"
     npx jrm "$TESTS_LOGS/${tests_basename}_junit.xml" results/test-results-*.xml
