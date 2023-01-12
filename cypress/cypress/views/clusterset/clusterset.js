@@ -23,6 +23,11 @@ export const clusterSetPageSelector = {
         createClusterSet: 'button[id="createClusterSet"]',
         deleteClusterSets: 'li[id="deleteClusterSets"]',
     },
+    tableRowOptionsMenu: {
+        editNamespaceBinding: 'a[text="Edit namespace bindings"]',
+        manageResourceAssignment: 'a[text="Manage resource assignments"]',
+        deleteClusterSet: 'a[text="Delete cluster set"]',
+    },
     msg: {
         noClusterSet: "You don't have any cluster sets",
         createSuccess: "Cluster set successfully created",
