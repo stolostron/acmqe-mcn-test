@@ -22,7 +22,7 @@ describe('submariner - uninstall validation', {
     })
 
     it('test the Uninstall Submariner add-ons', { tags: ['uninstall'] }, function () {
-        let clusterSetName = Cypress.env('CLUSTERSET_NAME')
+        let clusterSetName = Cypress.env('CLUSTERSET')
         // verify that a cluster set with deployment of submariner is exists.
         clusterSetMethods.clusterSetShouldExist(clusterSetName)
         cy.get('[data-label=Name]').contains(clusterSetName).then($value => {
