@@ -16,8 +16,11 @@ function execute_submariner_ui_tests() {
 
     base_url=$(oc whoami --show-console)
     export CYPRESS_BASE_URL="$base_url"
-    export CYPRESS_OPTIONS_HUB_USER="$OC_CLUSTER_USER"
-    export CYPRESS_OPTIONS_HUB_PASSWORD="$OC_CLUSTER_PASS"
+    export CYPRESS_OC_CLUSTER_USER="$OC_CLUSTER_USER"
+    export CYPRESS_OC_CLUSTER_PASS="$OC_CLUSTER_PASS"
+
+    export CYPRESS_CLUSTERSET="$CLUSTERSET"
+    export CYPRESS_SUBMARINER_IPSEC_NATT_PORT="$SUBMARINER_IPSEC_NATT_PORT"
 
     npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e || true
 
@@ -26,7 +29,7 @@ function execute_submariner_ui_tests() {
 
     popd || return
 
-    # Rstore submariner deployment in case it was deleted by one of the tests
+    # Restore submariner deployment in case it was deleted by one of the tests
     subm_state=$(oc -n "$primary_cluster" get managedclusteraddon submariner \
         --no-headers=true -o custom-columns=NAME:".metadata.name" --ignore-not-found)
     if [[ "$subm_state" != "submariner" ]]; then

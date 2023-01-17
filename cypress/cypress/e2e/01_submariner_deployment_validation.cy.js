@@ -21,7 +21,7 @@ describe('submariner - Deployment validation', {
     })
     
     it('verify that a cluster set with deployment of submariner is exists.', { tags: ['verify'] }, function () {
-        let clusterSetName = Cypress.env('CLUSTERSET_NAME')
+        let clusterSetName = Cypress.env('CLUSTERSET')
         submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName)
     })
 
