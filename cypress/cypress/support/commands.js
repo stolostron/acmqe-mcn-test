@@ -21,10 +21,10 @@ import * as constants from './constants'
 import { acmHeaderSelectors } from '../views/header'
 import { commonElementSelectors } from '../views/common/commonSelectors'
 
-Cypress.Commands.add('login', (OPTIONS_HUB_USER, OPTIONS_HUB_PASSWORD, OC_IDP) => {
+Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
   const managedclustersPath = '/multicloud/infrastructure/clusters/managed'
-  const user = OPTIONS_HUB_USER || Cypress.env('OPTIONS_HUB_USER')
-  const password = OPTIONS_HUB_PASSWORD || Cypress.env('OPTIONS_HUB_PASSWORD')
+  const user = OC_CLUSTER_USER || Cypress.env('OC_CLUSTER_USER')
+  const password = OC_CLUSTER_PASS || Cypress.env('OC_CLUSTER_PASS')
   const idp = OC_IDP || Cypress.env('OC_IDP')
 
   cy.intercept(managedclustersPath).as('clustersPagePath')
@@ -123,8 +123,8 @@ Cypress.Commands.add("acquireToken", () => {
         "X-CSRF-Token": 1
       },
       auth: {
-        username: Cypress.env("OPTIONS_HUB_USER"),
-        password: Cypress.env("OPTIONS_HUB_PASSWORD")
+        username: Cypress.env("OC_CLUSTER_USER"),
+        password: Cypress.env("OC_CLUSTER_PASS")
       }
     })
     .then(resp => {

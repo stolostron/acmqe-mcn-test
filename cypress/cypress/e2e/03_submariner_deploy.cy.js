@@ -22,8 +22,8 @@ describe('submariner - Deployment validation', {
     })
 
     it('test the Submariner add-ons install', { tags: ['deployment'] }, function () {
-        let clusterSetName = Cypress.env('CLUSTERSET_NAME')
-        let nattPort = Cypress.env('NATT_PORT')
+        let clusterSetName = Cypress.env('CLUSTERSET')
+        let nattPort = Cypress.env('SUBMARINER_IPSEC_NATT_PORT')
         clusterSetMethods.createClusterSet(clusterSetName) 
         submarinerClusterSetMethods.manageClusterSet(clusterSetName)
 
