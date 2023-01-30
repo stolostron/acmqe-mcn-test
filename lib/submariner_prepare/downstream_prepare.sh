@@ -16,10 +16,6 @@ function create_icsp() {
 
 # The image index builder (iib) will be used by the downstream deployment
 # to serve as a CatalogSource for the submariner images
-# Fetch builds from two issuers (pipeline triggers):
-# "contra/piplene" - standard pipeline issuer
-# "freshmaker" - CVE (security) fix issuer
-# Compare between them and select the latest.
 function get_latest_iib() {
     INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
 
@@ -29,79 +25,35 @@ function get_latest_iib() {
     local ocp_version
     local umb_output
     local index_images
-    local issuer
-    local issuer_var
-    local issuer_state
 
     local bundle_name="submariner-operator-bundle"
     local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
+    local submariner_component="cvp-teamredhatadvancedclustermanagement"
     local latest_builds_number=5
     local rows=$((latest_builds_number * 5))
     local number_of_days=30
+    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
+        and .artifact.component=="'"$submariner_component"'") 
+        | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
 
-    # The query component changed started from submariner version 0.12.* and for older version remain the same
-    # For 0.12.* the component name is - "cvp-teamredhatadvancedclustermanagement"
-    # For 0.11.* the component name is - "cvp-teamsubmariner"
-    local submariner_component="cvp-teamredhatadvancedclustermanagement"
-    if [[ "$submariner_version" == "0.11"* ]]; then
-        submariner_component="cvp-teamsubmariner"
-    fi
+    umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
+        "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+    index_images=$(echo "$umb_output" | jq -r "$iib_query")
 
-    # Loop over the build issuers and fetch results for each issuer.
-    for issuer in "contra/pipeline" "freshmaker"; do
-        local delta=$((number_of_days * 86400))  # 1296000 = 15 days * 86400 seconds
+    if [[ "$index_images" == "null" ]]; then
+        WARNING "Failed to retrieve IIB by using the last $number_of_days days.
+        Retrying with the number of days multiplied $number_of_days days x6."
 
-        # In order to separate the variables, create a variable for each issuer.
-        # But since bash unable to use "/" sign as part of the variable name,
-        # rename the variable for "contra/pipeline" key to "$pipeline_var".
-        #
-        # Declare dynamic variables in bash:
-        # https://dev.to/a1ex/tricks-of-declaring-dynamic-variables-in-bash-15b9
-        issuer_var="${issuer}_var"
-        if [[ "$issuer" == "contra/pipeline" ]]; then
-            issuer_var="pipeline_var"
-        fi
-
-        local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
-            and .artifact.component=="'"$submariner_component"'" and .artifact.issuer=="'"$issuer"'") 
-            | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
-
+        delta=$((delta * 6))
         umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-            "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+                  "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
         index_images=$(echo "$umb_output" | jq -r "$iib_query")
-        declare "$issuer_var"="$index_images"
 
         if [[ "$index_images" == "null" ]]; then
-            delta=$((delta * 6))
-            umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-                "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
-            index_images=$(echo "$umb_output" | jq -r "$iib_query")
-            declare "$issuer_var"="$index_images"
+            ERROR "Unable to retrieve IIB images"
         fi
-    done
-
-    # shellcheck disable=SC2154
-    if [[ "$pipeline_var" == "null" && "$freshmaker_var" == "null" ]]; then
-        ERROR "Unable to retrieve IIB images"
     fi
-
-    # Assign 'contra/pipeline' as default issuer
-    index_images="$pipeline_var"
-    issuer="contra/pipeline"
-    # Compare the builds of 'contra/pipeline' and 'freshmaker' and select the higher.
-    # For example:
-    # 0.13.1-3.1666718193 <- This will be selected
-    # 0.13.1-2
-    issuer_state=$(validate_version \
-        "$(echo "$pipeline_var" | jq -r '.nvr' | grep -Po '(?<=container-v)[^)]*')" \
-        "$(echo "$freshmaker_var" | jq -r '.nvr' | grep -Po '(?<=container-v)[^)]*')")
-    # Checks if 'freshmaker' build is newer than 'contra/pipeline'
-    if [[ "$issuer_state" == "valid" ]]; then
-        index_images="$freshmaker_var"
-        issuer="freshmaker"
-    fi
-
-    INFO "Retrieved the following index images from $issuer issuer - $index_images"
+    INFO "Retrieved the following index images - $index_images"
 
     ocp_version=$(KUBECONFIG="$kube_conf" oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
     latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
