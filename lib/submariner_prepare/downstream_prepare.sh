@@ -32,6 +32,7 @@ function get_latest_iib() {
     local latest_builds_number=5
     local rows=$((latest_builds_number * 5))
     local number_of_days=30
+    local delta=$((number_of_days * 86400)) # 1296000 = 15 days * 86400 seconds
     local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
         and .artifact.component=="'"$submariner_component"'") 
         | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
