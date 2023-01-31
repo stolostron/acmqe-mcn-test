@@ -8,7 +8,7 @@
 import { clusterSetMethods } from '../views/clusterset/clusterset'
 
 describe('submariner - validate submariner addon tab', {
-    tags: ['@submariner'],
+    tags: ['@submariner', '@e2e'],
     retries: {
         runMode: 0,
         openMode: 0,
