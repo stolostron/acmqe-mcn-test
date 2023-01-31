@@ -128,7 +128,6 @@ function test_submariner() {
 }
 
 function report() {
-    source_and_verify_polarion_params
     report_polarion
 }
 
