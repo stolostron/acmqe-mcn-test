@@ -14,8 +14,15 @@ function execute_submariner_e2e_tests() {
     local primary_test_cluster
     local secondary_test_cluster
     local tests_basename
+    local nettest_img_ref
 
     primary_test_cluster=$(echo "$MANAGED_CLUSTERS" | head -n 1)
+
+    # Fetch the nettest image with digest to override the subctl reference
+    # to the image with floating tags.
+    nettest_img_ref=$(KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml" \
+        oc -n "$SUBMARINER_NS" get pod -l app=submariner-metrics-proxy -o json \
+        | jq -r '.items[0].spec.containers[0].image')
 
     for cluster in $MANAGED_CLUSTERS; do
         if [[ "$cluster" == "$primary_test_cluster" ]]; then
@@ -33,22 +40,45 @@ function execute_submariner_e2e_tests() {
             | tee  "$TESTS_LOGS/${tests_basename}_subctl_show_all.log" \
             || add_test_error $?
 
-        INFO "Execute diagnose all tests"
-        subctl diagnose all --verbose \
+        INFO "Execute diagnose CNI"
+        subctl diagnose cni \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_all.log" \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_cni.log" \
             || add_test_error $?
 
-        INFO "Execute diagnose firewall inter-cluster tests"
-        subctl diagnose firewall inter-cluster --verbose \
+        INFO "Execute diagnose Connections"
+        subctl diagnose connections \
             --context "$primary_test_cluster" \
-            --remotecontext "$secondary_test_cluster" 2>&1 \
-            |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
+            --context "$secondary_test_cluster" 2>&1 \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_connections.log" \
+            || add_test_error $?
+
+        INFO "Execute diagnose Deployment"
+        subctl diagnose deployment \
+            --image-override submariner-nettest="$nettest_img_ref" \
+            --context "$primary_test_cluster" \
+            --context "$secondary_test_cluster" 2>&1 \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_deployment.log" \
+            || add_test_error $?
+
+        INFO "Execute diagnose k8s-version"
+        subctl diagnose k8s-version \
+            --context "$primary_test_cluster" \
+            --context "$secondary_test_cluster" 2>&1 \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_k8s_version.log" \
+            || add_test_error $?
+
+        INFO "Execute diagnose service-discovery"
+        subctl diagnose service-discovery \
+            --context "$primary_test_cluster" \
+            --context "$secondary_test_cluster" 2>&1 \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_service_discovery.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
         subctl verify --only service-discovery,connectivity --verbose \
+            --image-override submariner-nettest="$nettest_img_ref" \
             --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
             --context "$primary_test_cluster" \
             --tocontext "$secondary_test_cluster" 2>&1 \
