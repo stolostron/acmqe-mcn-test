@@ -45,6 +45,16 @@ function verify_required_env_vars() {
             'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_URL'"
         fi
     fi
+    if [[ "$PLATFORM" =~ "rosa" ]]; then
+        if [[ -z "${ROSA_TOKEN}" ]]; then
+            if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
+                VALIDATION_STATE+="Not ready! Missing environment vars. Unable to login to the hub."
+            else
+                ERROR "Execution of the script require the following env variable provided:
+                'ROSA_TOKEN'"
+            fi
+        fi
+    fi
 }
 
 # The function is used by ci to validate the environment for prerequisites.
@@ -87,6 +97,13 @@ function prepare() {
 
 function deploy_submariner() {
     select_submariner_version_and_channel_to_deploy
+
+    if [[ "$PLATFORM" =~ "rosa" ]]; then
+        # ROSA (aws ocp managed cluster) requires to create
+        # submariner gateway node by using "rosa" binary.
+        INFO "Fetch 'rosa' binary"
+        verify_rosa_cli
+    fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         if [[ "$LOCAL_MIRROR" == "true" ]]; then

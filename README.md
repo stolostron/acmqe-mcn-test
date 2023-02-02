@@ -6,7 +6,7 @@ The repo is used to deploy, test and report the Submariner addon in ACM environm
 ## Prerequisites
 **Note** - Execution of Submariner addon deployment and testing, requires the following:
 * Pre installed ACM Hub cluster
-* At least two managed clusters deployed by the ACM cluster
+* At least two managed clusters **deployed by the ACM cluster via Hive**
 
 **Note** - If any requirement is missing, the flow will fail with relevant error message.
 
@@ -17,13 +17,20 @@ The following clusters platforms are supported by the Submariner Addon deploymen
 - [X] Azure
 - [X] VMware
 - [X] ARO
+- [X] ROSA
 - [ ] OSP
 
 The user is able to define manually which platforms should be deployed and tested.  
 Multiple platforms should be separated by a comma.
 
+**Note** - ARO and ROSA platform could not be created by ACM Hub Hive mechanism.  
+Those platform should be created separately and imported into the Hub.  
+After importing ARO/ROSA, a secret contains credentials for the cluster  
+should be created and stored within a namespace of the cluster within a Hub.
+
 ## ACM Hub and Submariner versions
-Before deployment execution, switch to the relevant branch - release-2.6, release-2.7, etc...
+**Note** - Each version supported within a relevant branch.
+**Note** - Before deployment execution, switch to the relevant branch - release-2.6, release-2.7, etc...
 
 | ACM Hub                       | Submariner |
 |-------------------------------|------------|
