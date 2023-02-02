@@ -103,7 +103,6 @@ function deploy_submariner() {
         fi
 
         if [[ "$LOCAL_MIRROR" == 'false' ]]; then
-            # https://issues.redhat.com/browse/RFE-1608
             create_icsp
         fi
 

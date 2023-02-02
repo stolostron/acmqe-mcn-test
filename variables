@@ -46,7 +46,7 @@ export COMPONENT_VERSIONS=("${!ACM@}")
 export DOWNSTREAM="false"
 # Due to https://issues.redhat.com/browse/RFE-1608, add the ability
 # to use local ocp cluster registry and import the images.
-export LOCAL_MIRROR="true"
+export LOCAL_MIRROR="false"
 # The submariner version will be defined and used
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
