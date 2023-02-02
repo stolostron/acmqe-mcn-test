@@ -205,6 +205,9 @@ function check_clusters_deployment() {
     if [[ "$PLATFORM" =~ "aro" ]]; then
         fetch_managed_cluster_by_product "ARO"
     fi
+    if [[ "$PLATFORM" =~ "rosa" ]]; then
+        fetch_managed_cluster_by_product "ROSA"
+    fi
 
     # The fetch is a workaround to get kubeconfig files from imported clusters
     # to validate information. Later this function will run again to fetch

@@ -242,7 +242,7 @@ function get_cluster_credential_name() {
 
     platform_type=$(oc get clusterdeployment -n "$cluster" -o json --no-headers=true \
                  -o custom-columns=PLATFORM:".metadata.labels.hive\.openshift\.io/cluster-platform")
-    cluster_creds_name=$(oc get clusterdeployment -n "$cluster" "$cluster" \
+    cluster_creds_name=$(oc get clusterdeployment -n "$cluster" "$cluster" --ignore-not-found \
                            -o jsonpath={.spec.platform."$platform_type".credentialsSecretRef.name})
     echo "$cluster_creds_name"
 }
