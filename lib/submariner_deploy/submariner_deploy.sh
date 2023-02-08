@@ -8,12 +8,10 @@ function prepare_clusters_for_submariner() {
     INFO "Perform Submariner cloud prepare for the managed clusters"
     local creds
     local submariner_channel
-    local submariner_version
     local catalog_ns="openshift-marketplace"
     local catalog_source="redhat-operators"
 
     submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
-    submariner_version="submariner.v$SUBMARINER_VERSION_INSTALL"
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         catalog_source="submariner-catalog"
@@ -30,8 +28,7 @@ function prepare_clusters_for_submariner() {
         INFO "Use $SUBMARINER_GATEWAY_COUNT gateway node for $cluster cluster"
 
         CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
-            SUBM_VER="$submariner_version" NS="$catalog_ns" \
-            SUBM_SOURCE="$catalog_source" \
+            NS="$catalog_ns" SUBM_SOURCE="$catalog_source" \
             yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)
             | .spec.IPSecNATTPort = env(SUBMARINER_IPSEC_NATT_PORT)
@@ -39,8 +36,7 @@ function prepare_clusters_for_submariner() {
             | .spec.gatewayConfig.gateways = env(SUBMARINER_GATEWAY_COUNT)
             | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
             | .spec.subscriptionConfig.source = env(SUBM_SOURCE)
-            | .spec.subscriptionConfig.sourceNamespace = env(NS)
-            | .spec.subscriptionConfig.startingCSV = env(SUBM_VER)' \
+            | .spec.subscriptionConfig.sourceNamespace = env(NS)' \
             "$SCRIPT_DIR/manifests/submariner-config.yaml" | oc apply -f -
 
         if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
