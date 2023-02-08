@@ -347,8 +347,8 @@ class PolarionPushReports:
         # Generation of the report may take time.
         # Retry a number of times to fetch the report.
         timeout = 0
-        max_timeout = 5
-        wait_time = 5
+        max_timeout = 10
+        wait_time = 10
         while timeout < max_timeout:
             try:
                 requests.packages.urllib3.disable_warnings()
