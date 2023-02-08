@@ -44,7 +44,6 @@ function prepare_cypress_env() {
     rm -rf "$SCRIPT_DIR/cypress/results/"
 
     npm config set unsafe-perm true
-    npm install
     npm ci
     npm_config_yes=true npx browserslist@latest --update-db
 }
