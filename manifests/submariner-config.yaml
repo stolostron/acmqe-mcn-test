@@ -17,4 +17,3 @@ spec:
     channel: $SUBMARINER_CHANNEL
     source: $SUBMARINER_SOURCE
     sourceNamespace: openshift-marketplace
-    startingCSV: $SUBMARINER_VERSION
