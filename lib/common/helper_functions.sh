@@ -258,7 +258,12 @@ function fetch_kubeconfig_contexts_and_pass() {
 
     for cluster in $MANAGED_CLUSTERS; do
         kubeconfig_name=$(oc get -n "$cluster" secrets --no-headers \
-                            -o custom-columns=NAME:.metadata.name | grep kubeconfig)
+                            -o custom-columns=NAME:.metadata.name | grep kubeconfig || true)
+
+        if [[ "$kubeconfig_name" == "" ]]; then
+            ERROR "Unable to fetch kubeconfig from $cluster cluster"
+        fi
+
         oc get secrets "$kubeconfig_name" -n "$cluster" \
             --template='{{index .data.kubeconfig | base64decode}}' > "$LOGS/$cluster-kubeconfig.yaml"
 
