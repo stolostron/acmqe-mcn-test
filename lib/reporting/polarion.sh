@@ -12,7 +12,7 @@ function report_polarion() {
     source "$venv/bin/activate"
     pip install -r requirements.txt
 
-    INFO "PolarionL Process reports"
+    INFO "Polarion: Process reports"
     python3 lib/reporting/polarion_report.py \
         --config "$POLARION_VARS_FILE" --path "$TESTS_LOGS"
 }
