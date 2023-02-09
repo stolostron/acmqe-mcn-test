@@ -68,6 +68,7 @@ function select_submariner_version_and_channel_to_deploy() {
     done
 
     if [[ -z "$SUBMARINER_VERSION_INSTALL" || -z "$SUBMARINER_CHANNEL_RELEASE" ]]; then
-        ERROR "Unable to match between ACM and Submariner/channel versions"
+        ERROR "Unable to match between ACM and Submariner/channel versions.
+        Please, ensure to checkout the right branch"
     fi
 }
