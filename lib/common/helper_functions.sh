@@ -153,13 +153,16 @@ function usage() {
                              (Optional)
                              The file should contains the following variables:
                              """
-                             export POLARION_SERVER=<polarion_server>
-                             export POLARION_USER=<polarion_username>
-                             export POLARION_PASS=<polarion_password>
-                             export POLARION_PROJECT_ID=<project_id>
-                             export POLARION_TEAM_NAME=<team_name>
-                             export POLARION_TESTRUN_TEMPLATE=<testrun_template>
-                             export POLARION_COMPONENT_ID=<component_id>
+                             [polarion_auth]
+                             server = <polarion_server_url>
+                             user = <polarion_user>
+                             pass = <polarion_pass>
+
+                             [polarion_team_config]
+                             project_id = <project_id_name>
+                             component_id = <component_name>
+                             team_name = <team_name>
+                             testrun_template = <testrun_template_name>
                              """
                              Alternatively, those environment variables could be exported.
 
