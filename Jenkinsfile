@@ -18,7 +18,6 @@ pipeline {
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
             value: 'aws,gcp,azure,vsphere', defaultValue: 'aws,gcp,vsphere', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
-        string(name: 'VERSION', defaultValue: '', description: 'Define specific version of Submariner to be installed')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
         booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
@@ -104,12 +103,7 @@ pipeline {
                         GLOBALNET = "--globalnet false"
                     }
 
-                    VERSION = ""
-                    if (params.VERSION != '') {
-                        VERSION = "--version ${params.VERSION}"
-                    }
-
-                    DOWNSTREAM = ""
+                    DOWNSTREAM = "--downstream false"
                     if (params.DOWNSTREAM) {
                         DOWNSTREAM = "--downstream true"
                     }
@@ -123,7 +117,7 @@ pipeline {
                 }
 
                 sh """
-                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $VERSION $DOWNSTREAM
+                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM
                 """
             }
         }
@@ -135,7 +129,7 @@ pipeline {
             }
             steps {
                 script {
-                    DOWNSTREAM = ""
+                    DOWNSTREAM = "--downstream false"
                     if (params.DOWNSTREAM) {
                         DOWNSTREAM = "--downstream true"
                     }
