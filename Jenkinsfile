@@ -4,7 +4,7 @@ pipeline {
             image 'quay.io/stolostron/acm-qe:submariner-fedora36-nodejs18'
             registryUrl 'https://quay.io/stolostron/acm-qe'
             registryCredentialsId '0089f10c-7a3a-4d16-b5b0-3a2c9abedaa2'
-            args '--network host -u 0:0'
+            args '--network host'
         }
     }
     options {
