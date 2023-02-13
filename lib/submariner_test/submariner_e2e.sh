@@ -77,7 +77,9 @@ function execute_submariner_e2e_tests() {
             || add_test_error $?
 
         INFO "Execute E2E tests"
-        subctl verify --only service-discovery,connectivity --verbose \
+        subctl verify --verbose \
+            --only service-discovery,connectivity,gateway-failover \
+            --disruptive-tests \
             --image-override submariner-nettest="$nettest_img_ref" \
             --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
             --context "$primary_test_cluster" \

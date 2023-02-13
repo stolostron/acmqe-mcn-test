@@ -10,15 +10,12 @@ function prepare_clusters_for_submariner() {
     local submariner_channel
     local catalog_ns="openshift-marketplace"
     local catalog_source="redhat-operators"
+    local reset_gw_count="false"
 
     submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         catalog_source="submariner-catalog"
-    fi
-
-    if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
-        SUBMARINER_GATEWAY_COUNT=2
     fi
 
     for cluster in $MANAGED_CLUSTERS; do
@@ -30,6 +27,14 @@ function prepare_clusters_for_submariner() {
         if [[ "$product" =~ ("ARO"|"ROSA") ]]; then
             creds="null"
             load_balancer="true"
+        fi
+
+        if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" && "$reset_gw_count" == "false" ]]; then
+            platform=$(get_cluster_platform "$cluster")
+            if [[ "$platform" == "AWS" && "$product" == "OpenShift" ]]; then
+                SUBMARINER_GATEWAY_COUNT=2
+                reset_gw_count="true"
+            fi
         fi
 
         INFO "Using $creds credentials for $cluster cluster"
@@ -49,7 +54,7 @@ function prepare_clusters_for_submariner() {
             | .spec.subscriptionConfig.sourceNamespace = env(NS)' \
             "$SCRIPT_DIR/manifests/submariner-config.yaml" | oc apply -f -
 
-        if [[ "$SUBMARINER_GATEWAY_RANDOM" == "true" ]]; then
+        if [[ "$reset_gw_count" == "true" ]]; then
             SUBMARINER_GATEWAY_COUNT=1
         fi
 

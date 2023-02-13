@@ -19,6 +19,7 @@ pipeline {
             value: 'aws,gcp,azure,vsphere', defaultValue: 'aws,gcp,vsphere', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
+        booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
         booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
     }
@@ -108,6 +109,13 @@ pipeline {
                         DOWNSTREAM = "--downstream true"
                     }
 
+                    // Deploy two submariner gateways on one of the clusters
+                    // to test submariner gateway fail-over scenario.
+                    SUBMARINER_GATEWAY_RANDOM = "--subm-gateway-random false"
+                    if (params.SUBMARINER_GATEWAY_RANDOM) {
+                        SUBMARINER_GATEWAY_RANDOM = "--subm-gateway-random true"
+                    }
+
                     // The '@post-release' tag meant to test post GA release
                     // thus don't use the downstream tag.
                     // Override the any state of the DOWNSTREAM param.
@@ -117,7 +125,7 @@ pipeline {
                 }
 
                 sh """
-                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM
+                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM
                 """
             }
         }
