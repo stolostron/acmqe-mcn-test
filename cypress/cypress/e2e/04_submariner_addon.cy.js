@@ -23,9 +23,8 @@ describe('submariner - validate submariner addon tab', {
     it('test the Submariner add-ons', { tags: ['addon'] }, function () {
         let clusterSetName = Cypress.env('CLUSTERSET')+'-'+(Math.random() + 1).toString(36).substring(4)
         clusterSetMethods.createClusterSet(clusterSetName)
-        cy.get('[data-label="Name"]').contains(clusterSetName).click()
+        cy.contains(clusterSetName, {timeout: 3000}).should('exist').click()
         cy.get('.pf-c-nav__link').contains('Submariner add-ons').should('exist')
         clusterSetMethods.deleteClusterSet(clusterSetName)
     })
 })
-
