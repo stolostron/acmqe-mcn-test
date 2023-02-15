@@ -50,8 +50,6 @@ function prepare_cypress_env() {
 
 function restore_submariner_deployment() {
     select_submariner_version_and_channel_to_deploy
-    create_namespace
-    create_internal_registry_secret
     prepare_clusters_for_submariner
     deploy_submariner_addon
     wait_for_submariner_ready_state

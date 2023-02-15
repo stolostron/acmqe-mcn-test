@@ -91,15 +91,6 @@ function usage() {
                              (Optional)
                              By default - false
 
-    --mirror               - Use local ocp registry.
-                             Due to https://issues.redhat.com/browse/RFE-1608,
-                             local ocp registry is required.
-                             The images are imported and used from the local registry.
-                             (Optional) (true/false)
-                             By default - true
-                             The flag is used only with "--downstream" flag.
-                             Otherwise, ignored.
-
     --skip-gather-logs     - Specify if logs gathering should be skipped.
                              The gathering will be done on all submariner configs.
                              (Optional)
@@ -282,35 +273,6 @@ function fetch_kubeconfig_contexts_and_pass() {
     done
 }
 
-function validate_internal_registry() {
-    INFO "Validate proper configuration of cluster internal registry"
-    local registry_state
-    local registry_config
-
-    for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
-        registry_state=$(KUBECONFIG="$kube_conf" oc get \
-            configs.imageregistry.operator.openshift.io cluster -o jsonpath='{.spec.managementState}')
-
-        if [[ "$registry_state" == "Removed" ]]; then
-            INFO "The $cluster cluster internal registry is not configured. Setting up non prod registry..."
-            KUBECONFIG="$kube_conf" oc patch configs.imageregistry.operator.openshift.io \
-                cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'
-
-            KUBECONFIG="$kube_conf" oc patch configs.imageregistry.operator.openshift.io \
-                cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
-
-            sleep 3m
-
-            registry_config=$(KUBECONFIG="$kube_conf" \
-                oc registry info --internal || echo "not_ready")
-            if [[ "$registry_config" == "not_ready" ]]; then
-                ERROR "The internal registry of $cluster cluster is not ready"
-            fi
-        fi
-    done
-}
-
 # Function to convert raw text (e.g. yaml) to encoded url format
 function raw_to_url_encode() {
     local string
@@ -374,7 +336,6 @@ function print_selected_options() {
         Platform: $PLATFORM
         Globalnet: $SUBMARINER_GLOBALNET
         Use downstream deployment: $DOWNSTREAM
-        Use downstream mirror: $LOCAL_MIRROR
         Skip gather logs: $SKIP_GATHER_LOGS
 
         Submariner IPSEC NATT Port: $SUBMARINER_IPSEC_NATT_PORT

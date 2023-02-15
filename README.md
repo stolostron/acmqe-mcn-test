@@ -95,15 +95,6 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              (Optional)
                              By default - false
 
-    --mirror               - Use local ocp registry.
-                             Due to https://issues.redhat.com/browse/RFE-1608,
-                             local ocp registry is required.
-                             The images are imported and used from the local registry.
-                             (Optional) (true/false)
-                             By default - true
-                             The flag is used only with "--downstream" flag.
-                             Otherwise, ignored.
-
     --skip-gather-logs     - Specify if logs gathering should be skipped.
                              The gathering will be done on all submariner configs.
                              (Optional)
