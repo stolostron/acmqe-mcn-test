@@ -23,8 +23,6 @@ source "${SCRIPT_DIR}/lib/submariner_prepare/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_prepare.sh"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_mirroring_workaround.sh"
-# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_deploy/submariner_deploy.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_test/submariner_test.sh"
@@ -92,7 +90,6 @@ function prepare() {
     check_for_claim_cluster_with_pre_set_clusterset
     INFO "Fetch the kubeconfigs for selected clusters only"
     fetch_kubeconfig_contexts_and_pass
-    validate_internal_registry
 }
 
 function deploy_submariner() {
@@ -106,22 +103,8 @@ function deploy_submariner() {
     fi
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
-        if [[ "$LOCAL_MIRROR" == "true" ]]; then
-            create_namespace
-        fi
-
         create_brew_secret
-
-        if [[ "$LOCAL_MIRROR" == 'true' ]]; then
-            INFO "Using local ocp cluster due to -
-            https://issues.redhat.com/browse/RFE-1608"
-            set_custom_registry_mirror
-            import_images_into_local_registry
-        fi
-
-        if [[ "$LOCAL_MIRROR" == 'false' ]]; then
-            create_icsp
-        fi
+        create_icsp
 
         create_catalog_source
     fi
@@ -208,12 +191,6 @@ function parse_arguments() {
             --downstream)
                 if [[ -n "$2" ]]; then
                     export DOWNSTREAM="$2"
-                    shift 2
-                fi
-                ;;
-            --mirror)
-                if [[ -n "$2" ]]; then
-                    export LOCAL_MIRROR="$2"
                     shift 2
                 fi
                 ;;

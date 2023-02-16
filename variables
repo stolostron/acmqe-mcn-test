@@ -44,9 +44,6 @@ export COMPONENT_VERSIONS=("${!ACM@}")
 # Note - the use of brew will require a secret with brew credentials to present in cluster
 # If DOWNSTREAM flag is set to "true", it will fetch downstream images.
 export DOWNSTREAM="false"
-# Due to https://issues.redhat.com/browse/RFE-1608, add the ability
-# to use local ocp cluster registry and import the images.
-export LOCAL_MIRROR="false"
 # The submariner version will be defined and used
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
@@ -67,23 +64,8 @@ export STAGING_REGISTRY="registry.stage.redhat.io"
 export BREW_REGISTRY="brew.registry.redhat.io"
 export REGISTRY_IMAGE_PREFIX="rhacm2"
 export REGISTRY_IMAGE_IMPORT_PATH="rh-osbs"
-export CATALOG_REGISTRY="registry.access.redhat.com"
-export CATALOG_IMAGE_PREFIX="openshift4"
-export CATALOG_IMAGE_IMPORT_PATH="ose-oauth-proxy"
 # Internal RedHat downstream registry
 export VPN_REGISTRY="registry-proxy.engineering.redhat.com"
-# Submariner images names
-export SUBM_IMG_BUNDLE="submariner-operator-bundle"
-export SUBM_IMG_OPERATOR="submariner-rhel8-operator"
-export SUBM_IMG_GATEWAY="submariner-gateway-rhel8"
-export SUBM_IMG_ROUTE="submariner-route-agent-rhel8"
-export SUBM_IMG_NETWORK="submariner-networkplugin-syncer-rhel8"
-export SUBM_IMG_LIGHTHOUSE="lighthouse-agent-rhel8"
-export SUBM_IMG_COREDNS="lighthouse-coredns-rhel8"
-export SUBM_IMG_GLOBALNET="submariner-globalnet-rhel8"
-export SUBM_IMG_NETTEST_DOWNSTREAM="nettest-rhel8"
-export SUBM_IMG_NETTEST_UPSTREAM="nettest"
-export SUBM_IMG_NETTEST_PATH_UPSTREAM="quay.io/submariner"
 
 export POLARION_VARS_FILE=""
 export POLARION_ADD_SKIPPED="false"
