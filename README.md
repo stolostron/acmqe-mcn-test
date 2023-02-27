@@ -41,6 +41,7 @@ should be created and stored within a namespace of the cluster within a Hub.
 | 2.6.0 / 2.6.1                 | 0.13.0     |
 | 2.6.2 / 2.6.3                 | 0.13.1     |
 | 2.7.0                         | 0.14.1     |
+| 2.8.0                         | 0.15.0     |
 
 ## Execution
 Execution of deployment, testing and reporting requires connection details to the ACM HUB cluster.  
