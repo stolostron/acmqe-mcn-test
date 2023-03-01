@@ -38,7 +38,12 @@ function get_latest_iib() {
         | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
 
     umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-        "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+        "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}" || :)
+
+    if [[ "$umb_output" == "" ]]; then
+        ERROR "Unable to fetch IIB data. Verify VPN connection"
+    fi
+
     index_images=$(echo "$umb_output" | jq -r "$iib_query")
 
     if [[ "$index_images" == "null" ]]; then
