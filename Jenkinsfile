@@ -10,6 +10,7 @@ pipeline {
     options {
         ansiColor('xterm')
         buildDiscarder(logRotator(daysToKeepStr: '30'))
+        timeout(time: 8, unit: 'HOURS')
     }
     parameters {
         string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
