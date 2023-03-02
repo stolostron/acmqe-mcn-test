@@ -48,6 +48,8 @@ pipeline {
                     environment name: 'TEST_TAGS', value: '@e2e'
                     environment name: 'TEST_TAGS', value: '@Submariner'
                     environment name: 'TEST_TAGS', value: '@post-release'
+                    environment name: 'TEST_TAGS', value: '@api'
+                    environment name: 'TEST_TAGS', value: '@api-post-release'
                 }
             }
             steps {
@@ -140,10 +142,16 @@ pipeline {
                     if (params.TEST_TAGS == '@post-release') {
                         DOWNSTREAM = "--downstream false"
                     }
+
+                    TESTS_TYPE = "--test-type e2e,ui"
+                    if (params.TEST_TAGS == '@api' ||
+                        params.TEST_TAGS == '@api-post-release') {
+                            TESTS_TYPE = "--test-type e2e"
+                        }
                 }
 
                 sh """
-                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE
                 """
             }
         }
