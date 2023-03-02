@@ -22,6 +22,7 @@ pipeline {
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
         booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
+        choice(name: 'JOB_STAGES', choices: ['all', 'deploy', 'test'], description: 'Select stage that should be executed by the job')
     }
     environment {
         EXECUTE_JOB = false
@@ -92,8 +93,11 @@ pipeline {
         }
         stage('Deploy') {
             when {
-                expression {
-                    EXECUTE_JOB == true
+                allOf {
+                    expression {
+                        EXECUTE_JOB == true
+                        JOB_STAGES == 'all' || JOB_STAGES == 'deploy'
+                    }
                 }
             }
             steps {
@@ -102,7 +106,7 @@ pipeline {
                     // The "GLOBALNET_TRIGGER" will be used as a
                     // control point to for ACM versions below 2.5.0
                     // As it's not supported.
-                    if (!GLOBALNET_TRIGGER) {
+                    if (GLOBALNET_TRIGGER.toBoolean() == false) {
                         GLOBALNET = "--globalnet false"
                     }
 
@@ -126,8 +130,11 @@ pipeline {
         }
         stage('Test') {
             when {
-                expression {
-                    EXECUTE_JOB == true
+                allOf {
+                    expression {
+                        EXECUTE_JOB == true
+                        JOB_STAGES == 'all' || JOB_STAGES == 'test'
+                    }
                 }
             }
             steps {
@@ -158,8 +165,11 @@ pipeline {
         }
         stage('Report to Polarion') {
             when {
-                expression {
-                    EXECUTE_JOB == true
+                allOf {
+                    expression {
+                        EXECUTE_JOB == true
+                        JOB_STAGES == 'all' || JOB_STAGES == 'test'
+                    }
                 }
             }
             steps {
