@@ -1,0 +1,60 @@
+---
+- name: Generate cluster token to authentication
+  ansible.builtin.include_role:
+    name: cluster_login
+
+- name: Set initial state of MultiClusterHub
+  ansible.builtin.set_fact:
+    deploy_mch: true
+
+- name: Check for installed MultiClusterHub
+  kubernetes.core.k8s_info:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: operator.open-cluster-management.io/v1
+    kind: MultiClusterHub
+  register: mch_state
+
+- name: Set updated state of MultiClusterHub
+  ansible.builtin.set_fact:
+    deploy_mch: false
+  when: mch_state.resources is none
+
+- name: Print when MCH already installed
+  ansible.builtin.debug:
+    msg: "MultiClusterHub already installed. Skipping the deployment."
+  when: not deploy_mch | bool
+
+- name: Deploy ACM
+  ansible.builtin.include_tasks:
+    file: deploy.yml
+  when: deploy_mch | bool
+
+- block:
+    - name: Fetch MultiClusterHub console url
+      kubernetes.core.k8s_info:
+        host: "{{ cluster_url }}"
+        api_key: "{{ cluster_api_token }}"
+        validate_certs: no
+        api_version: route.openshift.io/v1
+        kind: Route
+        name: console
+        namespace: openshift-console
+      register: acm_route
+
+    - name: Define cluster console url
+      ansible.builtin.set_fact:
+        cluster_console: "{{ acm_route.resources[0].status.ingress[0].host }}"
+  when: cluster_console is not defined
+
+- name: Print MultiClusterHub details
+  vars:
+    msg: |
+      Details of MultiClusterHub cluster:
+
+      Cluster console: {{ cluster_console }}
+      Cluster api: {{ cluster_url }}
+      Cluster pass: {{ cluster_pass }}
+  ansible.builtin.debug:
+    msg: "{{ msg.split('\n') }}"

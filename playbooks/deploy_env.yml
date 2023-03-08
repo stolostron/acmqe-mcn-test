@@ -1,0 +1,6 @@
+- name: Deploy OCP and ACM environment
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - ocp
+    - acm

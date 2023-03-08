@@ -1,0 +1,14 @@
+apiVersion: operator.open-cluster-management.io/v1
+kind: MultiClusterHub
+metadata:
+  annotations:
+{% for catalog in catalog_sources %}
+{% if catalog.type == "mce" %}
+    installer.open-cluster-management.io/mce-subscription-spec: '{"source": "{{ catalog.catalog_name }}"}'
+{% endif %}
+{% endfor %}
+    mch-imageRepository: "{{ acm_registry_mirror }}"
+  name: multiclusterhub
+  namespace: "{{ acm_namespace }}"
+spec:
+  imagePullSecret: multiclusterhub-operator-pull-secret

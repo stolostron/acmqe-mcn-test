@@ -1,0 +1,112 @@
+- name: Fetch downstream snapshots if snapshot not provided manually
+  ansible.builtin.uri:
+    url: "{{ registry_query_url }}"
+    method: "GET"
+    status_code: 200
+  register: snap
+  when: snapshot is none
+
+- name: Select latest downstream snapshot according to provided version
+  ansible.builtin.set_fact:
+    snapshot: "{{ snap.json.tags 
+      | selectattr('name', 'match', acm_version) 
+      | map(attribute='name') | first }}"
+  when: snapshot is none
+
+- name: Print selected snapshot for ACM deployment
+  ansible.builtin.debug:
+    msg: "ACM version '{{ acm_version }}' with '{{ snapshot }}' snapshot will be deployed"
+
+- name: Create "{{ acm_namespace }}" namespace
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: v1
+    kind: Namespace
+    name: "{{ acm_namespace }}"
+    state: present
+
+- name: Update cluster pull-secret secret
+  ansible.builtin.import_tasks:
+    file: update_pull_secret.yml
+
+- name: Create ImageContentSourcePolicy
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'image-content-source-policy.yaml.j2') | from_yaml }}"
+
+- name: Create OperatorGroup
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'operator-group.yaml.j2') | from_yaml }}"
+
+- name: Create ACM CatalogSource
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'catalog-source.yaml.j2') | from_yaml }}"
+  loop: "{{ catalog_sources }}"
+
+- name: Wait for ACM CatalogSource to get READY state
+  kubernetes.core.k8s_info:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: operators.coreos.com/v1alpha1
+    kind: CatalogSource
+    name: redhat-operators
+    namespace: openshift-marketplace
+  register: acm_catalog
+  until: acm_catalog.resources[0].status.connectionState.lastObservedState == "READY"
+  retries: 15
+  delay: 10
+
+- name: Create ACM Subscription
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'subscription.yaml.j2') | from_yaml }}"
+
+- name: Fetch the name of install ClusterServiceVersion
+  kubernetes.core.k8s_info:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: operators.coreos.com/v1alpha1
+    kind: Subscription
+    name: acm-operator-subscription
+    namespace: "{{ acm_namespace }}"
+  register: acm_subscription
+
+- name: Deploy MultiClusterHub
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'multiclusterhub.yaml.j2') | from_yaml }}"
+    wait: yes
+    wait_timeout: 1200
+    wait_condition:
+      type: Complete
+      status: True
+
+- name: Wait for the ClusterServiceVersion to succeeded install
+  kubernetes.core.k8s_info:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: operators.coreos.com/v1alpha1
+    kind: ClusterServiceVersion
+    name: "{{ acm_subscription.resources[0].status.currentCSV }}"
+    namespace: "{{ acm_namespace }}"
+  register: acm_csv
+  until: acm_csv.resources[0].status.phase == "Succeeded"
+  retries: 15
+  delay: 10
