@@ -1,0 +1,18 @@
+---
+- name: Create OCP working directory
+  ansible.builtin.file:
+    path: "{{ working_path }}"
+    state: directory
+    recurse: yes
+
+- name: Create OCP assets directory
+  ansible.builtin.file:
+    path: "{{ working_path }}/{{ item.name }}"
+    state: directory
+  loop: "{{ clusters }}"
+
+- name: Generate install-config.yaml for OCP cluster deployment
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ working_path }}/{{ item.name }}/install-config.yaml"
+  loop: "{{ clusters }}"

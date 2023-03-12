@@ -1,0 +1,49 @@
+apiVersion: v1
+baseDomain: {{ item.base_domain }}
+compute:
+- hyperthreading: Enabled
+  name: worker
+{% if item.cloud.platform == "aws" and item.cloud.instance_type is defined %}
+  platform:
+    aws:
+      type: {{ item.cloud.instance_type }}
+{% else %}
+  platform: {}
+{% endif %}
+  replicas: 3
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+{% if item.cloud.platform == "aws" and item.cloud.instance_type is defined %}
+  platform:
+    aws:
+      type: {{ item.cloud.instance_type }}
+{% else %}
+  platform: {}
+{% endif %}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: {{ item.name }}
+networking:
+  clusterNetwork:
+  - cidr: {{ item.network.cluster }}
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: {{ item.network.machine }}
+  networkType: {{ item.network.type }}
+  serviceNetwork:
+  - {{ item.network.service }}
+platform:
+{% if item.cloud.platform == "aws" %}
+  aws:
+    region: {{ item.cloud.region }}
+{% elif item.cloud.platform == "gcp" %}
+  gcp:
+    region: {{ item.cloud.region }}
+    projectID: {{ item.cloud.project_id }}
+{% endif %}
+publish: External
+pullSecret: '{{ pull_secret }}'
+sshKey: |
+  {{ ssh_pub_key }}
