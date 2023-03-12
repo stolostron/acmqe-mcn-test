@@ -1,0 +1,60 @@
+- name: Validate required parameters
+  ansible.builtin.fail:
+    msg: "The 'pull_secret' and 'ssh_pub_key' variables are mandatory."
+  when: item is none
+  loop:
+    - "{{ pull_secret }}"
+    - "{{ ssh_pub_key }}"
+
+- name: Set ocp assets path
+  ansible.builtin.set_fact:
+    working_path: "{{ lookup('env', 'PWD') }}/{{ ocp_assets_dir }}"
+
+- name: Initials cluster deploy condition
+  ansible.builtin.set_fact:
+    deploy_cluster: true
+
+- name: Check for existing OCP cluster
+  ansible.builtin.stat:
+    path: "{{ working_path }}/{{ item.name }}/metadata.json"
+  loop: "{{ clusters }}"
+  register: exists_cluster_assets
+
+- name: Reinitiate cluster deploy condition based of ocp assets dir existence
+  ansible.builtin.set_fact:
+    deploy_cluster: false
+  when: exists_cluster_assets.results[0].stat.exists
+
+- name: Note when OCP cluster already deployed
+  ansible.builtin.debug:
+    msg: "OpenShift cluster already deployed. Fetching details..."
+  when: not deploy_cluster | bool
+
+- name: Prepare OCP cluster configuration
+  ansible.builtin.import_tasks:
+    file: prepare.yml
+  when: deploy_cluster | bool
+
+- block:
+    - name: Download openshift-install client
+      ansible.builtin.get_url:
+        url: "{{ openshift_install }}"
+        dest: "{{ working_path }}/"
+
+    - name: Extract openshift-install client
+      ansible.builtin.unarchive:
+        src: "{{ working_path }}/{{ openshift_install | basename }}"
+        dest: "{{ working_path }}/"
+
+    - name: OCP cluster {{ cluster_state }}
+      ansible.builtin.command:
+        cmd: "openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
+        chdir: "{{ working_path }}"
+      loop: "{{ clusters }}"
+  when: deploy_cluster | bool or cluster_state == "destroy"
+
+- name: Fetch OCP cluster details
+  ansible.builtin.include_tasks:
+    file: fetch_details.yml
+  loop: "{{ clusters }}"
+  when: cluster_state == "create"

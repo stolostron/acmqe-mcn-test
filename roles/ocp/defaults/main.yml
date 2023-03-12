@@ -1,0 +1,25 @@
+---
+# Set the cluster state of the execution
+# The state could be 'create' or 'destroy'.
+cluster_state: create
+
+# OpenShift pull secret
+pull_secret:
+# Your SSH Public key
+ssh_pub_key:
+
+clusters:
+  - name: test-cluster
+    base_domain: example.com
+    network:
+      cluster: 10.128.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.30.0.0/16
+      type: OVNKubernetes
+    cloud:
+      platform: aws
+      region: us-east-2
+      instance_type: m5.xlarge
+
+openshift_install: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz
+ocp_assets_dir: logs/ocp_assets
