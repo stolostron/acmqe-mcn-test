@@ -1,0 +1,15 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: acm-operator-subscription
+  namespace: "{{ acm_namespace }}"
+spec:
+  channel: "release-{{ acm_version }}"
+  installPlanApproval: Automatic
+  name: advanced-cluster-management
+{% for catalog in catalog_sources %}
+{% if catalog.type == "acm" %}
+  source: "{{ catalog.catalog_name }}"
+  sourceNamespace: "{{ catalog.catalog_ns }}"
+{% endif %}
+{% endfor %}

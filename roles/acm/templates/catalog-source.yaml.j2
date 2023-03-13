@@ -1,0 +1,17 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: "{{ item.catalog_name }}"
+  namespace: "{{ item.catalog_ns }}"
+spec:
+  displayName: "{{ item.display_name }}"
+  publisher: Red Hat
+  sourceType: grpc
+  image: "{{ acm_registry_mirror }}/{{ item.catalog_name }}:{{ snapshot }}"
+  updateStrategy:
+    registryPoll:
+      interval: 10m
+{% if item.type == "acm" %}
+  secrets:
+    - multiclusterhub-operator-pull-secret
+{% endif %}

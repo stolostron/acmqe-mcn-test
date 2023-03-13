@@ -1,0 +1,13 @@
+---
+acm_registry_mirror: quay.io:443/acm-d
+registry_query_url: https://quay.io/api/v1/repository/acm-d/acm-custom-registry/tag/
+
+catalog_sources:
+  - type: acm
+    catalog_name: acm-custom-registry
+    display_name: Advanced Cluster Management
+    catalog_ns: openshift-marketplace
+  - type: mce
+    catalog_name: mce-custom-registry
+    display_name: MultiCluster Engine
+    catalog_ns: openshift-marketplace
