@@ -38,5 +38,7 @@
       Cluster console: {{ cluster_console }}
       Cluster api: {{ cluster_url }}
       Cluster pass: {{ cluster_pass }}
+
+      Cluster manifests files could be found here: {{ working_path }}/{{ item.name }}/
   ansible.builtin.debug:
     msg: "{{ msg.split('\n') }}"
