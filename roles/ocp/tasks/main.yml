@@ -31,27 +31,30 @@
   when: not deploy_cluster | bool
 
 - name: Prepare OCP cluster configuration
-  ansible.builtin.import_tasks:
+  ansible.builtin.include_tasks:
     file: prepare.yml
   when: deploy_cluster | bool
 
 - block:
-    - name: Download openshift-install client
-      ansible.builtin.get_url:
-        url: "{{ openshift_install }}"
-        dest: "{{ working_path }}/"
-
-    - name: Extract openshift-install client
+    - name: Fetch openshift-install client
       ansible.builtin.unarchive:
-        src: "{{ working_path }}/{{ openshift_install | basename }}"
-        dest: "{{ working_path }}/"
+        src: "{{ openshift_install }}"
+        dest: "/tmp/"
+        remote_src: yes
 
     - name: OCP cluster {{ cluster_state }}
       ansible.builtin.command:
         cmd: "openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
-        chdir: "{{ working_path }}"
+        chdir: "/tmp"
       loop: "{{ clusters }}"
   when: deploy_cluster | bool or cluster_state == "destroy"
+
+- name: Delete assets directory when cluster destroyed
+  ansible.builtin.file:
+    path: "{{ working_path }}/{{ item.name }}/"
+    state: absent
+  loop: "{{ clusters }}"
+  when: cluster_state == "destroy"
 
 - name: Fetch OCP cluster details
   ansible.builtin.include_tasks:
