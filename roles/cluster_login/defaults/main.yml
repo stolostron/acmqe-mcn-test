@@ -1,0 +1,6 @@
+---
+cluster_url:
+cluster_user: kubeadmin
+cluster_pass:
+
+cluster_api_token:
