@@ -1,4 +1,9 @@
 ---
+- name: Fetch "{{ item.name }} cluster console"
+  ansible.builtin.slurp:
+    src: "{{ working_path }}/{{ item.name }}/.openshift_install.log"
+  register: cluster_console_reg
+
 - name: Fetch "{{ item.name }}" cluster url
   ansible.builtin.slurp:
     src: "{{ working_path }}/{{ item.name }}/auth/kubeconfig"
@@ -8,6 +13,12 @@
   ansible.builtin.slurp:
     src: "{{ working_path }}/{{ item.name }}/auth/kubeadmin-password"
   register: cluster_pass_reg
+
+- name: Set OCP cluster console
+  ansible.builtin.set_fact:
+    cluster_console_raw: "{{ cluster_console_reg['content'] | b64decode | regex_search('web-console here: (.+)\"', '\\1') }}"
+- ansible.builtin.set_fact:
+    cluster_console: "{{ cluster_console_raw[0] }}"
 
 - name: Set OCP cluster url
   ansible.builtin.set_fact:
@@ -24,6 +35,7 @@
     msg: |
       Details of {{ item.name }} cluster:
 
+      Cluster console: {{ cluster_console }}
       Cluster api: {{ cluster_url }}
       Cluster pass: {{ cluster_pass }}
   ansible.builtin.debug:
