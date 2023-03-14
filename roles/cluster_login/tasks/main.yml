@@ -1,9 +1,9 @@
 ---
 - name: Allocate cluster connection details
   ansible.builtin.set_fact:
-    cluster_url: "{{ lookup('env', 'OC_CLUSTER_URL') | default(cluster_url) }}"
-    cluster_user: "{{ lookup('env', 'OC_CLUSTER_USER') | default(cluster_user) }}"
-    cluster_pass: "{{ lookup('env', 'OC_CLUSTER_PASS') | default(cluster_pass) }}"
+    cluster_url: "{{ lookup('env', 'OC_CLUSTER_URL') | default(cluster_url, true) }}"
+    cluster_user: "{{ lookup('env', 'OC_CLUSTER_USER') | default(cluster_user, true) }}"
+    cluster_pass: "{{ lookup('env', 'OC_CLUSTER_PASS') | default(cluster_pass, true) }}"
 
 - name: Log in to "{{ cluster_url }}" (obtain access token)
   community.okd.openshift_auth:
