@@ -49,7 +49,7 @@ function combine_tests_basename() {
     local globalnet
     local globalnet_state=""
 
-    acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
+    acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}' | cut -d '-' -f1)
     subm_ver=$(KUBECONFIG="$LOGS/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get subs submariner \
         -o jsonpath='{.status.currentCSV}' \
@@ -68,7 +68,12 @@ function combine_tests_basename() {
         primary_cl_platform=$(locate_cluster_platform "$primary_cluster")
         secondary_cl_platform=$(locate_cluster_platform "$secondary_cluster")
 
-        echo "ACM-${acm_ver}-Submariner-${subm_ver}-${primary_cl_platform}-${secondary_cl_platform}-${globalnet}"
+        primary_cl_version=$(oc get managedcluster "$primary_cluster" --ignore-not-found \
+            -o jsonpath='{.metadata.labels.openshiftVersion-major-minor}')
+        secondary_cl_version=$(oc get managedcluster "$secondary_cluster" --ignore-not-found \
+            -o jsonpath='{.metadata.labels.openshiftVersion-major-minor}')
+
+        echo "ACM-${acm_ver}-Submariner-${subm_ver}-${primary_cl_platform}-${primary_cl_version}-${secondary_cl_platform}-${secondary_cl_version}-${globalnet}"
     elif [[ "$type" == "ui" ]]; then
         echo "ACM-${acm_ver}-Submariner-${subm_ver}-${globalnet}-UI"
     fi
