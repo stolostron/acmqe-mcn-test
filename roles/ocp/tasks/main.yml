@@ -5,6 +5,7 @@
   loop:
     - "{{ pull_secret }}"
     - "{{ ssh_pub_key }}"
+  no_log: true
 
 - name: Set ocp assets path
   ansible.builtin.set_fact:
