@@ -51,8 +51,9 @@
 - name: Print MultiClusterHub details
   vars:
     msg: |
-      Details of MultiClusterHub cluster:
+      Deployment of MultiClusterHub succeeded.
 
+      Cluster details:
       Cluster console: {{ cluster_console }}
       Cluster api: {{ cluster_url }}
       Cluster pass: {{ cluster_pass }}

@@ -74,7 +74,7 @@
     validate_certs: no
     definition: "{{ lookup('template', 'subscription.yaml.j2') | from_yaml }}"
 
-- name: Fetch the name of install ClusterServiceVersion
+- name: Fetch the name of installed ClusterServiceVersion
   kubernetes.core.k8s_info:
     host: "{{ cluster_url }}"
     api_key: "{{ cluster_api_token }}"
@@ -84,6 +84,25 @@
     name: acm-operator-subscription
     namespace: "{{ acm_namespace }}"
   register: acm_subscription
+  until: "'currentCSV' in acm_subscription.resources[0].status"
+  retries: 15
+  delay: 10
+
+- name: Wait for the ClusterServiceVersion to succeeded install
+  kubernetes.core.k8s_info:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    api_version: operators.coreos.com/v1alpha1
+    kind: ClusterServiceVersion
+    name: "{{ acm_subscription.resources[0].status.currentCSV }}"
+    namespace: "{{ acm_namespace }}"
+  register: acm_csv
+  until:
+    - acm_csv.resources | length > 0
+    - acm_csv.resources[0].status.phase == "Succeeded"
+  retries: 15
+  delay: 10
 
 - name: Deploy MultiClusterHub
   community.okd.k8s:
@@ -96,17 +115,3 @@
     wait_condition:
       type: Complete
       status: True
-
-- name: Wait for the ClusterServiceVersion to succeeded install
-  kubernetes.core.k8s_info:
-    host: "{{ cluster_url }}"
-    api_key: "{{ cluster_api_token }}"
-    validate_certs: no
-    api_version: operators.coreos.com/v1alpha1
-    kind: ClusterServiceVersion
-    name: "{{ acm_subscription.resources[0].status.currentCSV }}"
-    namespace: "{{ acm_namespace }}"
-  register: acm_csv
-  until: acm_csv.resources[0].status.phase == "Succeeded"
-  retries: 15
-  delay: 10

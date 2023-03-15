@@ -33,8 +33,9 @@
 - name: Print "{{ item.name }}" cluster details
   vars:
     msg: |
-      Details of {{ item.name }} cluster:
+      Deployment of {{ item.name }} cluster succeeded.
 
+      Cluster details:
       Cluster console: {{ cluster_console }}
       Cluster api: {{ cluster_url }}
       Cluster pass: {{ cluster_pass }}
