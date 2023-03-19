@@ -19,7 +19,7 @@
 - name: Set updated state of MultiClusterHub
   ansible.builtin.set_fact:
     deploy_mch: false
-  when: mch_state.resources is none
+  when: mch_state.api_found | bool
 
 - name: Print when MCH already installed
   ansible.builtin.debug:
