@@ -33,7 +33,7 @@ describe('submariner - uninstall validation', {
                 cy.get('[data-label=Name]').eq(1).click(15, 30)
                 cy.get('.pf-c-nav__link').contains('Submariner add-ons').click()
 
-                cy.get('.pf-c-table__check > label > input').click({multiple: true}).should('be.checked')
+                cy.get('.pf-c-table__check > input').click({multiple: true}).should('be.checked')
                 cy.get('#toggle-id').click()
                 cy.get('.pf-c-dropdown__menu-item').should('be.visible').click()
                 cy.get('.pf-c-form__actions > .pf-m-primary').click()
