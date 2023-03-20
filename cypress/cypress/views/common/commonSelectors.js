@@ -37,7 +37,6 @@ export const commonElementSelectors = {
         currentTabClass: 'a[class="pf-c-nav__link pf-m-current"]',
         tabClass: 'a[class="pf-c-nav__link"]',
         radioInput: 'div[class="pf-c-radio"]',
-        textInput: '.pf-c-text-input-group__text-input',
         chipText: '.pf-c-chip__text',
         emptyContent: '.pf-c-empty-state__content',
         emptyBody: '.pf-c-empty-state__body',
@@ -113,17 +112,17 @@ export const commonPageMethods = {
         menuClickDeleteType: (type) => cy.get(`button[data-table-action="table.actions.${type}.delete"]`).click(),
         menuClickDestroy: () => cy.get('button[data-table-action="table.actions.cluster.destroy"]').click(),
         menuClickDetach: () => cy.get('button[data-table-action="table.actions.cluster.detach"]').click(),
-        clearSearch: () => cy.get(commonElementSelectors.elements.textInput, { timeout: 10 * 1000 }).clear(),
+        clearSearch: () => cy.get(commonElementSelectors.elements.pageSearch, { timeout: 10 * 1000 }).clear(),
         searchTable: (name) => {
             commonPageMethods.resourceTable.clearSearch();
-            cy.get(commonElementSelectors.elements.textInput).type(name, { force: true })
+            cy.get(commonElementSelectors.elements.pageSearch).type(name)
             cy.wait(2 * 1000)
         },
         rowShouldToggle: function (name) {
             cy.get('#pf-c-page').then(page => {
-                if (page.find(commonElementSelectors.elements.textInput, { timeout: 15000 }).length > 0) {
-                    cy.get(commonElementSelectors.elements.textInput).clear({ force: true })
-                    cy.get(commonElementSelectors.elements.textInput).type(name)
+                if (page.find(commonElementSelectors.elements.pageSearch, { timeout: 15000 }).length > 0) {
+                    cy.get(commonElementSelectors.elements.pageSearch).clear({ force: true })
+                    cy.get(commonElementSelectors.elements.pageSearch).type(name)
                 }
             })
             cy.get(`tr[data-row-name="${name}"]`).get('input[name="tableSelectRow"]').click({ force: true })
