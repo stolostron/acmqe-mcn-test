@@ -45,8 +45,7 @@
 
     - name: OCP cluster {{ cluster_state }}
       ansible.builtin.command:
-        cmd: "openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
-        chdir: "/tmp"
+        cmd: "/tmp/openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
       loop: "{{ clusters }}"
   when: deploy_cluster | bool or cluster_state == "destroy"
 
