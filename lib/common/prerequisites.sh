@@ -79,8 +79,6 @@ function get_subctl_for_testing() {
     local image_prefix="$REGISTRY_IMAGE_PREFIX"
     local subctl_version
     local subctl_download_url
-    local subctl_archive
-    local subctl_bin
     subctl_version=$(fetch_submariner_addon_version | cut -d '-' -f1)
 
     if [[ "$DOWNSTREAM" == "true" ]]; then
@@ -90,6 +88,7 @@ function get_subctl_for_testing() {
         INFO "Download subctl from - $subctl_download_url"
 
         oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
+        mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
     else
         INFO "Download upstream subctl binary for testing"
 
@@ -101,13 +100,11 @@ function get_subctl_for_testing() {
     INFO "Submariner addon version - $subctl_version"
     INFO "Download subctl from - $subctl_download_url"
 
-    subctl_archive=$(find . -maxdepth 1 -name "subctl*tar.xz")
-    tar xfJ "$subctl_archive" --strip-components 1
-    subctl_bin=$(find . -maxdepth 1 -name "subctl*linux-amd64")
+    tar xfJ subctl.tar.xz --strip-components 1
 
     mkdir -p "$HOME"/.local/bin
-    cp "$subctl_bin" "$HOME"/.local/bin/subctl
-    rm -rf "$subctl_bin" "$subctl_archive"
+    install subctl*linux-amd64 "$HOME"/.local/bin/subctl
+    rm -f subctl.tar.xz subctl*linux-amd64
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
