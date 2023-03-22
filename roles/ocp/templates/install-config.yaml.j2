@@ -26,12 +26,12 @@ metadata:
   creationTimestamp: null
   name: {{ item.name }}
 networking:
+  networkType: {{ item.network.type }}
   clusterNetwork:
   - cidr: {{ item.network.cluster }}
     hostPrefix: 23
   machineNetwork:
   - cidr: {{ item.network.machine }}
-  networkType: {{ item.network.type }}
   serviceNetwork:
   - {{ item.network.service }}
 platform:

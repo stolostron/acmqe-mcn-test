@@ -1,3 +1,6 @@
+# The following two tasks represent the following bash command:
+# curl -s -X GET https://quay.io/api/v1/repository/acm-d/acm-custom-registry/tag/ \
+# | jq -S '.tags[] | {name: .name} | select(.name | startswith("2.8"))' | jq -r '.name' | head -1
 - name: Fetch downstream snapshots if snapshot not provided manually
   ansible.builtin.uri:
     url: "{{ registry_query_url }}"
