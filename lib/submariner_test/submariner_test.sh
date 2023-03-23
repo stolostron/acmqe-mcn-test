@@ -70,10 +70,10 @@ function combine_tests_basename() {
         secondary_cl_platform=$(oc -n "$secondary_cluster" get clusterdeployment \
             "$secondary_cluster" -o jsonpath='{.metadata.labels.cloud}')
 
-        primary_cl_version=$(oc get managedcluster "$primary_cluster" --ignore-not-found \
-            -o jsonpath='{.metadata.labels.openshiftVersion-major-minor}')
-        secondary_cl_version=$(oc get managedcluster "$secondary_cluster" --ignore-not-found \
-            -o jsonpath='{.metadata.labels.openshiftVersion-major-minor}')
+        primary_cl_version=$(oc -n "$primary_cluster" get clusterdeployment "$primary_cluster" \
+            --ignore-not-found -o jsonpath='{.metadata.labels.hive\.openshift\.io/version-major-minor}')
+        secondary_cl_version=$(oc -n "$secondary_cluster" get clusterdeployment "$secondary_cluster" \
+            --ignore-not-found -o jsonpath='{.metadata.labels.hive\.openshift\.io/version-major-minor}')
 
         echo "ACM-${acm_ver}-Submariner-${subm_ver}-${primary_cl_platform}-${primary_cl_version}-${secondary_cl_platform}-${secondary_cl_version}-${globalnet}"
     elif [[ "$type" == "ui" ]]; then
