@@ -1,1 +1,4 @@
-requests
+ansible==7.0.0
+ansible-core==2.14.1
+kubernetes==25.3.0
+requests==2.27.1
