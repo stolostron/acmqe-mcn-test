@@ -123,7 +123,7 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              Deployment default - 4505.
 
     --subm-cable-driver    - CableDriver represents the submariner cable driver implementation.
-                             Available options are libreswan (default) strongswan, wireguard,
+                             Available options are libreswan (default), wireguard,
                              and vxlan.
                              (Optional)
 
