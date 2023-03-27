@@ -79,5 +79,5 @@ The variables could be applied to the playbook run, by saving them into a separa
 Note the '@' sign, which is used to apply the variables located within the provided file.
 
 ```
-ansible-playbook playbooks/ocp.yml -e @/path/to/the/variable/file.yml
+ansible-playbook playbooks/acm.yml -e @/path/to/the/variable/file.yml
 ```

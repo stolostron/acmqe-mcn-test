@@ -7,9 +7,9 @@ The role will generate the `install-config.yaml` file based on the user input an
 ## Role default variables
 #### State of the cluster
 Create or destroy the cluster.  
-The state could be 'create' or 'destroy'.
+The state could be 'present' or 'absent'.
 ```
-cluster_state: create
+state: present
 ```
 
 #### OpenShift pull secret

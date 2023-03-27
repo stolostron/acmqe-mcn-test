@@ -1,0 +1,8 @@
+- name: Destroy OCP and ACM environment
+  hosts: localhost
+  gather_facts: false
+  vars:
+    state: absent
+  roles:
+    - managed_cluster
+    - ocp
