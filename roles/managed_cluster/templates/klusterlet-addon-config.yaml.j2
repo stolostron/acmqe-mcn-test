@@ -1,0 +1,29 @@
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  name: {{ item.name }}
+  namespace: {{ item.name }}
+spec:
+  clusterName: {{ item.name }}
+  clusterNamespace: {{ item.name }}
+  clusterLabels:
+{% if item.platform == "aws" %}
+    cloud: Amazon
+{% elif item.platform == "gcp" %}
+    cloud: Google
+{% elif item.platform == "azr" %}
+    cloud: Azure
+{% elif item.platform == "vmw" %}
+    cloud: vSphere
+{% endif %}
+    vendor: OpenShift
+  applicationManager:
+    enabled: true
+  policyController:
+    enabled: true
+  searchCollector:
+    enabled: true
+  certPolicyController:
+    enabled: true
+  iamPolicyController:
+    enabled: true

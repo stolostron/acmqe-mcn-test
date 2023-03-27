@@ -1,0 +1,24 @@
+apiVersion: hive.openshift.io/v1
+kind: MachinePool
+metadata:
+  name: {{ item.name }}-worker
+  namespace: {{ item.name }}
+spec:
+  clusterDeploymentRef:
+    name: {{ item.name }}
+  name: worker
+  platform:
+{% if item.platform == "aws" %}
+    aws:
+      {{ item.worker_resource | default(platform_resources.aws.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "gcp" %}
+    gcp:
+      {{ item.worker_resource | default(platform_resources.gcp.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "azr" %}
+    azure:
+      {{ item.worker_resource | default(platform_resources.azr.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "vmw" %}
+    vsphere:
+      {{ item.worker_resource | default(platform_resources.vmw.worker_resource) | to_nice_yaml | indent(6) -}}
+{% endif %}
+  replicas: 3

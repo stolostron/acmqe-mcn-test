@@ -1,0 +1,21 @@
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  labels:
+{% if item.platform == "aws" %}
+    cloud: Amazon
+    region: {{ item.region }}
+{% elif item.platform == "gcp" %}
+    cloud: Google
+    region: {{ item.region }}
+{% elif item.platform == "azr" %}
+    cloud: Azure
+    region: {{ item.region }}
+{% elif item.platform == "vmw" %}
+    cloud: vSphere
+{% endif %}
+    name: {{ item.name }}
+    vendor: OpenShift
+  name: {{ item.name }}
+spec:
+  hubAcceptsClient: true

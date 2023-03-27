@@ -1,0 +1,6 @@
+---
+- name: Managed Clusters
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - managed_cluster
