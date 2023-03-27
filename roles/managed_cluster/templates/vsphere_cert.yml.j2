@@ -1,0 +1,9 @@
+{% set creds = managed_clusters_credentials | selectattr('name', 'equalto', item.credentials) | first %}
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: {{ item.name }}-vsphere-certs
+  namespace: {{ item.name }}
+data:
+  .cacert: {{ creds.cacertificate | b64encode }}

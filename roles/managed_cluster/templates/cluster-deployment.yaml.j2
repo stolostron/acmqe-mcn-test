@@ -1,0 +1,58 @@
+{% set creds = managed_clusters_credentials | selectattr('name', 'equalto', item.credentials) | first %}
+apiVersion: hive.openshift.io/v1
+kind: ClusterDeployment
+metadata:
+  name: {{ item.name }}
+  namespace: {{ item.name }}
+  labels:
+{% if item.platform == "aws" %}
+    cloud: 'AWS'
+    region: {{ item.region }}
+{% elif item.platform == "gcp" %}
+    cloud: 'GCP'
+    region: {{ item.region }}
+{% elif item.platform == "azr" %}
+    cloud: 'Azure'
+    region: {{ item.region }}
+{% elif item.platform == "vmw" %}
+    cloud: 'vSphere'
+{% endif %}
+    vendor: OpenShift
+spec:
+  baseDomain: {{ creds.base_domain }}
+  clusterName: {{ item.name }}
+  controlPlaneConfig:
+    servingCertificates: {}
+  installAttemptsLimit: 1
+  platform:
+{% if item.platform == "aws" %}
+    aws:
+      region: {{ item.region }}
+{% elif item.platform == "gcp" %}
+    gcp:
+      region: {{ item.region }}
+{% elif item.platform == "azr" %}
+    azure:
+      baseDomainResourceGroupName: {{ creds.base_domain_resource_group_name }}
+      cloudName: {{ creds.cloud_name }}
+      region: {{ item.region }}
+{% elif item.platform == "vmw" %}
+    vsphere:
+      cluster: {{ creds.cluster }}
+      certificatesSecretRef:
+        name: {{ item.name }}-vsphere-certs
+      vCenter: {{ creds.vcenter }}
+      datacenter: {{ creds.datacenter }}
+      defaultDatastore: {{ creds.default_datastore }}
+      network: {{ item.network_name }}
+{% endif %}
+      credentialsSecretRef:
+        name: {{ item.name }}-{{ item.credentials }}
+  provisioning:
+    installConfigSecretRef:
+      name: {{ item.name }}-install-config
+    sshPrivateKeySecretRef:
+      name: {{ item.name }}-ssh-private-key
+    releaseImage: {{ item.managed_cluster_image | default(managed_cluster_image) }}
+  pullSecretRef:
+    name: {{ item.name }}-pull-secret

@@ -1,0 +1,30 @@
+---
+# curl -s -X GET https://quay.io/api/v1/repository/openshift-release-dev/ocp-release/tag/ \
+# | jq -S '.tags[] | {name: .name} | select(.name | startswith("4.11"))' | jq -r '.name' | head -1
+- name: Fetch cluster image if not provided manually
+  ansible.builtin.uri:
+    url: "{{ ocp_image_query_url }}"
+    method: "GET"
+    status_code: 200
+  register: img
+  when: item.managed_cluster_image is not defined
+
+- name: Select latest cluster image according to provided version
+  ansible.builtin.set_fact:
+    managed_cluster_ver: "{{ img.json.tags
+      | selectattr('name', 'match', item.managed_cluster_version | string)
+      | map(attribute='name') | first }}"
+  when: item.managed_cluster_image is not defined
+
+- name: Build managed cluster version url string
+  ansible.builtin.set_fact:
+    managed_cluster_image: "{{ ocp_image_base_url }}:{{ managed_cluster_ver }}"
+  when: item.managed_cluster_image is not defined
+
+- name: "{{ info_state }} Cluster Deployment for {{ item.name }} cluster"
+  community.okd.k8s:
+    host: "{{ cluster_url }}"
+    api_key: "{{ cluster_api_token }}"
+    validate_certs: no
+    definition: "{{ lookup('template', 'cluster-deployment.yaml.j2') | from_yaml }}"
+    state: "{{ state }}"

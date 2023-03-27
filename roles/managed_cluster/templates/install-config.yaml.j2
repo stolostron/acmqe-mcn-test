@@ -1,0 +1,78 @@
+{% set creds = managed_clusters_credentials | selectattr('name', 'equalto', item.credentials) | first %}
+apiVersion: v1
+metadata:
+  name: {{ item.name }}
+baseDomain: {{ creds.base_domain }}
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+  platform:
+{% if item.platform == "aws" %}
+    aws:
+      {{ item.master_resource | default(platform_resources.aws.master_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "gcp" %}
+    gcp:
+      {{ item.master_resource | default(platform_resources.gcp.master_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "azr" %}
+    azure:
+      {{ item.master_resource | default(platform_resources.azr.master_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "vmw" %}
+    vsphere:
+      {{ item.master_resource | default(platform_resources.vmw.master_resource) | to_nice_yaml | indent(6) -}}
+{% endif %}
+compute:
+- hyperthreading: Enabled
+  name: 'worker'
+  replicas: 3
+  platform:
+{% if item.platform == "aws" %}
+    aws:
+      {{ item.worker_resource | default(platform_resources.aws.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "gcp" %}
+    gcp:
+      {{ item.worker_resource | default(platform_resources.gcp.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "azr" %}
+    azure:
+      {{ item.worker_resource | default(platform_resources.azr.worker_resource) | to_nice_yaml | indent(6) -}}
+{% elif item.platform == "vmw" %}
+    vsphere:
+      {{ item.worker_resource | default(platform_resources.vmw.worker_resource) | to_nice_yaml | indent(6) -}}
+{% endif %}
+networking:
+  networkType: {{ item.network.type }}
+  clusterNetwork:
+  - cidr: {{ item.network.cluster }}
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: {{ item.network.machine }}
+  serviceNetwork:
+  - {{ item.network.service }}
+platform:
+{% if item.platform == "aws" %}
+  aws:
+    region: {{ item.region }}
+{% elif item.platform == "gcp" %}
+  gcp:
+    projectID: {{ creds.project_id }}
+    region: {{ item.region }}
+{% elif item.platform == "azr" %}
+  azure:
+    baseDomainResourceGroupName: {{ creds.base_domain_resource_group_name }}
+    cloudName: {{ creds.cloud_name }}
+    region: {{ item.region }}
+{% elif item.platform == "vmw" %}
+  vsphere:
+    vCenter: {{ creds.vcenter }}
+    username: {{ creds.username }}
+    password: {{ creds.password }}
+    datacenter: {{ creds.datacenter }}
+    defaultDatastore: {{ creds.default_datastore }}
+    cluster: {{ creds.cluster }}
+    apiVIP: {{ item.network_api_vip }}
+    ingressVIP: {{ item.network_ingress_vip }}
+    network: {{ item.network_name }}
+{% endif %}
+pullSecret: "" # skip, hive will inject based on it's secrets
+sshKey: |
+    {{ ssh_pub_key }}

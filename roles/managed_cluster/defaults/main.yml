@@ -1,0 +1,35 @@
+---
+# Two possible options: 'present' or 'absent'
+state: present
+
+# OpenShift pull secret
+pull_secret:
+# Your SSH Public key
+ssh_pub_key:
+# Your SSH Private key
+ssh_key: |
+    <private_ssh_key>
+
+# For other managed clusters platforms,
+# look for README and config-sample.yml file.
+managed_clusters:
+  - name: cluster1
+    credentials: cluster1-creds
+    platform: aws
+    region: us-east-2
+    network:
+      cluster: 10.128.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.30.0.0/16
+      type: OVNKubernetes
+    managed_cluster_version: "4.12"
+
+# For other credentials types,
+# look for README and config-sample.yml file.
+managed_clusters_credentials:
+  - name: cluster1-creds
+    platform: aws
+    namespace: open-cluster-management-hub
+    base_domain:
+    aws_access_key_id:
+    aws_secret_access_key:
