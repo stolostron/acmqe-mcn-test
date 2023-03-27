@@ -1,7 +1,7 @@
 ---
 # Set the cluster state of the execution
-# The state could be 'create' or 'destroy'.
-cluster_state: create
+# The state could be 'present' or 'absent'.
+state: present
 
 # OpenShift pull secret
 pull_secret:

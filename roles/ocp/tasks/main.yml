@@ -43,21 +43,27 @@
         dest: "/tmp/"
         remote_src: yes
 
-    - name: OCP cluster {{ cluster_state }}
+    - name: "OCP cluster - {{ cluster_state }}"
+      vars:
+        cluster_state: "{%- if state == 'present' -%}
+                        create
+                        {%- elif state == 'absent' -%}
+                        destroy
+                        {%- endif -%}"
       ansible.builtin.command:
         cmd: "/tmp/openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
       loop: "{{ clusters }}"
-  when: deploy_cluster | bool or cluster_state == "destroy"
+  when: deploy_cluster | bool or state == "absent"
 
 - name: Delete assets directory when cluster destroyed
   ansible.builtin.file:
     path: "{{ working_path }}/{{ item.name }}/"
     state: absent
   loop: "{{ clusters }}"
-  when: cluster_state == "destroy"
+  when: state == "absent"
 
 - name: Fetch OCP cluster details
   ansible.builtin.include_tasks:
     file: fetch_details.yml
   loop: "{{ clusters }}"
-  when: cluster_state == "create"
+  when: state == "present"
