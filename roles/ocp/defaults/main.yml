@@ -20,6 +20,9 @@ clusters:
       platform: aws
       region: us-east-2
       instance_type: m5.xlarge
+    openshift_version: "4.12"  # Optional variable to set OCP version per cluster
 
-openshift_install: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz
+openshift_version:
+openshift_install_binary: openshift-install-linux.tar.gz
+openshift_install_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp
 ocp_assets_dir: logs/ocp_assets

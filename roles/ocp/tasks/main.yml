@@ -36,23 +36,10 @@
     file: prepare.yml
   when: deploy_cluster | bool
 
-- block:
-    - name: Fetch openshift-install client
-      ansible.builtin.unarchive:
-        src: "{{ openshift_install }}"
-        dest: "/tmp/"
-        remote_src: yes
-
-    - name: "OCP cluster - {{ cluster_state }}"
-      vars:
-        cluster_state: "{%- if state == 'present' -%}
-                        create
-                        {%- elif state == 'absent' -%}
-                        destroy
-                        {%- endif -%}"
-      ansible.builtin.command:
-        cmd: "/tmp/openshift-install {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
-      loop: "{{ clusters }}"
+- name: Process OpenShift
+  ansible.builtin.include_tasks:
+    file: deploy.yml
+  loop: "{{ clusters }}"
   when: deploy_cluster | bool or state == "absent"
 
 - name: Delete assets directory when cluster destroyed
