@@ -42,13 +42,26 @@ clusters:
       platform: aws
       region: us-east-2
       instance_type: m5.xlarge
+    openshift_version: "4/12"  # Optional variable to set OCP version per cluster
 ```
 
-#### OpenShift version
-Install OpenShift cluster version by fetching the relevant `openshift-install` binary.  
-By default, will use latest stable version.
+#### Openshift version
+Set the version of openshift cluster to be installed.  
+By default will deploy the latest stable.
 ```
-openshift_install: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-install-linux.tar.gz
+openshift_version:
+```
+
+#### Openshift binary name
+The name of the archived binary of openshift-install.
+```
+openshift_install_binary: openshift-install-linux.tar.gz
+```
+
+#### Openshift install url
+The url where the openshift binary should be pulled from.
+```
+openshift_install_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp
 ```
 
 #### OCP assets directory
