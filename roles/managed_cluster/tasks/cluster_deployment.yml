@@ -1,6 +1,7 @@
 ---
 # curl -s -X GET https://quay.io/api/v1/repository/openshift-release-dev/ocp-release/tag/ \
-# | jq -S '.tags[] | {name: .name} | select(.name | startswith("4.11"))' | jq -r '.name' | head -1
+# | jq -S '.tags[] | {name: .name} | select(.name | startswith("4.9")) | select(.name | endswith("x86_64"))' \
+# | jq -r '.name'
 - name: Fetch cluster image if not provided manually
   ansible.builtin.uri:
     url: "{{ ocp_image_query_url }}"
@@ -12,7 +13,7 @@
 - name: Select latest cluster image according to provided version
   ansible.builtin.set_fact:
     managed_cluster_ver: "{{ img.json.tags
-      | selectattr('name', 'match', item.managed_cluster_version | string)
+      | selectattr('name', 'match', item.managed_cluster_version + '.*' + cluster_architecture | string)
       | map(attribute='name') | first }}"
   when: item.managed_cluster_image is not defined
 

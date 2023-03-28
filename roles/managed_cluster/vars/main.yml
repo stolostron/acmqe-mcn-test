@@ -1,6 +1,10 @@
 ocp_image_query_url: https://quay.io/api/v1/repository/openshift-release-dev/ocp-release/tag/
 ocp_image_base_url: quay.io/openshift-release-dev/ocp-release
 
+# Architecture of the managed clusters
+# Allowed values: x86_64, s390x, ppc64le, aarch64
+cluster_architecture: "x86_64"
+
 platform_resources:
   aws:
     master_resource:
