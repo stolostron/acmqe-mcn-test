@@ -115,7 +115,7 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              The globalnet configuration will be applied starting from
                              ACM version 2.5.0 and Submariner 0.12.0
                              (Optional)
-                             By default - false
+                             By default - true
 
     --subm-ipsec-natt-port - IPSecNATTPort represents IPsec NAT-T port.
                              (Optional)
