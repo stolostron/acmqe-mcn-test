@@ -96,6 +96,8 @@ pipeline {
                 allOf {
                     expression {
                         EXECUTE_JOB == true
+                    }
+                    expression {
                         JOB_STAGES == 'all' || JOB_STAGES == 'deploy'
                     }
                 }
@@ -133,6 +135,8 @@ pipeline {
                 allOf {
                     expression {
                         EXECUTE_JOB == true
+                    }
+                    expression {
                         JOB_STAGES == 'all' || JOB_STAGES == 'test'
                     }
                 }
@@ -168,6 +172,8 @@ pipeline {
                 allOf {
                     expression {
                         EXECUTE_JOB == true
+                    }
+                    expression {
                         JOB_STAGES == 'all' || JOB_STAGES == 'test'
                     }
                 }
