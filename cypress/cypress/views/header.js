@@ -36,46 +36,32 @@ export const acmHeaderSelectors = {
 export const acm23xheaderMethods = {
     // left navigation methods
     openMenu: () => {
-        cy.get('body').then(body => {
-            if (body.find('#guided-tour-modal').length > 0) {
-                cy.get('#guided-tour-modal').within(() => {
-                    cy.get('button[aria-label="Close"]').click()
-                })
-            }
-        })
-        cy.get(acmHeaderSelectors.leftNavigation.leftSideBar, { timeout: 10 * 1000 }).should('exist').and('be.visible')
-        var menuOpened = cy.get(acmHeaderSelectors.leftNavigation.leftSideBar).invoke('attr', 'aria-hidden')
-        if (menuOpened == false) {
-            cy.get(acmHeaderSelectors.leftNavigation.hamburbgerButton).click()
-            cy.wait(500).get(acmHeaderSelectors.leftNavigation.leftSideBarNavList).should('be.visible').and('have.length', 6)
-        }
-        // Check if using OCP console here
-        if (Cypress.config().baseUrl.startsWith("https://console-openshift-console.apps")) {
-            // eslint-disable-next-line cypress/no-unnecessary-waiting
-            cy.wait(1500)
-            cy.get('.oc-nav-header > .pf-c-dropdown > button > .pf-c-dropdown__toggle-text')
+        cy.get(acmHeaderSelectors.leftNavigation.leftSideBar).should('exist').and('be.visible')
+        // The cluster switcher dropdown placement is different from OCP 4.13+
+        cy.ocGetHubClusterVersion()   
+        .then( (result) => {
+          cy.log(`ocp version is ${result}`)
+          if (Number(result) > ('4.12')) {
+              cy.get(`[data-test-id='cluster-dropdown-toggle']`)
+                .click()
+              cy.get(`[data-test-id='cluster-dropdown-item']`)
+                .contains('All Clusters')
+                .click()
+          } else {
+              cy.get('.oc-nav-header > .pf-c-dropdown > button')
                 .first()
-                .invoke('text')
-                .then(txt => {
-                    if (txt != 'All Clusters') {
-                        cy.get('.oc-nav-header > .pf-c-dropdown > button')
-                            .first()
-                            .click({ timeout: 20000 })
-                            .then(
-                                () => {
-                                    cy.get('.pf-c-dropdown__menu', { timeout: 2 * 1000 }).should('exist').contains("All Clusters").click()
-                                })
-                    }
-                })
-        }
+                .click()
+              cy.contains('All Clusters')
+                .click()
+          }
+        })
     },
 
     expandInfrastructure: () => {
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
-        cy.wait(1500).contains(commonElementSelectors.elements.button, acmHeaderSelectors.leftNavigation.listItemsText.infrastructure).then($expand => {
+        cy.contains(commonElementSelectors.elements.button, acmHeaderSelectors.leftNavigation.listItemsText.infrastructure).then($expand => {
             if ($expand.attr('aria-expanded') == 'false') {
-                // eslint-disable-next-line cypress/no-unnecessary-waiting
-                cy.wait(1500).contains(commonElementSelectors.elements.button, acmHeaderSelectors.leftNavigation.listItemsText.infrastructure).click({ timeout: 20000, force: true })
+                cy.contains(commonElementSelectors.elements.button, acmHeaderSelectors.leftNavigation.listItemsText.infrastructure).click({ timeout: 20000 })
+                cy.contains(commonElementSelectors.elements.a, acmHeaderSelectors.leftNavigation.listItemsText.infrastructureText.clusters, { timeout: 5000 }).should('exist')
             }
         })
     },
