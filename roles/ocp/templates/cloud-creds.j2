@@ -1,0 +1,5 @@
+{% if item.creds_type == "aws" %}
+[default]
+aws_access_key_id = {{ clusters_credentials[item.creds_type].aws_access_key_id }}
+aws_secret_access_key = {{ clusters_credentials[item.creds_type].aws_secret_access_key }}
+{% endif %}

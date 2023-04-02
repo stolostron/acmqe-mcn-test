@@ -11,6 +11,7 @@ ssh_pub_key:
 clusters:
   - name: test-cluster
     base_domain: example.com
+    creds_type: aws
     network:
       cluster: 10.128.0.0/14
       machine: 10.0.0.0/16
@@ -21,6 +22,11 @@ clusters:
       region: us-east-2
       instance_type: m5.xlarge
     openshift_version: "4.12"  # Optional variable to set OCP version per cluster
+
+clusters_credentials:
+  aws:
+    aws_access_key_id: <your_key>
+    aws_secret_access_key: <your_secret_key>
 
 openshift_version:
 openshift_install_binary: openshift-install-linux.tar.gz

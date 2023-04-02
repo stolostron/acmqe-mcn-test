@@ -34,6 +34,7 @@
 - name: Prepare OCP cluster configuration
   ansible.builtin.include_tasks:
     file: prepare.yml
+  loop: "{{ clusters }}"
   when: deploy_cluster | bool
 
 - name: Process OpenShift

@@ -42,7 +42,17 @@ clusters:
       platform: aws
       region: us-east-2
       instance_type: m5.xlarge
+    creds_type: aws
     openshift_version: "4.12"  # Optional variable to set OCP version per cluster
+```
+
+#### Clusters credentials
+Credentials that should be used during openshift cluster deployment
+```
+clusters_credentials:
+  aws:
+    aws_access_key_id: <your_key_id>
+    aws_secret_access_key: <your_access_key>
 ```
 
 #### Openshift version
