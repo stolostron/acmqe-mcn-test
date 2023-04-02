@@ -28,7 +28,13 @@ Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
   const idp = OC_IDP || Cypress.env('OC_IDP')
 
   cy.intercept(managedclustersPath).as('clustersPagePath')
-  cy.visit(managedclustersPath, { failOnStatusCode: false })
+  cy.visit(managedclustersPath, { 
+    onBeforeLoad(win) {
+      win.localStorage.setItem(
+        cy.config().baseUrl + managedclustersPath + '/clusteronboardingmodal', 'hide'
+      )
+    },
+  })
   if (Cypress.config().baseUrl.startsWith("https://multicloud-console.apps")) {
     cy.url().then((url) => {
       if (!url.includes('oauth-openshift')) {
@@ -56,12 +62,12 @@ Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
     cy.get('#inputUsername').click().focused().type(user)
     cy.get('#inputPassword').click().focused().type(password)
     cy.get('button[type="submit"]').click()
-    cy.get(acmHeaderSelectors.mainHeader, { timeout: 30000 }).should('exist')
+    cy.get('#page-main-header', { timeout: 30000 }).should('exist')
   })
 
-  // Verify we're on clusters page to start, after we log in. then hide the default modal by setting our cache.
-  cy.wait('@clustersPagePath').then(() => {
-    cy.setLocalStorage(cy.config().baseUrl + managedclustersPath + '/clusteronboardingmodal', 'hide')
+  // Upon successful login, should be able to see the user menu in the navigation
+  cy.get('nav[data-test="user-dropdown"] > button[aria-label="User menu"]').should('exist').then(() => {
+    cy.log('Login successful! Ready to start testing...')
   })
 })
 
@@ -83,6 +89,14 @@ Cypress.Commands.add('ifNotContains', (selector, text, action) => {
 
 Cypress.Commands.add('failOnErrorResponseStatus', (resp, errorMsg) => {
   expect(resp.status, errorMsg + " " + resp.body.message).to.match(/20[0,1]/)
+})
+
+Cypress.Commands.add('ocGetHubClusterVersion', () => {
+  cy.exec('oc login --insecure-skip-tls-verify=true --username '+Cypress.env('OC_CLUSTER_USER')+' --password '+ Cypress.env('OC_CLUSTER_PASS')+ ' ' +constants.apiUrl)
+  cy.exec('oc get clusterversion -ojsonpath="{.items[0].status.desired.version}"')
+    .then(result => {
+      cy.wrap(result.stdout.trim().slice(0,4)).as("hubOCPVersion")
+    })
 })
 
 Cypress.Commands.add('logout', () => {
