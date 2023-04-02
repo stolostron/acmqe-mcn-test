@@ -42,7 +42,7 @@ clusters:
       platform: aws
       region: us-east-2
       instance_type: m5.xlarge
-    openshift_version: "4/12"  # Optional variable to set OCP version per cluster
+    openshift_version: "4.12"  # Optional variable to set OCP version per cluster
 ```
 
 #### Openshift version
