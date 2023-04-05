@@ -21,6 +21,12 @@ import * as constants from './constants'
 import { acmHeaderSelectors } from '../views/header'
 import { commonElementSelectors } from '../views/common/commonSelectors'
 
+// Openshift Login
+Cypress.Commands.add('managedClusterLogin', (apiUrl, user, password) => {
+      cy.exec(`oc login --server=${apiUrl} -u ${user} -p ${password} --insecure-skip-tls-verify`, {timeout: 40 * 1000})
+      //cy.wait(3*1000)
+  })
+
 Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
   const managedclustersPath = '/multicloud/infrastructure/clusters/managed'
   const user = OC_CLUSTER_USER || Cypress.env('OC_CLUSTER_USER')
@@ -65,6 +71,10 @@ Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
   })
 })
 
+Cypress.Commands.add('waitUntilContains', (selector, text, options) => {
+  cy.waitUntil(() => cy.ifContains(selector, text), options)
+})
+
 Cypress.Commands.add('checkCondition', (selector, condition, action) => {
   return cy.get('body').then($body => {
     var $elem = $body.find(selector)
@@ -79,6 +89,10 @@ Cypress.Commands.add('checkCondition', (selector, condition, action) => {
 
 Cypress.Commands.add('ifNotContains', (selector, text, action) => {
   return cy.checkCondition(selector, ($elem) => !$elem || !$elem.text().includes(text), action)
+})
+
+Cypress.Commands.add('ifContains', (selector, text, action) => {
+  return cy.checkCondition(selector, ($elem) => $elem && $elem.text().includes(text), action)
 })
 
 Cypress.Commands.add('failOnErrorResponseStatus', (resp, errorMsg) => {
@@ -145,4 +159,63 @@ Cypress.Commands.add("clearOCMCookies", () => {
   cy.clearCookie("_csrf");
   cy.clearCookie("openshift-session-token");
   cy.clearCookie("csrf-token");
-})
+}),
+
+Cypress.Commands.add('getClusterInfo', (hive_cluster_name) => {
+      const cluster_info_dict = {}
+      // Go the cluster from the Clusters table
+      cy.get('tr').contains(hive_cluster_name).then(($tr) => {
+          // Add hive_cluster_name to the environment variables
+          Cypress.env(hive_cluster_name + "_name", hive_cluster_name)
+          cy.log(hive_cluster_name)
+          cluster_info_dict[hive_cluster_name + "_name"] = hive_cluster_name
+          
+          // Go into the cluster's page
+          cy.wrap($tr).closest('tr').find('a').click()
+      })
+      // Get the Hive Cluster URL
+      cy.get('.pf-c-description-list__text').contains('Console URL').then((url) => {
+          cy.wrap(url).closest('div.pf-c-description-list__group').then((parent) => {
+              cy.wrap(parent).find('.pf-c-button.pf-m-link.pf-m-inline').invoke('text').then((hive_cluster_url) => {
+                  Cypress.env(hive_cluster_name + '_url', hive_cluster_url)
+                  cy.log(hive_cluster_url)
+                  cluster_info_dict[hive_cluster_name + '_url'] = hive_cluster_url
+              })
+          })
+      })
+      // Get the Hive Cluster Username
+      cy.get('.credentials-toggle').contains('Reveal credentials').click()
+      cy.get('#username-credentials').invoke('text').then((hive_cluster_user) => {
+          Cypress.env(hive_cluster_name + '_user', hive_cluster_user)
+          cy.log(hive_cluster_user)
+          cluster_info_dict[hive_cluster_name + '_user'] = hive_cluster_user
+          })
+      // Get the Hive Cluster password
+      cy.get('#password-credentials').invoke('text').then((hive_cluster_pwd) => {
+          Cypress.env(hive_cluster_name + '_pwd', hive_cluster_pwd)
+          cy.log(hive_cluster_pwd)
+          cluster_info_dict[hive_cluster_name + '_pwd'] = hive_cluster_pwd
+          })
+
+      // Get the Hive Cluster API Address
+      cy.get('#kube-api-server').invoke('text').then((hive_cluster_api) => {
+          Cypress.env(hive_cluster_name + '_api', hive_cluster_api)
+          cy.log(hive_cluster_api)
+          cluster_info_dict[hive_cluster_name + '_api'] = hive_cluster_api
+          })
+
+          // Get the Hive Cluster Status
+      cy.get('.pf-c-description-list__group').contains('Status').then((status) => {
+          cy.wrap(status).closest('.pf-c-description-list__group').find('.pf-c-description-list__description').invoke('text').then((hive_cluster_status) => {
+          Cypress.env(hive_cluster_name + '_status', hive_cluster_status)
+          cy.log(hive_cluster_status)
+          cluster_info_dict[hive_cluster_name + '_status'] = hive_cluster_status
+          
+          // Add the hive clusters credentials dictionary into the environment variables
+          Cypress.env(hive_cluster_name + '_info', cluster_info_dict)
+          })
+      })
+
+      // go back to the clusters table
+      cy.get(':nth-child(1) > .pf-c-breadcrumb__link').click()
+  })
