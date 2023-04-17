@@ -40,40 +40,20 @@ function execute_submariner_e2e_tests() {
             | tee  "$TESTS_LOGS/${tests_basename}_subctl_show_all.log" \
             || add_test_error $?
 
-        INFO "Execute diagnose CNI"
-        subctl diagnose cni \
-            --context "$primary_test_cluster" \
-            --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_cni.log" \
-            || add_test_error $?
-
-        INFO "Execute diagnose Connections"
-        subctl diagnose connections \
-            --context "$primary_test_cluster" \
-            --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_connections.log" \
-            || add_test_error $?
-
-        INFO "Execute diagnose Deployment"
-        subctl diagnose deployment \
+        INFO "Execute diagnose all tests"
+        subctl diagnose all --verbose \
             --image-override submariner-nettest="$nettest_img_ref" \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_deployment.log" \
+            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_all.log" \
             || add_test_error $?
 
-        INFO "Execute diagnose k8s-version"
-        subctl diagnose k8s-version \
+        INFO "Execute diagnose firewall inter-cluster tests"
+        subctl diagnose firewall inter-cluster --verbose \
+            --image-override submariner-nettest="$nettest_img_ref" \
             --context "$primary_test_cluster" \
-            --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_k8s_version.log" \
-            || add_test_error $?
-
-        INFO "Execute diagnose service-discovery"
-        subctl diagnose service-discovery \
-            --context "$primary_test_cluster" \
-            --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_service_discovery.log" \
+            --remotecontext "$secondary_test_cluster" 2>&1 \
+            |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
