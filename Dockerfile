@@ -6,14 +6,13 @@ ARG CHROME=https://dl.google.com/linux/direct/google-chrome-stable_current_x86_6
 ARG OCP_CLI=https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
 ARG YQ=https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64
 ARG AWS_CLI=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-# Do not move to latest version until https://issues.redhat.com/browse/SDA-8065 is fixed.
-ARG ROSA_CLI=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/1.2.10/rosa-linux.tar.gz
+ARG ROSA_CLI=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/latest/rosa-linux.tar.gz
 
 RUN mkdir -p /"$SUBM" \
     && adduser "$SUBM" \
     && chown -R "$SUBM" /"$SUBM"
 
-RUN dnf install -y \
+RUN dnf install --nodocs -y \
     wget \
     curl \
     gzip \
@@ -43,6 +42,12 @@ RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
     && wget -qO- "$ROSA_CLI" | tar zxv -C /usr/local/bin/ rosa \
     && curl "$AWS_CLI" -o aws.zip && unzip aws.zip && ./aws/install && rm -rf aws*
 
-WORKDIR /"$SUBM"
+COPY requirements.txt requirements.yml ./
+
+RUN pip install --no-deps --no-cache-dir -r requirements.txt
 
 USER "$SUBM"
+
+RUN ansible-galaxy collection install --no-cache -r requirements.yml
+
+WORKDIR /"$SUBM"
