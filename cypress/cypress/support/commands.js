@@ -60,7 +60,7 @@ Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
     if (body.find('.idp').length != 0)
       cy.contains(idp).click()
     cy.get('#inputUsername').click().focused().type(user)
-    cy.get('#inputPassword').click().focused().type(password)
+    cy.get('#inputPassword').click().focused().type(password, { sensitive:true })
     cy.get('button[type="submit"]').click()
     cy.get('#page-main-header', { timeout: 30000 }).should('exist')
   })
@@ -69,6 +69,20 @@ Cypress.Commands.add('login', (OC_CLUSTER_USER, OC_CLUSTER_PASS, OC_IDP) => {
   cy.get('nav[data-test="user-dropdown"] > button[aria-label="User menu"]').should('exist').then(() => {
     cy.log('Login successful! Ready to start testing...')
   })
+})
+
+Cypress.Commands.overwrite('type', (originalFn, element, text, options) => {
+  if (options && options.sensitive) {
+    // turn off original logging so we don't print the unmasked data
+    options.log = false
+    // now let's override this function to hide sensitive data instead
+    Cypress.log({
+      $el: element,
+      name: 'type',
+      message: '*'.repeat(20),
+    })
+  }
+  return originalFn(element, text, options)
 })
 
 Cypress.Commands.add('checkCondition', (selector, condition, action) => {
