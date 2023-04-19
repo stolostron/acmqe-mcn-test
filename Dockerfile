@@ -44,7 +44,7 @@ RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
 
 COPY requirements.txt requirements.yml ./
 
-RUN pip install --no-deps --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 USER "$SUBM"
 
