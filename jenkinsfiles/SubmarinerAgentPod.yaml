@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    label: submariner
+spec:
+  activeDeadlineSeconds: 18000
+  containers:
+  - name: jnlp
+    image: "image-registry.openshift-image-registry.svc:5000/jenkins-csb-skynet/qe-jenkins-agent:latest"
+    workingDir: '/home/jenkins'
+    env:
+      - name: HOME
+        value: '/home/jenkins'
+    resources:
+      limits:
+        cpu: 100m
+        memory: 300Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  - name: submariner
+    image: 'quay.io/maxbab/subm-test:test'
+    # imagePullSecrets: 'agent-image-secret'
+    ttyEnabled: true
+    alwaysPullImage: true
+    command: [ 'sleep', '365d' ]
+    workingDir: '/home/jenkins'
+    env:
+      - name: HOME
+        value: '/home/jenkins'
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 3Gi
+      requests:
+        cpu: 2000m
+        memory: 3Gi
