@@ -62,6 +62,13 @@ By default will deploy the latest stable.
 openshift_version:
 ```
 
+#### Openshift channel
+The channel the should be used alongside with the version.  
+Available values: 'stable', 'latest', 'candidate'.
+```
+openshift_channel: stable
+```
+
 #### Openshift binary name
 The name of the archived binary of openshift-install.
 ```
