@@ -154,16 +154,10 @@ pipeline {
                     if (params.TEST_TAGS == '@post-release') {
                         DOWNSTREAM = "--downstream false"
                     }
-
-                    TESTS_TYPE = "--test-type e2e,ui"
-                    if (params.TEST_TAGS == '@api' ||
-                        params.TEST_TAGS == '@api-post-release') {
-                            TESTS_TYPE = "--test-type e2e"
-                        }
                 }
 
                 sh """
-                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM
                 """
             }
         }
