@@ -29,6 +29,8 @@ clusters_credentials:
     aws_secret_access_key: <your_secret_key>
 
 openshift_version:
+# Available: 'stable', 'latest', 'candidate'
+openshift_channel: stable
 openshift_install_binary: openshift-install-linux.tar.gz
 openshift_install_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp
 ocp_assets_dir: logs/ocp_assets

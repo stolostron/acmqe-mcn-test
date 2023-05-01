@@ -2,11 +2,11 @@
 - name: Set the version of openshift-install binary to download
   ansible.builtin.set_fact:
     ocp_version: "{%- if item.openshift_version is defined -%}
-                  stable-{{ item.openshift_version }}
+                  {{ openshift_channel }}-{{ item.openshift_version }}
                   {%- elif openshift_version is not none -%}
-                  stable-{{ openshift_version }}
+                  {{ openshift_channel }}-{{ openshift_version }}
                   {%- else -%}
-                  stable
+                  {{ openshift_channel }}
                   {%- endif -%}"
 
 - name: Print selected openshift-install version
