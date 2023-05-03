@@ -180,13 +180,13 @@ function login_to_cluster() {
             -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
         oc cluster-info | grep Kubernetes
     else
-        if [[ ! -f "$LOGS/$cluster-password" || ! -f "$LOGS/$cluster-kubeconfig.yaml" ]]; then
+        if [[ ! -f "$KCONF/$cluster-password" || ! -f "$KCONF/$cluster-kubeconfig.yaml" ]]; then
             ERROR "Unable login to a $cluster cluster. Missing config files."
         fi
 
-        cluster_pass="$LOGS/$cluster-password"
+        cluster_pass="$KCONF/$cluster-password"
         cluster_url=$(yq eval '.clusters[].cluster.server' \
-                        "$LOGS/$cluster-kubeconfig.yaml")
+                        "$KCONF/$cluster-kubeconfig.yaml")
         oc login --insecure-skip-tls-verify -u "kubeadmin" \
             -p "$(< "$cluster_pass")" "$cluster_url" &> /dev/null
     fi
@@ -251,8 +251,8 @@ function fetch_kubeconfig_contexts_and_pass() {
     local kubeconfig_name
     local pass_name
 
-    rm -rf "$LOGS"
-    mkdir -p "$LOGS"
+    rm -rf "$KCONF"
+    mkdir -p "$KCONF"
 
     for cluster in $MANAGED_CLUSTERS; do
         kubeconfig_name=$(oc get -n "$cluster" secrets --no-headers \
@@ -263,17 +263,17 @@ function fetch_kubeconfig_contexts_and_pass() {
         fi
 
         oc get secrets "$kubeconfig_name" -n "$cluster" \
-            --template='{{index .data.kubeconfig | base64decode}}' > "$LOGS/$cluster-kubeconfig.yaml"
+            --template='{{index .data.kubeconfig | base64decode}}' > "$KCONF/$cluster-kubeconfig.yaml"
 
         CL="$cluster" yq eval -i '.contexts[].context.user = env(CL)
             | .contexts[].name = env(CL)
             | .current-context = env(CL)
-            | .users[].name = env(CL)' "$LOGS/$cluster-kubeconfig.yaml"
+            | .users[].name = env(CL)' "$KCONF/$cluster-kubeconfig.yaml"
 
         pass_name=$(oc get -n "$cluster" secrets --no-headers \
                       -o custom-columns=NAME:.metadata.name | grep password)
         oc get secrets "$pass_name" -n "$cluster" \
-            --template='{{index .data.password | base64decode}}' > "$LOGS/$cluster-password"
+            --template='{{index .data.password | base64decode}}' > "$KCONF/$cluster-password"
     done
 }
 
