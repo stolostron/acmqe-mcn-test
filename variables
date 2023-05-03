@@ -77,3 +77,6 @@ export LATEST_IIB=""
 export TEST_TYPE="e2e,ui"
 # Execute or skip UI tests. By default, execute.
 export UI_TESTS="true"
+
+# Optional addition to the test basename. By default, empty.
+export TEST_REPORT_SUFFIX=""

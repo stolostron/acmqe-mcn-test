@@ -109,6 +109,10 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              (Optional)
                              By default - e2e,ui
 
+    --report-suffix        - Add suffix to the tests basename.
+                             (Optional)
+                             By default - empty string
+
     Submariner configuration arguments:
     -----------------------------------
     --globalnet            - Set the state of the Globalnet for the Submariner deployment.
