@@ -34,3 +34,4 @@ openshift_channel: stable
 openshift_install_binary: openshift-install-linux.tar.gz
 openshift_install_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp
 ocp_assets_dir: logs/ocp_assets
+clusters_details_file: clusters_details.yml
