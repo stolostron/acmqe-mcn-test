@@ -1,5 +1,5 @@
 ---
-cluster_url:
+cluster_api:
 cluster_user: kubeadmin
 cluster_pass:
 

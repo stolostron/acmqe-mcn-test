@@ -13,7 +13,7 @@
 
 - name: "{{ info_state }} global credentials"
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'global-credentials.yaml.j2') | from_yaml }}"
@@ -23,7 +23,7 @@
 
 - name: "{{ info_state }} Managed Cluster"
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'managed-cluster.yaml.j2') | from_yaml }}"
@@ -37,7 +37,7 @@
 
 - name: "{{ info_state }} cluster MachinePool"
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'machine-pool.yaml.j2') | from_yaml }}"
@@ -46,7 +46,7 @@
 
 - name: "{{ info_state }} cluster KlusterletAddonConfig"
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'klusterlet-addon-config.yaml.j2') | from_yaml }}"
@@ -61,7 +61,7 @@
 - block:
     - name: Wait for cluster provisioning to complete
       kubernetes.core.k8s_info:
-        host: "{{ cluster_url }}"
+        host: "{{ cluster_api }}"
         api_key: "{{ cluster_api_token }}"
         validate_certs: no
         api_version: hive.openshift.io/v1
@@ -77,7 +77,7 @@
 
     - name: Wait for cluster to become ready
       kubernetes.core.k8s_info:
-        host: "{{ cluster_url }}"
+        host: "{{ cluster_api }}"
         api_key: "{{ cluster_api_token }}"
         validate_certs: no
         api_version: hive.openshift.io/v1
@@ -95,7 +95,7 @@
 - block:
     - name: Wait for ClusterDeployment removal
       kubernetes.core.k8s_info:
-        host: "{{ cluster_url }}"
+        host: "{{ cluster_api }}"
         api_key: "{{ cluster_api_token }}"
         validate_certs: no
         api_version: hive.openshift.io/v1
@@ -110,7 +110,7 @@
 
     - name: Wait for ManagedCluster removal
       kubernetes.core.k8s_info:
-        host: "{{ cluster_url }}"
+        host: "{{ cluster_api }}"
         api_key: "{{ cluster_api_token }}"
         validate_certs: no
         api_version: cluster.open-cluster-management.io/v1

@@ -22,7 +22,7 @@
 
 - name: Create "{{ acm_namespace }}" namespace
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     api_version: v1
@@ -36,21 +36,21 @@
 
 - name: Create ImageContentSourcePolicy
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'image-content-source-policy.yaml.j2') | from_yaml }}"
 
 - name: Create OperatorGroup
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'operator-group.yaml.j2') | from_yaml }}"
 
 - name: Create ACM CatalogSource
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'catalog-source.yaml.j2') | from_yaml }}"
@@ -58,7 +58,7 @@
 
 - name: Wait for ACM CatalogSource to get READY state
   kubernetes.core.k8s_info:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     api_version: operators.coreos.com/v1alpha1
@@ -72,14 +72,14 @@
 
 - name: Create ACM Subscription
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'subscription.yaml.j2') | from_yaml }}"
 
 - name: Fetch the name of installed ClusterServiceVersion
   kubernetes.core.k8s_info:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     api_version: operators.coreos.com/v1alpha1
@@ -93,7 +93,7 @@
 
 - name: Wait for the ClusterServiceVersion to succeeded install
   kubernetes.core.k8s_info:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     api_version: operators.coreos.com/v1alpha1
@@ -109,7 +109,7 @@
 
 - name: Deploy MultiClusterHub
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'multiclusterhub.yaml.j2') | from_yaml }}"

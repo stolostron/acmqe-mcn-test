@@ -24,7 +24,7 @@
 
 - name: "{{ info_state }} Cluster Deployment for {{ item.name }} cluster"
   community.okd.k8s:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     definition: "{{ lookup('template', 'cluster-deployment.yaml.j2') | from_yaml }}"

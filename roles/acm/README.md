@@ -7,7 +7,7 @@ The `acm` role prepares and deploys MultiClusterHub on a given OCP cluster.
 #### OCP cluster authentication details
 These variables are used to authenticate and interact with cluster during MCH deployment.
 ```
-cluster_url:
+cluster_api:
 cluster_user:
 cluster_pass:
 ```

@@ -4,10 +4,10 @@
     src: "{{ working_path }}/{{ item.name }}/.openshift_install.log"
   register: cluster_console_reg
 
-- name: Fetch "{{ item.name }}" cluster url
+- name: Fetch "{{ item.name }}" cluster api
   ansible.builtin.slurp:
     src: "{{ working_path }}/{{ item.name }}/auth/kubeconfig"
-  register: cluster_url_reg
+  register: cluster_api_reg
 
 - name: Fetch "{{ item.name }}" cluster password
   ansible.builtin.slurp:
@@ -22,9 +22,9 @@
 
 - name: Set OCP cluster url
   ansible.builtin.set_fact:
-    cluster_url_raw: "{{ cluster_url_reg['content'] | b64decode | regex_search('server: (.+)', '\\1') }}"
+    cluster_api_raw: "{{ cluster_api_reg['content'] | b64decode | regex_search('server: (.+)', '\\1') }}"
 - ansible.builtin.set_fact:
-    cluster_url: "{{ cluster_url_raw[0] }}"
+    cluster_api: "{{ cluster_api_raw[0] }}"
 
 - name: Set OCP cluster password
   ansible.builtin.set_fact:
