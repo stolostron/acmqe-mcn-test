@@ -1,6 +1,5 @@
 ---
-cluster_url:
-cluster_user: kubeadmin
-cluster_pass:
+cluster_name:
 
-cluster_api_token:
+ocp_assets_dir: logs/ocp_assets
+clusters_details_file: clusters_details.yml
