@@ -9,7 +9,7 @@
 
 - name: Check for installed MultiClusterHub
   kubernetes.core.k8s_info:
-    host: "{{ cluster_url }}"
+    host: "{{ cluster_api }}"
     api_key: "{{ cluster_api_token }}"
     validate_certs: no
     api_version: operator.open-cluster-management.io/v1
@@ -34,7 +34,7 @@
 - block:
     - name: Fetch MultiClusterHub console url
       kubernetes.core.k8s_info:
-        host: "{{ cluster_url }}"
+        host: "{{ cluster_api }}"
         api_key: "{{ cluster_api_token }}"
         validate_certs: no
         api_version: route.openshift.io/v1
@@ -55,7 +55,7 @@
 
       Cluster details:
       Cluster console: {{ cluster_console }}
-      Cluster api: {{ cluster_url }}
+      Cluster api: {{ cluster_api }}
       Cluster pass: {{ cluster_pass }}
   ansible.builtin.debug:
     msg: "{{ msg.split('\n') }}"
