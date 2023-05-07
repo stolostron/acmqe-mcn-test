@@ -1,10 +1,9 @@
 ---
-# curl -s -X GET https://quay.io/api/v1/repository/openshift-release-dev/ocp-release/tag/ \
-# | jq -S '.tags[] | {name: .name} | select(.name | startswith("4.9")) | select(.name | endswith("x86_64"))' \
-# | jq -r '.name'
+# curl -s -X GET https://quay.io/api/v1/repository/openshift-release-dev/ocp-release/tag/?filter_tag_name=like:4.9 \
+# | jq -S '.tags[] | {name: .name} | select(.name | endswith("x86_64"))' | jq -r '.name'
 - name: Fetch cluster image if not provided manually
   ansible.builtin.uri:
-    url: "{{ ocp_image_query_url }}"
+    url: "{{ ocp_image_query_url }}/?filter_tag_name=like:{{ item.managed_cluster_version }}"
     method: "GET"
     status_code: 200
   register: img
