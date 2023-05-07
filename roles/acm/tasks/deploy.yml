@@ -3,7 +3,7 @@
 # | jq -S '.tags[] | {name: .name} | select(.name | startswith("2.8"))' | jq -r '.name' | head -1
 - name: Fetch downstream snapshots if snapshot not provided manually
   ansible.builtin.uri:
-    url: "{{ registry_query_url }}"
+    url: "{{ registry_query_url }}/?filter_tag_name=like:{{ acm_version }}"
     method: "GET"
     status_code: 200
   register: snap
