@@ -50,7 +50,7 @@
         state: absent
       loop: "{{ clusters }}"
 
-    - name: Write cluster details into state file
+    - name: Remove clusters details from the state file
       ansible.builtin.blockinfile:
         path: "{{ working_path }}/{{ clusters_details_file }}"
         block: ""
