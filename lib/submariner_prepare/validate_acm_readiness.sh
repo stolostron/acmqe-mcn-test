@@ -140,7 +140,7 @@ function validate_non_globalnet_clusters() {
     local platform_iter
 
     for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         cluster_net=$(KUBECONFIG="$kube_conf" oc get network.config.openshift.io \
             cluster -o jsonpath='{.status.clusterNetwork[*].cidr}')
