@@ -20,7 +20,7 @@ function execute_submariner_e2e_tests() {
 
     # Fetch the nettest image with digest to override the subctl reference
     # to the image with floating tags.
-    nettest_img_ref=$(KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml" \
+    nettest_img_ref=$(KUBECONFIG="$KCONF/$primary_test_cluster-kubeconfig.yaml" \
         oc -n "$SUBMARINER_NS" get pod -l app=submariner-metrics-proxy -o json \
         | jq -r '.items[0].spec.containers[0].image')
 
@@ -33,7 +33,7 @@ function execute_submariner_e2e_tests() {
         tests_basename=$(combine_tests_basename "e2e" "$primary_test_cluster" "$secondary_test_cluster")
 
         INFO "Running tests between $primary_test_cluster and $secondary_test_cluster clusters"
-        export KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml:$LOGS/$secondary_test_cluster-kubeconfig.yaml"
+        export KUBECONFIG="$KCONF/$primary_test_cluster-kubeconfig.yaml:$KCONF/$secondary_test_cluster-kubeconfig.yaml"
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
