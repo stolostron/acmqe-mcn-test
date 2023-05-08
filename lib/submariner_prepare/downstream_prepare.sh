@@ -10,7 +10,7 @@ function create_icsp() {
         INFO "Create Brew ICSP mirror on $cluster"
         yq eval '.spec.repositoryDigestMirrors[].mirrors[] = env(BREW_REGISTRY)' \
             "$SCRIPT_DIR/manifests/image-content-source-policy.yaml" \
-            | KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" oc apply -f -
+            | KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f -
     done
 }
 
@@ -19,7 +19,7 @@ function create_icsp() {
 function get_latest_iib() {
     INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
 
-    local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
     local submariner_version="$SUBMARINER_VERSION_INSTALL"
     local latest_iib
     local ocp_version
@@ -89,7 +89,7 @@ function create_catalog_source() {
             yq eval '.spec.image = env(IMG_SRC)
             | .metadata.namespace = env(NS)' \
             "$SCRIPT_DIR/manifests/catalog-source.yaml" \
-            | KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" oc apply -f -
+            | KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f -
     done
 
     INFO "Check CatalogSource state"
@@ -101,7 +101,7 @@ function create_catalog_source() {
         timeout=0
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "READY" ]]; do
             INFO "Waiting for CatalogSource 'READY' state..."
-            cmd_output=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
+            cmd_output=$(KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" \
                             oc -n "$catalog_ns" get catalogsource submariner-catalog \
                             -o jsonpath='{.status.connectionState.lastObservedState}')
             sleep $(( timeout++ ))
@@ -133,7 +133,7 @@ function verify_package_manifest() {
         timeout=0
         until [[ "$timeout" -eq "$wait_timeout" ]]; do
             INFO "Searching for Submariner version - $submariner_version in PackageManifest"
-            manifest_ver=$(KUBECONFIG="$LOGS/$cluster-kubeconfig.yaml" \
+            manifest_ver=$(KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" \
                             oc -n "$catalog_ns" get packagemanifest submariner --ignore-not-found \
                             -o json | jq -r '.status.channels[] | select(.currentCSV
                             | test("'"submariner.v$submariner_version"'")).currentCSVDesc.version')
@@ -178,7 +178,7 @@ function create_brew_secret() {
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create Brew secret on $cluster cluster"
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         INFO "Create Brew registry secret in globally available namespace"
         INFO "Create Brew registry secret to be reachable for the catalog source"

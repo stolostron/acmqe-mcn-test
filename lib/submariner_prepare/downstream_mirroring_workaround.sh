@@ -18,7 +18,7 @@
 
 function create_service_account_for_internal_registry() {
     local cluster="$1"
-    local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
     local sa_name="$2"
 
     INFO "Create Service Account on $cluster cluster"
@@ -45,7 +45,7 @@ function create_internal_registry_secret() {
 
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create internal regsitry secret on $cluster cluster"
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         ocp_registry_url=$(KUBECONFIG="$kube_conf" oc registry info --internal)
         create_service_account_for_internal_registry "$cluster" "$sa_name"
@@ -70,7 +70,7 @@ function create_internal_registry_secret() {
 function create_namespace() {
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Create $SUBMARINER_NS namespace on cluster $cluster"
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         NS="$SUBMARINER_NS" yq eval '.metadata.name = env(NS)' \
             "$SCRIPT_DIR/manifests/namespace.yaml" \
@@ -89,7 +89,7 @@ function add_custom_registry_to_node() {
 
     for cluster in $MANAGED_CLUSTERS; do
         local ocp_version
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         ocp_registry_url=$(KUBECONFIG="$kube_conf" oc registry info --internal)
         local_registry_path="$ocp_registry_url/openshift"
@@ -233,7 +233,7 @@ function check_for_nodes_ready_state() {
     local machine_duration="20m"
 
     for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         INFO "Check for the nodes ready state"
         KUBECONFIG="$kube_conf" oc wait nodes --all --for=condition=ready \
@@ -314,7 +314,7 @@ function verify_custom_registry_on_nodes() {
     
     for cluster in $MANAGED_CLUSTERS; do
         INFO "Verify custom registry existence on cluster $cluster"
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         for node in "master" "worker"; do
             local config_name="99-$node-submariner-registries"
@@ -349,7 +349,7 @@ function import_images_into_local_registry() {
     local registry_image_prefix_path="${REGISTRY_IMAGE_PREFIX}"
 
     for cluster in $MANAGED_CLUSTERS; do
-        local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
         INFO "Import Submariner images into cluster $cluster"
         for image in \
