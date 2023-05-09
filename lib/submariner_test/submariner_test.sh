@@ -31,7 +31,7 @@ function execute_submariner_tests() {
         tests_basename=$(combine_tests_basename "$primary_test_cluster" "$secondary_test_cluster")
 
         INFO "Running tests between $primary_test_cluster and $secondary_test_cluster clusters"
-        export KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml:$LOGS/$secondary_test_cluster-kubeconfig.yaml"
+        export KUBECONFIG="$KCONF/$primary_test_cluster-kubeconfig.yaml:$KCONF/$secondary_test_cluster-kubeconfig.yaml"
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
@@ -45,8 +45,8 @@ function execute_submariner_tests() {
 
         INFO "Execute diagnose firewall inter-cluster tests"
         subctl diagnose firewall inter-cluster \
-            "$LOGS/$primary_test_cluster-kubeconfig.yaml" \
-            "$LOGS/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
+            "$KCONF/$primary_test_cluster-kubeconfig.yaml" \
+            "$KCONF/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
             |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
@@ -81,7 +81,7 @@ function combine_tests_basename() {
     local globalnet_state=""
 
     acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
-    subm_ver=$(KUBECONFIG="$LOGS/$primary_cluster-kubeconfig.yaml" \
+    subm_ver=$(KUBECONFIG="$KCONF/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get subs submariner \
         -o jsonpath='{.status.currentCSV}' \
         | grep -Po '(?<=submariner.v)[^)]*' | cut -d '-' -f1)
@@ -90,7 +90,7 @@ function combine_tests_basename() {
     secondary_cl_platform=$(oc -n "$secondary_cluster" get clusterdeployment \
         "$secondary_cluster" -o jsonpath='{.metadata.labels.cloud}')
 
-    globalnet_state=$(KUBECONFIG="$LOGS/$primary_cluster-kubeconfig.yaml" \
+    globalnet_state=$(KUBECONFIG="$KCONF/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get pods -l=app=submariner-globalnet \
         --no-headers=true -o custom-columns=NAME:".metadata.name")
     if [[ -z "$globalnet_state" ]]; then
