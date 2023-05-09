@@ -102,7 +102,7 @@ function create_catalog_source() {
         until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "$cmd_output" == "READY" ]]; do
             INFO "Waiting for CatalogSource 'READY' state..."
             cmd_output=$(KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" \
-                            oc -n "$catalog_ns" get catalogsource submariner-catalog \
+                            oc -n "$catalog_ns" get catalogsource "$DOWNSTREAM_CATALOG_SOURCE" \
                             -o jsonpath='{.status.connectionState.lastObservedState}')
             sleep $(( timeout++ ))
         done

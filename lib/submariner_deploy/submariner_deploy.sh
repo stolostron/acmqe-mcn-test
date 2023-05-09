@@ -15,7 +15,7 @@ function prepare_clusters_for_submariner() {
     submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
-        catalog_source="submariner-catalog"
+        catalog_source="$DOWNSTREAM_CATALOG_SOURCE"
     fi
 
     for cluster in $MANAGED_CLUSTERS; do

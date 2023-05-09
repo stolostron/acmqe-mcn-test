@@ -18,7 +18,9 @@ module.exports = defineConfig({
   env: {
     OC_IDP: "kube:admin",
     CLUSTERSET: "submariner",
-    SUBMARINER_IPSEC_NATT_PORT: "4505"
+    SUBMARINER_IPSEC_NATT_PORT: "4505",
+    DOWNSTREAM_CATALOG_SOURCE: "submariner-catalog",
+    MANAGED_CLUSTERS: ""
   },
 
   e2e: {

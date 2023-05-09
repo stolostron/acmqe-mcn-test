@@ -69,10 +69,10 @@ function get_catalog_source() {
     local catalog_ns
 
     catalog_name=$(KUBECONFIG="$kube_conf" oc get catalogsource -A \
-                -o jsonpath='{.items[?(@.metadata.name=="submariner-catalog")].metadata.name}')
+                -o jsonpath='{.items[?(@.metadata.name=="'"$DOWNSTREAM_CATALOG_SOURCE"'")].metadata.name}')
     if [[ -n "$catalog_name" ]]; then
         catalog_ns=$(KUBECONFIG="$kube_conf" oc get catalogsource -A \
-                -o jsonpath='{.items[?(@.metadata.name=="submariner-catalog")].metadata.namespace}')
+                -o jsonpath='{.items[?(@.metadata.name=="'"$DOWNSTREAM_CATALOG_SOURCE"'")].metadata.namespace}')
         KUBECONFIG="$kube_conf" oc -n "$catalog_ns" get catalogsource \
             "$catalog_name" -o yaml > "${cluster_log}_catalog_source.yaml"
     else
