@@ -115,8 +115,8 @@ function gather_cluster_info() {
 
     for cluster in $MANAGED_CLUSTERS; do
         LOG "Gather information for $cluster cluster"
-        kubecfg+="$LOGS/$cluster-kubeconfig.yaml:"
-        kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+        kubecfg+="$KCONF/$cluster-kubeconfig.yaml:"
+        kube_conf="$KCONF/$cluster-kubeconfig.yaml"
         cluster_log="$DEBUG_LOGS/$cluster"
 
         get_submariner_pods "$kube_conf" "$cluster_log"
@@ -188,8 +188,8 @@ function gather_debug_info() {
     verify_subctl_command
     gather_hub_info
     gather_cluster_info
-    tar -czf "$LOGS/$logs_filename" \
-        --remove-files -C "$LOGS" debug_logs
+    tar -czf "$SUBM_LOGS/$logs_filename" \
+        --remove-files -C "$LOGS" "$DEBUG_LOGS"
     INFO "Debug logs have been gathered and stored in -
-    $LOGS/$logs_filename"
+    $SUBM_LOGS/$logs_filename"
 }
