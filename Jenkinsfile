@@ -189,7 +189,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: "logs/**/*.*", followSymlinks: false, allowEmptyArchive: true
-            junit allowEmptyResults: true, testResults: "logs/**/*junit.xml"
+            junit allowEmptyResults: true, testResults: "logs/**/**/*junit.xml"
         }
     }
 }
