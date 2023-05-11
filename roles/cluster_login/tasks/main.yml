@@ -12,6 +12,7 @@
     - name: Fetch cluster details file data as dict
       ansible.builtin.set_fact:
         cl_file: "{{ lookup('file', '{{ working_path }}/{{ clusters_details_file }}') | from_yaml }}"
+      no_log: true
 
     - name: Set the hub to use if defined or first available
       ansible.builtin.set_fact:
@@ -26,6 +27,7 @@
         cl_api: "{{ cl_file[cl_name].api }}"
         cl_user: "{{ cl_file[cl_name].user | default('kubeadmin') }}"
         cl_pass: "{{ cl_file[cl_name].pass }}"
+      no_log: true
   when:
     - cl_file_state.stat.exists
     - cl_file_state.stat.size != 0
@@ -35,6 +37,7 @@
     cluster_api: "{{ lookup('env', 'OC_CLUSTER_URL') | default(cl_api, true) }}"
     cluster_user: "{{ lookup('env', 'OC_CLUSTER_USER') | default(cl_user, true) }}"
     cluster_pass: "{{ lookup('env', 'OC_CLUSTER_PASS') | default(cl_pass, true) }}"
+  no_log: true
 
 - name: Log in to "{{ cluster_api }}" (obtain access token)
   community.okd.openshift_auth:
@@ -43,7 +46,9 @@
     password: "{{ cluster_pass }}"
     validate_certs: no
   register: ocp_auth
+  no_log: true
 
 - name: Set "{{ cluster_api }}" authentication token
   ansible.builtin.set_fact:
     cluster_api_token: "{{ ocp_auth.openshift_auth.api_key }}"
+  no_log: true

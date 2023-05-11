@@ -13,6 +13,7 @@
   ansible.builtin.slurp:
     src: "{{ working_path }}/{{ item.name }}/auth/kubeadmin-password"
   register: cluster_pass_reg
+  no_log: true
 
 - name: Set OCP cluster console
   ansible.builtin.set_fact:
@@ -29,6 +30,7 @@
 - name: Set OCP cluster password
   ansible.builtin.set_fact:
     cluster_pass: "{{ cluster_pass_reg['content'] | b64decode }}"
+  no_log: true
 
 - name: Write cluster details into state file
   ansible.builtin.blockinfile:
