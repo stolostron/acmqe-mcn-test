@@ -1,0 +1,19 @@
+---
+- name: Verify openshift cloud credentials
+  ansible.builtin.stat:
+    path: "{{ lookup('env', 'HOME') }}/.{{ item.creds_type }}/credentials"
+  register: cloud_creds
+
+- block:
+    - name: Create platform creds directory
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/.{{ item.creds_type }}"
+        mode: 0755
+        state: directory
+
+    - name: Create cloud credentials file
+      ansible.builtin.template:
+        src: cloud-creds.j2
+        dest: "{{ lookup('env', 'HOME') }}/.{{ item.creds_type }}/credentials"
+        mode: 0600
+  when: not cloud_creds.stat.exists
