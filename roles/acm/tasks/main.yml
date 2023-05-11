@@ -56,6 +56,5 @@
       Cluster details:
       Cluster console: {{ cluster_console }}
       Cluster api: {{ cluster_api }}
-      Cluster pass: {{ cluster_pass }}
   ansible.builtin.debug:
     msg: "{{ msg.split('\n') }}"
