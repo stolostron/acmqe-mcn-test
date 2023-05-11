@@ -26,7 +26,7 @@ function execute_submariner_e2e_tests() {
         tests_basename=$(combine_tests_basename "e2e" "$primary_test_cluster" "$secondary_test_cluster")
 
         INFO "Running tests between $primary_test_cluster and $secondary_test_cluster clusters"
-        export KUBECONFIG="$LOGS/$primary_test_cluster-kubeconfig.yaml:$LOGS/$secondary_test_cluster-kubeconfig.yaml"
+        export KUBECONFIG="$KCONF/$primary_test_cluster-kubeconfig.yaml:$KCONF/$secondary_test_cluster-kubeconfig.yaml"
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
@@ -40,8 +40,8 @@ function execute_submariner_e2e_tests() {
 
         INFO "Execute diagnose firewall inter-cluster tests"
         subctl diagnose firewall inter-cluster \
-            "$LOGS/$primary_test_cluster-kubeconfig.yaml" \
-            "$LOGS/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
+            "$KCONF/$primary_test_cluster-kubeconfig.yaml" \
+            "$KCONF/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
             |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
