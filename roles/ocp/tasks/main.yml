@@ -31,6 +31,11 @@
     msg: "OpenShift cluster already deployed. Fetching details..."
   when: not deploy_cluster | bool
 
+- name: Prepare cloud credentials
+  ansible.builtin.include_tasks:
+    file: creds.yml
+  loop: "{{ clusters }}"
+
 - name: Prepare OCP cluster configuration
   ansible.builtin.include_tasks:
     file: prepare.yml
