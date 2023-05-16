@@ -26,6 +26,7 @@ describe('submariner - Deployment validation', {
         let nattPort = Cypress.env('SUBMARINER_IPSEC_NATT_PORT')
         let source = Cypress.env('DOWNSTREAM_CATALOG_SOURCE')
         let managed_clusters_list = Cypress.env('MANAGED_CLUSTERS')
+        let downstream = Cypress.env('DOWNSTREAM')
         
         clusterSetMethods.createClusterSet(clusterSetName) 
         submarinerClusterSetMethods.manageClusterSet(managed_clusters_list, clusterSetName)
@@ -41,8 +42,10 @@ describe('submariner - Deployment validation', {
 
         cy.get('.pf-c-wizard__nav-list').eq(1).children().each(() => {
             cy.get('#natt-port').type('{selectAll}'+nattPort)
-            cy.get('#isCustomSubscription').click()
-            cy.get('#source').type('{selectAll}'+source)
+            if (downstream== "true"){
+                cy.get('#isCustomSubscription').click()
+                cy.get('#source').type('{selectAll}'+source)
+            }
             cy.get('button').contains('Next').click()
         })
 

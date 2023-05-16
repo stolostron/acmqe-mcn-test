@@ -20,7 +20,8 @@ module.exports = defineConfig({
     CLUSTERSET: "submariner",
     SUBMARINER_IPSEC_NATT_PORT: "4505",
     DOWNSTREAM_CATALOG_SOURCE: "submariner-catalog",
-    MANAGED_CLUSTERS: ""
+    MANAGED_CLUSTERS: "",
+    DOWNSTREAM: "true"
   },
 
   e2e: {
