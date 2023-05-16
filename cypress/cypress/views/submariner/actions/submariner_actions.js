@@ -19,7 +19,7 @@ export const submarinerClusterSetMethods = {
     // The function adds the AWS an GCP clusters to the cluster set.
     // start position: from the 'Cluster set' list.
     manageClusterSet: (managed_clusters_list, clusterSetName) => {
-        cy.log(managed_clusters_list)
+        cy.get('.pf-c-text-input-group__text-input').type(clusterSetName)
         cy.get('[data-label="Name"]').contains(clusterSetName).click()
         cy.get('#clusters').contains('Go to Managed clusters').click()
         cy.wait(500)
