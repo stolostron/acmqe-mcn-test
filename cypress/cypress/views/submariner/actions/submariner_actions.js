@@ -51,7 +51,7 @@ export const submarinerClusterSetMethods = {
     testTheDataLabel: (dataLabel, textToHave, messageToHave) => {
         cy.get(dataLabel).each(($el, index) => {
             if (index > 0){
-                cy.wrap($el).click(40, 30, { timeout: 300000, interval: 3000 }).should('have.text', textToHave, { timeout: 300000, interval: 3000 })
+                cy.wrap($el).click(40, 30).should('have.text', textToHave)
                 cy.get('.pf-c-popover__content').contains(messageToHave).should('exist').and('be.visible')
             }
         })
