@@ -26,7 +26,7 @@ export const clusterSetPageSelector = {
     tableRowOptionsMenu: {
         editNamespaceBinding: 'a[text="Edit namespace bindings"]',
         manageResourceAssignment: 'a[text="Manage resource assignments"]',
-        deleteClusterSet: 'a[text="Delete cluster set"]',
+        deleteClusterSet: '[id=delete-clusterSet]',
     },
     msg: {
         noClusterSet: "You don't have any cluster sets",
