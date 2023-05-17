@@ -347,12 +347,12 @@ class PolarionPushReports:
         # Generation of the report may take time.
         # Retry a number of times to fetch the report.
         timeout = 0
-        max_timeout = 10
+        max_timeout = 50
         wait_time = 10
         while timeout < max_timeout:
             try:
                 requests.packages.urllib3.disable_warnings()
-                resp = requests.get(url=job_url, timeout=20, verify=False,
+                resp = requests.get(url=job_url, timeout=40, verify=False,
                                     auth=HTTPBasicAuth(self.polation_config['user'],
                                                        self.polation_config['pass']))
                 write_logs_into_file(resp.text, log_path)
