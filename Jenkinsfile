@@ -57,6 +57,10 @@ pipeline {
             steps {
                 sh """
                 ./run.sh --validate-prereq --platform "${params.PLATFORM}"
+
+                # In acm-qe jenkins, logs stored in a PV, so they are persistent over jobs.
+                # Delete "logs/" dir so in case the job skipped, previous job results will not be reported.
+                rm -rf logs/
                 """
 
                 script {
