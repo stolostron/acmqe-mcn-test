@@ -53,6 +53,7 @@ pipeline {
                     environment name: 'TEST_TAGS', value: '@post-release'
                     environment name: 'TEST_TAGS', value: '@api'
                     environment name: 'TEST_TAGS', value: '@api-post-release'
+                    environment name: 'TEST_TAGS', value: '@post-restore'
                 }
             }
             steps {
@@ -168,10 +169,15 @@ pipeline {
                         params.TEST_TAGS == '@api-post-release') {
                             TESTS_TYPE = "--test-type e2e"
                         }
+
+                    REPORT_SUFFIX = ""
+                    if (params.TEST_TAGS == '@post-restore') {
+                        REPORT_SUFFIX = "--report-suffix backup-restore"
+                    }
                 }
 
                 sh """
-                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE $REPORT_SUFFIX
                 """
             }
         }
