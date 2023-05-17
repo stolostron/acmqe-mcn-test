@@ -60,6 +60,7 @@ pipeline {
 
                 # In acm-qe jenkins, logs stored in a PV, so they are persistent over jobs.
                 # Delete "logs/" dir so in case the job skipped, previous job results will not be reported.
+                echo "Make sure older logs deleted"
                 rm -rf logs/
                 """
 
@@ -76,21 +77,37 @@ pipeline {
                         EXECUTE_JOB = true
                     }
 
+                    def mch_ver = readFile(file: 'mch_version.log')
+                    println("MultiClusterHub version: " + mch_ver)
+                    mch_ver_major = mch_ver.split('\\.')[0] as Integer
+                    mch_ver_minor = mch_ver.split('\\.')[1] as Integer
+
                     // Checks the version of the MultiClusterHub
                     // If the version is below 2.5.0, globalnet
                     // is not supported - disable it.
                     // Otherwise, use parameter definition.
-                    def mch_ver = readFile(file: 'mch_version.log')
-                    println("MultiClusterHub version: " + mch_ver)
+                    globalnet_ver = '2.5'
+                    globalnet_ver_major = globalnet_ver.split('\\.')[0] as Integer
+                    globalnet_ver_minor = globalnet_ver.split('\\.')[1] as Integer
+                    if (mch_ver_major < globalnet_ver_major ||
+                        mch_ver_minor < globalnet_ver_minor) {
+                            println("Disable Globalnet as it's not supported in ACM " + mch_ver)
+                            GLOBALNET_TRIGGER = false
+                        }
 
-                    // Compare the minor version
-                    check_version = '2.5.0'
-                    check_version_minor = check_version.split('\\.')[1] as Integer
-                    mch_ver_minor = mch_ver.split('\\.')[1] as Integer
-
-                    if (mch_ver_minor < check_version_minor) {
-                        println("Disable Globalnet as it's not supported in ACM " + mch_ver)
-                        GLOBALNET_TRIGGER = false
+                    // Backup/Restore feature added to for Submariner in version 2.7
+                    // If backup/resore scenario triggered and ACM version lower than 2.7, skip the job
+                    backup_restore_ver = '2.7'
+                    backup_restore_ver_major = backup_restore_ver.split('\\.')[0] as Integer
+                    backup_restore_ver_minor = backup_restore_ver.split('\\.')[1] as Integer
+                    if (params.TEST_TAGS == '@post-restore') {
+                        if (mch_ver_major < backup_restore_ver_major ||
+                            mch_ver_minor < backup_restore_ver_minor) {
+                                println("Backup/Restore scenario triggered but not supported in ACM " + mch_ver)
+                                EXECUTE_JOB = false
+                            } else {
+                                println("Backup/Restore scenario triggered")
+                            }
                     }
                 }
             }
