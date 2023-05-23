@@ -39,7 +39,7 @@ RUN dnf install --nodocs -y \
 
 RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
     && wget -qO- "$YQ" -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq \
-    && wget -qO- "$ROSA_CLI" | tar zxv -C /usr/local/bin/ rosa \
+    && wget -qO- "$ROSA_CLI" | tar zxv --no-same-owner -C /usr/local/bin/ rosa \
     && curl "$AWS_CLI" -o aws.zip && unzip aws.zip && ./aws/install && rm -rf aws*
 
 COPY requirements.txt requirements.yml ./
