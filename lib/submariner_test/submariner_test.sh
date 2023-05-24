@@ -6,16 +6,19 @@
 function execute_submariner_tests() {
     INFO "Execute Submariner tests"
 
-    rm -rf "$TESTS_LOGS"
-    mkdir -p "$TESTS_LOGS"
-
     verify_subctl_command
 
     if [[ "$TEST_TYPE" =~ "e2e" ]]; then
+        rm -rf "$TESTS_LOGS_E2E"
+        mkdir -p "$TESTS_LOGS_E2E"
+
         execute_submariner_e2e_tests
     fi
 
     if [[ "$TEST_TYPE" =~ "ui" ]]; then
+        rm -rf "$TESTS_LOGS_UI"
+        mkdir -p "$TESTS_LOGS_UI"
+
         verify_cypress
         # If cypress prerequisites are not fulfilled,
         # cypress tests will be skipped.
