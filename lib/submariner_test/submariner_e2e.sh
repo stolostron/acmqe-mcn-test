@@ -30,26 +30,26 @@ function execute_submariner_e2e_tests() {
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
-            | tee  "$TESTS_LOGS/${tests_basename}_subctl_show_all.log" \
+            | tee  "$TESTS_LOGS_E2E/${tests_basename}_subctl_show_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose all tests"
         subctl diagnose all 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_all.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose firewall inter-cluster tests"
         subctl diagnose firewall inter-cluster \
             "$KCONF/$primary_test_cluster-kubeconfig.yaml" \
             "$KCONF/$secondary_test_cluster-kubeconfig.yaml" 2>&1 \
-            |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
+            |  tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
         subctl verify --only service-discovery,connectivity --verbose \
-            --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
+            --junit-report "$TESTS_LOGS_E2E/${tests_basename}_e2e_junit.xml" \
             --kubecontexts "$primary_test_cluster,$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_e2e_tests.log" \
             || add_test_error $?
         unset KUBECONFIG
     done

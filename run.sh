@@ -85,6 +85,10 @@ function prepare() {
 }
 
 function deploy_submariner() {
+    # Before each deployment, make sure old tests logs removed
+    rm -rf "$TESTS_LOGS"
+    mkdir -p "$TESTS_LOGS"
+
     select_submariner_version_and_channel_to_deploy
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
