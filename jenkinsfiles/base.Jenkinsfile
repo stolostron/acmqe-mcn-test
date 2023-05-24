@@ -191,7 +191,7 @@ pipeline {
                 """
             }
         }
-        stage('Submariner Test - API') {
+        stage('Submariner Test - E2E') {
             when {
                 allOf {
                     expression {
@@ -215,7 +215,7 @@ pipeline {
                 """
             }
         }
-        stage('Submariner Test - UI') {
+        stage('Submariner Test - Cypress UI') {
             when {
                 allOf {
                     expression {
