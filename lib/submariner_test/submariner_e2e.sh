@@ -37,21 +37,21 @@ function execute_submariner_e2e_tests() {
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
-            | tee  "$TESTS_LOGS/${tests_basename}_subctl_show_all.log" \
+            | tee  "$TESTS_LOGS_E2E/${tests_basename}_subctl_show_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose CNI"
         subctl diagnose cni \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_cni.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_cni.log" \
             || add_test_error $?
 
         INFO "Execute diagnose Connections"
         subctl diagnose connections \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_connections.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_connections.log" \
             || add_test_error $?
 
         INFO "Execute diagnose Deployment"
@@ -59,21 +59,21 @@ function execute_submariner_e2e_tests() {
             --image-override submariner-nettest="$nettest_img_ref" \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_deployment.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_deployment.log" \
             || add_test_error $?
 
         INFO "Execute diagnose k8s-version"
         subctl diagnose k8s-version \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_k8s_version.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_k8s_version.log" \
             || add_test_error $?
 
         INFO "Execute diagnose service-discovery"
         subctl diagnose service-discovery \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_service_discovery.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_service_discovery.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
@@ -81,10 +81,10 @@ function execute_submariner_e2e_tests() {
             --only service-discovery,connectivity,gateway-failover \
             --disruptive-tests \
             --image-override submariner-nettest="$nettest_img_ref" \
-            --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
+            --junit-report "$TESTS_LOGS_E2E/${tests_basename}_e2e_junit.xml" \
             --context "$primary_test_cluster" \
             --tocontext "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_e2e_tests.log" \
             || add_test_error $?
         unset KUBECONFIG
     done

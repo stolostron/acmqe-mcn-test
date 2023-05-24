@@ -25,7 +25,7 @@ function execute_submariner_ui_tests() {
     npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e || true
 
     INFO "Combine cypress reports"
-    npx jrm "$TESTS_LOGS/${tests_basename}_junit.xml" results/test-results-*.xml
+    npx jrm "$TESTS_LOGS_UI/${tests_basename}_junit.xml" results/test-results-*.xml
 
     popd || return
 
