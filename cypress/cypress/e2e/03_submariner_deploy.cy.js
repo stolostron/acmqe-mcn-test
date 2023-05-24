@@ -7,6 +7,7 @@
 
 import { submarinerClusterSetMethods } from '../views/submariner/actions/submariner_actions'
 import { clusterSetMethods } from '../views/clusterset/clusterset'
+import { clustersPages } from '../views/clusters/managedCluster'
 
 describe('submariner - Deployment validation', {
     tags: ['@submariner'],
@@ -27,11 +28,23 @@ describe('submariner - Deployment validation', {
         let source = Cypress.env('DOWNSTREAM_CATALOG_SOURCE')
         let managed_clusters_list = Cypress.env('MANAGED_CLUSTERS')
         let downstream = Cypress.env('DOWNSTREAM')
-        
-        clusterSetMethods.createClusterSet(clusterSetName) 
-        submarinerClusterSetMethods.manageClusterSet(managed_clusters_list, clusterSetName)
 
-        cy.get('button').contains('Save').click()
+        //check if a cluster set named submariner already exists
+        clustersPages.goToClusterSet()
+        cy.get('.pf-c-text-input-group__text-input').type(clusterSetName)
+        cy.get('[data-label=Name]').then(($clusterset) => {
+            if ($clusterset.text().includes(clusterSetName)) {
+                cy.log("found")
+                cy.get('[data-label=Name]').contains(clusterSetName).click()
+            }
+            else{
+                cy.log('not found')
+                clusterSetMethods.createClusterSet(clusterSetName)
+                submarinerClusterSetMethods.manageClusterSet(managed_clusters_list, clusterSetName)
+                cy.get('button').contains('Save').click()
+            }
+        })
+
         cy.contains('Submariner add-ons', {timeout: 3000}).should('exist').click()
         cy.wait(500)
         cy.get('#install-submariner').click()
@@ -42,7 +55,7 @@ describe('submariner - Deployment validation', {
 
         cy.get('.pf-c-wizard__nav-list').eq(1).children().each(() => {
             cy.get('#natt-port').type('{selectAll}'+nattPort)
-            if (downstream== "true"){
+            if (downstream){
                 cy.get('#isCustomSubscription').click()
                 cy.get('#source').type('{selectAll}'+source)
             }
@@ -51,6 +64,7 @@ describe('submariner - Deployment validation', {
 
         cy.get('button').contains('Install').click()
 
+        cy.wait(310000)
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Gateway nodes labeled"]', 'Nodes labeled', 'submariner.io/gateway')
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Agent status"]', 'Healthy', 'is deployed on managed cluster')
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Connection status"]', 'Healthy', 'established')
