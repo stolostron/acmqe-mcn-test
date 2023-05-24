@@ -37,7 +37,7 @@ function execute_submariner_e2e_tests() {
 
         INFO "Show all Submariner information"
         subctl show all 2>&1 \
-            | tee  "$TESTS_LOGS/${tests_basename}_subctl_show_all.log" \
+            | tee  "$TESTS_LOGS_E2E/${tests_basename}_subctl_show_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose all tests"
@@ -45,7 +45,7 @@ function execute_submariner_e2e_tests() {
             --image-override submariner-nettest="$nettest_img_ref" \
             --context "$primary_test_cluster" \
             --context "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_diagnose_all.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_diagnose_all.log" \
             || add_test_error $?
 
         INFO "Execute diagnose firewall inter-cluster tests"
@@ -53,7 +53,7 @@ function execute_submariner_e2e_tests() {
             --image-override submariner-nettest="$nettest_img_ref" \
             --context "$primary_test_cluster" \
             --remotecontext "$secondary_test_cluster" 2>&1 \
-            |  tee "$TESTS_LOGS/${tests_basename}_subctl_firewall_tests.log" \
+            |  tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_firewall_tests.log" \
             || add_test_error $?
 
         INFO "Execute E2E tests"
@@ -61,10 +61,10 @@ function execute_submariner_e2e_tests() {
             --only service-discovery,connectivity,gateway-failover \
             --disruptive-tests \
             --image-override submariner-nettest="$nettest_img_ref" \
-            --junit-report "$TESTS_LOGS/${tests_basename}_e2e_junit.xml" \
+            --junit-report "$TESTS_LOGS_E2E/${tests_basename}_e2e_junit.xml" \
             --context "$primary_test_cluster" \
             --tocontext "$secondary_test_cluster" 2>&1 \
-            | tee "$TESTS_LOGS/${tests_basename}_subctl_e2e_tests.log" \
+            | tee "$TESTS_LOGS_E2E/${tests_basename}_subctl_e2e_tests.log" \
             || add_test_error $?
         unset KUBECONFIG
     done
