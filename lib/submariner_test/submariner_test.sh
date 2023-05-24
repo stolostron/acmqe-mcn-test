@@ -105,7 +105,7 @@ function get_tests_failures() {
     local diagnose_logs
     local e2e_tests_log
 
-    for log in "$TESTS_LOGS"/*.log; do
+    for log in "$TESTS_LOGS"/**/*.log; do
         diagnose_logs=$(grep --no-messages '✗' "$log" || true)
         if [[ -n "$diagnose_logs" ]]; then
             echo
