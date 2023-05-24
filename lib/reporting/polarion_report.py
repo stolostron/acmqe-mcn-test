@@ -5,6 +5,7 @@ import html
 import os
 import re
 import requests
+import shutil
 import xml.etree.ElementTree as ET
 
 from argparse import ArgumentParser
@@ -32,7 +33,7 @@ def parse_args():
 
 def locate_xml_files(path, prefix):
     """Locate xml report files from a given path."""
-    search_str = f"**/*{prefix}*junit.xml" if prefix else "**/*.xml"
+    search_str = f"**/*{prefix}*junit.xml" if prefix else "**/*junit.xml"
     return list(Path(path).glob(search_str))
 
 
@@ -274,6 +275,7 @@ class PolarionProcessReports:
         polarion = PolarionPushReports(self.polation_config)
 
         if LOGS_DIR:
+            shutil.rmtree(LOGS_DIR, ignore_errors=True)
             logs_path = Path(LOGS_DIR)
             logs_path.mkdir(exist_ok=True)
 
