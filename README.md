@@ -32,16 +32,12 @@ should be created and stored within a namespace of the cluster within a Hub.
 **Note** - Each version supported within a relevant branch.
 **Note** - Before deployment execution, switch to the relevant branch - release-2.6, release-2.7, etc...
 
-| ACM Hub                       | Submariner |
-|-------------------------------|------------|
-| 2.4.*                         | 0.11.2     |
-| 2.5.0 / 2.5.1                 | 0.12.1     |
-| 2.5.2 / 2.5.3 / 2.5.4 / 2.5.5 | 0.12.2     |
-| 2.5.6                         | 0.12.3     |
-| 2.6.0 / 2.6.1                 | 0.13.0     |
-| 2.6.2 / 2.6.3                 | 0.13.1     |
-| 2.7.0                         | 0.14.1     |
-| 2.8.0                         | 0.15.0     |
+| ACM Hub | Submariner |
+|---------|------------|
+| 2.5.x   | 0.12.x     |
+| 2.6.x   | 0.13.x     |
+| 2.7.x   | 0.14.x     |
+| 2.8.x   | 0.15.x     |
 
 ## Execution
 Execution of deployment, testing and reporting requires connection details to the ACM HUB cluster.  
