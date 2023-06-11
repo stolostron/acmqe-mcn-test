@@ -42,10 +42,15 @@
   loop: "{{ clusters }}"
   when: deploy_cluster | bool
 
+- name: Select OpenShift version for deploy
+  ansible.builtin.include_tasks:
+    file: select_ocp_version.yml
+  loop: "{{ clusters }}"
+  when: deploy_cluster | bool or state == "absent"
+
 - name: Process OpenShift
   ansible.builtin.include_tasks:
-    file: deploy.yml
-  loop: "{{ clusters }}"
+    file: process.yml
   when: deploy_cluster | bool or state == "absent"
 
 - block:
