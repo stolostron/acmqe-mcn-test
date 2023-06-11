@@ -1,0 +1,28 @@
+---
+- name: Set the version of openshift-install binary to download
+  ansible.builtin.set_fact:
+    ocp_binary_version: "{%- if item.openshift_version is defined -%}
+                         {{ openshift_channel }}-{{ item.openshift_version }}
+                         {%- elif openshift_version is not none -%}
+                         {{ openshift_channel }}-{{ openshift_version }}
+                         {%- else -%}
+                         {{ openshift_channel }}
+                         {%- endif -%}"
+
+- name: Print selected openshift-install version
+  vars:
+    msg: |
+      Cluster: {{ item.name }}
+
+      Openshift-install binary: {{ ocp_binary_version }}
+  ansible.builtin.debug:
+    msg: "{{ msg.split('\n') }}"
+
+- name: Fetch openshift-install client
+  ansible.builtin.unarchive:
+    src: "{{ openshift_install_url }}/{{ ocp_binary_version }}/{{ openshift_install_binary }}"
+    dest: "/tmp/"
+    remote_src: yes
+    extra_opts:
+      - --transform
+      - s/openshift-install/openshift-install-{{ ocp_binary_version }}/

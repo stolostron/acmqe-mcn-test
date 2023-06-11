@@ -1,0 +1,32 @@
+---
+- name: Process OCP clusters
+  vars:
+    cluster_state: "{%- if state == 'present' -%}
+                    create
+                    {%- elif state == 'absent' -%}
+                    destroy
+                    {%- endif -%}"
+    ocp_version_run: "{%- if item.openshift_version is defined -%}
+                      {{ openshift_channel }}-{{ item.openshift_version }}
+                      {%- elif openshift_version is not none -%}
+                      {{ openshift_channel }}-{{ openshift_version }}
+                      {%- else -%}
+                      {{ openshift_channel }}
+                      {%- endif -%}"
+  ansible.builtin.command:
+    cmd: "/tmp/openshift-install-{{ ocp_version_run }} {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
+  async: 3600
+  poll: 0
+  loop: "{{ clusters }}"
+  register: async_results
+
+- name: Check for OCP clusters state
+  ansible.builtin.async_status:
+    jid: "{{ async_result_item.ansible_job_id }}"
+  loop: "{{ async_results.results }}"
+  loop_control:
+    loop_var: "async_result_item"
+  register: async_poll_results
+  until: async_poll_results.finished
+  retries: 150
+  delay: 25
