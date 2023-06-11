@@ -82,8 +82,13 @@
         - cl_file_state.stat.size == 0
   when: state == "absent"
 
-- name: Fetch OCP cluster details
-  ansible.builtin.include_tasks:
-    file: fetch_details.yml
-  loop: "{{ clusters }}"
+- block:
+    - name: Fetch OCP cluster details
+      ansible.builtin.include_tasks:
+        file: fetch_details.yml
+      loop: "{{ clusters }}"
+
+    - name: Print clusters details
+      ansible.builtin.debug:
+        msg: "{{ cl_state }}"
   when: state == "present"

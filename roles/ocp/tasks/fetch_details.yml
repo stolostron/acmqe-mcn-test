@@ -44,12 +44,12 @@
     create: true
     state: present
 
-- name: Print "{{ item.name }}" cluster details
+- name: Add cluster details to the state message
   vars:
     msg: |
       Deployment of {{ item.name }} cluster succeeded.
 
       Cluster connection details could be found here: {{ working_path }}/{{ clusters_details_file }}
       Cluster manifests files could be found here: {{ working_path }}/{{ item.name }}/
-  ansible.builtin.debug:
-    msg: "{{ msg.split('\n') }}"
+  ansible.builtin.set_fact:
+    cl_state: "{{ cl_state | default([]) + msg.split('\n') }}"
