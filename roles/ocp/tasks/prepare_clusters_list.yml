@@ -1,0 +1,36 @@
+---
+- name: Check for existing OCP cluster
+  ansible.builtin.stat:
+    path: "{{ working_path }}/{{ item.name }}/metadata.json"
+  loop: "{{ clusters }}"
+  register: cluster_assets_dir
+
+# Init clusters_list var so in case no clusters found to be removed
+# the flol just skip all tasks and not fail.
+- name: Init clusters_list var
+  ansible.builtin.set_fact:
+    clusters_list: []
+
+- name: Create clusters list for creation
+  ansible.builtin.set_fact:
+    clusters_list: "{{ clusters_list | default([]) + [ item.item ] }}"
+  loop: "{{ cluster_assets_dir.results }}"
+  when:
+    - state == "present"
+    - not item.stat.exists
+
+- name: Create list of already existing clusters
+  ansible.builtin.set_fact:
+    existing_clusters: "{{ existing_clusters | default([]) + [ item.item ] }}"
+  loop: "{{ cluster_assets_dir.results }}"
+  when:
+    - state == "present"
+    - item.stat.exists
+
+- name: Create clusters list for deletion
+  ansible.builtin.set_fact:
+    clusters_list: "{{ clusters_list | default([]) + [ item.item ] }}"
+  loop: "{{ cluster_assets_dir.results }}"
+  when:
+    - state == "absent"
+    - item.stat.exists

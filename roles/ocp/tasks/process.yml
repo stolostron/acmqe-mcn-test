@@ -17,7 +17,7 @@
     cmd: "/tmp/openshift-install-{{ ocp_version_run }} {{ cluster_state }} cluster --dir {{ working_path }}/{{ item.name }}/"
   async: 3600
   poll: 0
-  loop: "{{ clusters }}"
+  loop: "{{ clusters_list }}"
   register: async_results
 
 - name: Check for OCP clusters state
