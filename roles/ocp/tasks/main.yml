@@ -11,54 +11,35 @@
   ansible.builtin.set_fact:
     working_path: "{{ lookup('env', 'PWD') }}/{{ ocp_assets_dir }}"
 
-- name: Initials cluster deploy condition
-  ansible.builtin.set_fact:
-    deploy_cluster: true
-
-- name: Check for existing OCP cluster
-  ansible.builtin.stat:
-    path: "{{ working_path }}/{{ item.name }}/metadata.json"
-  loop: "{{ clusters }}"
-  register: exists_cluster_assets
-
-- name: Reinitiate cluster deploy condition based of ocp assets dir existence
-  ansible.builtin.set_fact:
-    deploy_cluster: false
-  when: exists_cluster_assets.results[0].stat.exists
-
-- name: Note when OCP cluster already deployed
-  ansible.builtin.debug:
-    msg: "OpenShift cluster already deployed. Fetching details..."
-  when: not deploy_cluster | bool
+- name: Prepare clusters list
+  ansible.builtin.include_tasks:
+    file: prepare_clusters_list.yml
 
 - name: Prepare cloud credentials
   ansible.builtin.include_tasks:
     file: creds.yml
-  loop: "{{ clusters }}"
+  loop: "{{ clusters_list }}"
 
 - name: Prepare OCP cluster configuration
   ansible.builtin.include_tasks:
     file: prepare.yml
-  loop: "{{ clusters }}"
-  when: deploy_cluster | bool
+  loop: "{{ clusters_list }}"
 
 - name: Select OpenShift version for deploy
   ansible.builtin.include_tasks:
     file: select_ocp_version.yml
-  loop: "{{ clusters }}"
-  when: deploy_cluster | bool or state == "absent"
+  loop: "{{ clusters_list }}"
 
 - name: Process OpenShift
   ansible.builtin.include_tasks:
     file: process.yml
-  when: deploy_cluster | bool or state == "absent"
 
 - block:
     - name: Delete assets directory when cluster destroyed
       ansible.builtin.file:
         path: "{{ working_path }}/{{ item.name }}/"
         state: absent
-      loop: "{{ clusters }}"
+      loop: "{{ clusters_list }}"
 
     - name: Remove clusters details from the state file
       ansible.builtin.blockinfile:
@@ -66,7 +47,7 @@
         block: ""
         marker: "#{mark} {{ item.name }} details"
         state: absent
-      loop: "{{ clusters }}"
+      loop: "{{ clusters_list }}"
 
     - name: Check the "{{ clusters_details_file }}" file
       ansible.builtin.stat:
@@ -83,10 +64,14 @@
   when: state == "absent"
 
 - block:
+    - name: Combine newly created and existing clusters list
+      ansible.builtin.set_fact:
+        clusters_list: "{{ clusters_list | default([]) + existing_clusters | default([]) }}"
+
     - name: Fetch OCP cluster details
       ansible.builtin.include_tasks:
         file: fetch_details.yml
-      loop: "{{ clusters }}"
+      loop: "{{ clusters_list }}"
 
     - name: Print clusters details
       ansible.builtin.debug:
