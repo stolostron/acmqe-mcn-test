@@ -29,6 +29,7 @@ Local execution of the pipeline could be done in two ways:
      * `virtualenv <venv_name> && source <venv_name>/bin/activate`
    * Install python and ansible requirements:
      * `pip install -r requirements.txt`
+     * `ansible-galaxy collection install -r requirements.yml`
    * Deployment preparation:
      * Prepare environment configuration file according to the [sample file](config.yml.sample).
    * Perform ACM environment deployment:
