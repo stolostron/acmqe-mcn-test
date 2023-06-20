@@ -14,7 +14,7 @@ pipeline {
         timeout(time: 8, unit: 'HOURS')
     }
     parameters {
-        string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
+        string(name: 'OC_CLUSTER_API', defaultValue: '', description: 'ACM Hub API URL')
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
@@ -42,10 +42,10 @@ pipeline {
         stage('Init env params') {
             steps {
                 script {
-                    if (params.OC_CLUSTER_URL != '' &&
+                    if (params.OC_CLUSTER_API != '' &&
                         params.OC_CLUSTER_USER != '' &&
                         params.OC_CLUSTER_PASS != '') {
-                            env.OC_CLUSTER_URL = params.OC_CLUSTER_URL
+                            env.OC_CLUSTER_API = params.OC_CLUSTER_API
                             env.OC_CLUSTER_USER = params.OC_CLUSTER_USER
                             env.OC_CLUSTER_PASS = params.OC_CLUSTER_PASS
                     }
@@ -60,7 +60,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.OC_CLUSTER_URL == '' &&
+                    if (env.OC_CLUSTER_API == '' &&
                         env.OC_CLUSTER_USER == '' &&
                         env.OC_CLUSTER_PASS == '') {
                             println "OCP cluster deploy"
@@ -68,7 +68,7 @@ pipeline {
                             ansible-playbook -v playbooks/ocp.yml -e @"${SUBMARINER_CONF}"
                             """
 
-                            env.OC_CLUSTER_URL = sh(
+                            env.OC_CLUSTER_API = sh(
                                 script: "yq eval '.[].api' logs/ocp_assets/clusters_details.yml | head -1",
                                 returnStdout: true).trim()
                             env.OC_CLUSTER_PASS = sh(
