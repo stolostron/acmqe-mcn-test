@@ -67,6 +67,8 @@ export OC_CLUSTER_PASS=<password of the cluster user>
 
     --test                 - Perform testing of the Submariner addon
 
+    --subm-catalog-update  - Perform update of the Submariner's catalog source
+
     --report               - Report tests results to Polarion
 
     --gather-logs          - Gather debug info and logs for environment
