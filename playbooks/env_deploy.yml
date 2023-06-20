@@ -3,6 +3,8 @@
   gather_facts: false
   vars:
     state: present
+  collections:
+    - stolostron.rhacm
   roles:
     - ocp
     - acm

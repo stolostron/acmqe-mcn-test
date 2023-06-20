@@ -2,5 +2,7 @@
 - name: Managed Clusters
   hosts: localhost
   gather_facts: false
+  collections:
+    - stolostron.rhacm
   roles:
     - managed_cluster
