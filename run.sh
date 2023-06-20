@@ -35,12 +35,12 @@ source "${SCRIPT_DIR}/lib/reporting/polarion.sh"
 
 
 function verify_required_env_vars() {
-    if [[ -z "${OC_CLUSTER_USER}" || -z "${OC_CLUSTER_PASS}" || -z "${OC_CLUSTER_URL}" ]]; then
+    if [[ -z "${OC_CLUSTER_USER}" || -z "${OC_CLUSTER_PASS}" || -z "${OC_CLUSTER_API}" ]]; then
         if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
             VALIDATION_STATE+="Not ready! Missing environment vars. Unable to login to the hub."
         else
             ERROR "Execution of the script require all env variables provided:
-            'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_URL'"
+            'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_API'"
         fi
     fi
 }
