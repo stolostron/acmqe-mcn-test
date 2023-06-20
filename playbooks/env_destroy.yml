@@ -3,6 +3,8 @@
   gather_facts: false
   vars:
     state: absent
+  collections:
+    - stolostron.rhacm
   roles:
     - managed_cluster
     - ocp
