@@ -1,14 +1,29 @@
-# Submariner addon deployment and testing in ACM Hub environment
+# Submariner deployment and testing in Advanced Cluster Management (ACM) environment
 
 ## Overview
-The repo is used to deploy, test and report the Submariner addon in ACM environment.
+The repository contains the following flows:
+* Deploy ACM based environment according to the user input.
+* Deploy Submariner on ACM
+* Test Submariner
+* Report Tests results (used by QE)
 
 ## Prerequisites
 **Note** - Execution of Submariner addon deployment and testing, requires the following:
-* Pre installed ACM Hub cluster
-* At least two managed clusters **deployed by the ACM cluster via Hive**
+* ACM Hub cluster
+* At least two active managed clusters
+  * The clusters could be deployed by the ACM hub
+  * The clusters could be deployed separately and imported into the hub  
+    **Note** - In case clusters were created separately and imported, ensure cluster and cloud credentials exists within the hub.
 
 **Note** - If any requirement is missing, the flow will fail with relevant error message.
+
+
+* In case required environment already exists, skip to the next section.
+* In case environment needs to be deployed, review the **ACM environment deployment** section.
+
+### ACM environment deployment
+Fully ACM based environment could be deployed by using the [stolostron.rhacm](https://github.com/stolostron/ansible-collection.rhacm) collection.  
+Refer to the local execution flow [doc](docs/local_execution.md) for the details.
 
 ## Supported platforms
 The following clusters platforms are supported by the Submariner Addon deployment and test:
