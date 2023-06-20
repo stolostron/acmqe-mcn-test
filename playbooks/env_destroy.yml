@@ -1,0 +1,10 @@
+- name: Destroy OCP and ACM environment
+  hosts: localhost
+  gather_facts: false
+  vars:
+    state: absent
+  collections:
+    - stolostron.rhacm
+  roles:
+    - managed_cluster
+    - ocp
