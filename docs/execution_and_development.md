@@ -15,10 +15,10 @@ Local execution of the pipeline could be done in two ways:
      By default, aws and gcp platform defined.  
      It's possible to change any of the following parameters during submariner deployment/test:  
      Platform, Globalnet, Downstream - `make submariner-deploy SUBM_PLATFORM=value SUBM_GLOBALNET=true/false SUBM_DOWNSTREAM=true/false`
-     * Execute `make submariner-deploy OC_CLUSTER_URL=value OC_CLUSTER_USER=value OC_CLUSTER_PASS=value`
+     * Execute `make submariner-deploy OC_CLUSTER_API=value OC_CLUSTER_USER=value OC_CLUSTER_PASS=value`
    * Perform Submariner test execution:  
      Fetch the Hub `OC_CLUSTER...` details from `logs/ocp_assets/clusters_details.yml` directory.
-     * Execute `make submariner-test OC_CLUSTER_URL=value OC_CLUSTER_USER=value OC_CLUSTER_PASS=value`
+     * Execute `make submariner-test OC_CLUSTER_API=value OC_CLUSTER_USER=value OC_CLUSTER_PASS=value`
    * Perform Submariner environment destroy:
      * Execute `make env-destroy CONF=/path/to/config.yml` to destroy environment.
 
@@ -36,7 +36,7 @@ Local execution of the pipeline could be done in two ways:
    * Perform Submariner deployment execution:  
      Fetch the Hub `OC_CLUSTER...` details from `logs/ocp_assets/clusters_details.yml` directory.
      * Export `OC_CLUSTER...` environment variables:
-       * `export OC_CLUSTER_URL=value`
+       * `export OC_CLUSTER_API=value`
        * `export OC_CLUSTER_USER=value`
        * `export OC_CLUSTER_PASS=value`
      * Execute submariner deployment:  

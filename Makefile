@@ -12,7 +12,7 @@ SUBM_GW_RANDOM ?= false
 export SUBM_PLATFORM
 export SUBM_GLOBALNET
 export SUBM_DOWNSTREAM
-export OC_CLUSTER_URL
+export OC_CLUSTER_API
 export OC_CLUSTER_USER
 export OC_CLUSTER_PASS
 
@@ -37,14 +37,14 @@ else
 endif
 
 check-subm-env:
-ifeq ($(OC_CLUSTER_URL),)
-	$(error Missing required environment vars - OC_CLUSTER_URL, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_URL=value...")
+ifeq ($(OC_CLUSTER_API),)
+	$(error Missing required environment vars - OC_CLUSTER_API, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_API=value...")
 endif
 ifeq ($(OC_CLUSTER_USER),)
-	$(error Missing required environment vars - OC_CLUSTER_URL, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_URL=value...")
+	$(error Missing required environment vars - OC_CLUSTER_API, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_API=value...")
 endif
 ifeq ($(OC_CLUSTER_PASS),)
-	$(error Missing required environment vars - OC_CLUSTER_URL, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_URL=value...")
+	$(error Missing required environment vars - OC_CLUSTER_API, OC_CLUSTER_USER, OC_CLUSTER_PASS - "make submariner-.. OC_CLUSTER_API=value...")
 endif
 
 
@@ -59,14 +59,14 @@ env-destroy: check-config deploy-local-env ##Destroy ACM based environment with 
 
 submariner-deploy: check-subm-env deploy-local-env ##Deploy Submariner on ACM based environment
 	$(RUNTIME) exec \
-		-e OC_CLUSTER_URL=$(OC_CLUSTER_URL) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
+		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
 		-it $(SUBM_CONTAINER_NAME) \
 		./run.sh --deploy --platform "$(SUBM_PLATFORM)" \
 		--globalnet "$(SUBM_GLOBALNET)" --downstream "$(SUBM_DOWNSTREAM)" --subm-gateway-random "$(SUBM_GW_RANDOM)"
 
 submariner-test: check-subm-env deploy-local-env ##Test Submariner on ACM based environment
 	$(RUNTIME) exec \
-		-e OC_CLUSTER_URL=$(OC_CLUSTER_URL) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
+		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
 		-it $(SUBM_CONTAINER_NAME) \
 		./run.sh --test --platform "$(SUBM_PLATFORM)" --downstream "$(SUBM_DOWNSTREAM)"
 
