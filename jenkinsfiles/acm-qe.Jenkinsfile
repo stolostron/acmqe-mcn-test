@@ -13,7 +13,7 @@ pipeline {
         timeout(time: 8, unit: 'HOURS')
     }
     parameters {
-        string(name: 'OC_CLUSTER_URL', defaultValue: '', description: 'ACM Hub API URL')
+        string(name: 'OC_CLUSTER_API', defaultValue: '', description: 'ACM Hub API URL')
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
@@ -27,7 +27,7 @@ pipeline {
     }
     environment {
         EXECUTE_JOB = false
-        OC_CLUSTER_URL = "${params.OC_CLUSTER_URL}"
+        OC_CLUSTER_API = "${params.OC_CLUSTER_API}"
         OC_CLUSTER_USER = "${params.OC_CLUSTER_USER}"
         OC_CLUSTER_PASS = "${params.OC_CLUSTER_PASS}"
         // Parameter will be used to disable globalnet in
