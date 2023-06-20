@@ -50,7 +50,7 @@ function usage() {
             to set submariner configurations.
 
     Export the following values to execute the flow:
-    export OC_CLUSTER_URL=<hub cluster url>
+    export OC_CLUSTER_API=<hub cluster url>
     export OC_CLUSTER_USER=<cluster user name>
     export OC_CLUSTER_PASS=<password of the cluster user>
 
@@ -182,7 +182,7 @@ function login_to_cluster() {
 
     if [[ "$cluster" == "hub" ]]; then
         oc login --insecure-skip-tls-verify \
-            -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_URL"
+            -u "$OC_CLUSTER_USER" -p "$OC_CLUSTER_PASS" "$OC_CLUSTER_API"
         oc cluster-info | grep Kubernetes
     else
         if [[ ! -f "$KCONF/$cluster-password" || ! -f "$KCONF/$cluster-kubeconfig.yaml" ]]; then
