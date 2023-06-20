@@ -1,0 +1,5 @@
+---
+collections:
+  - name: https://github.com/stolostron/ansible-collection.rhacm.git
+    type: git
+    version: main

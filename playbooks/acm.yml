@@ -1,0 +1,8 @@
+---
+- name: Advanced Cluster Mnagement Hub
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - stolostron.rhacm
+  roles:
+    - acm
