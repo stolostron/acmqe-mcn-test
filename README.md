@@ -47,7 +47,7 @@ The execution of the flow is done by providing a main argument followed by an op
 Example:
 
 ```bash
-export OC_CLUSTER_URL=<hub cluster url>
+export OC_CLUSTER_API=<hub cluster api url>
 export OC_CLUSTER_USER=<cluster user name (kubeadmin)>
 export OC_CLUSTER_PASS=<password of the cluster user>
 
