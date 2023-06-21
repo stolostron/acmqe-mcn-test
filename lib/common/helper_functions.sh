@@ -113,6 +113,12 @@ function usage() {
                              (Optional)
                              By default - e2e,ui
 
+    --test-browser         - Select the browser to be used during UI testing.
+                             - chrome
+                             - electron
+                             (Optional)
+                             By default - chrome
+
     Submariner configuration arguments:
     -----------------------------------
     --globalnet            - Set the state of the Globalnet for the Submariner deployment.

@@ -133,5 +133,8 @@ export LATEST_IIB=""
 # Test type that should be executed.
 # e2e (api testing), ui (cypress testing)
 export TEST_TYPE="e2e,ui"
+# Define the browser to be used for UI testing
+# chrome, electron
+export TEST_BROWSER="chrome"
 # Execute or skip UI tests. By default, execute.
 export UI_TESTS="true"

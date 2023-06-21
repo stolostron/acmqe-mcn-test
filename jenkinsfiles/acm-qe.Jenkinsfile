@@ -21,6 +21,7 @@ pipeline {
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
+        string(name: 'BROWSER', defaultValue: '', description: 'Specify the browser for cypress testing (by default uses chrome)')
         booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
         choice(name: 'JOB_STAGES', choices: ['all', 'deploy', 'test'], description: 'Select stage that should be executed by the job')
     }
@@ -181,10 +182,15 @@ pipeline {
                         params.TEST_TAGS == '@api-post-release') {
                             TESTS_TYPE = "--test-type e2e"
                         }
+
+                    TEST_BROWSER = ""
+                    if (params.BROWSER != '') {
+                        TEST_BROWSER = "--test-browser ${params.BROWSER}"
+                    }
                 }
 
                 sh """
-                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE $TEST_BROWSER
                 """
             }
         }

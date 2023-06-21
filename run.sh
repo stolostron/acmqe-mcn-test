@@ -216,6 +216,12 @@ function parse_arguments() {
                     shift 2
                 fi
                 ;;
+            --test-browser)
+                if [[ -n "$2" ]]; then
+                    export TEST_BROWSER="$2"
+                    shift 2
+                fi
+                ;;
             --subm-ipsec-natt-port)
                 if [[ -n "$2" ]]; then
                     export SUBMARINER_IPSEC_NATT_PORT="$2"
