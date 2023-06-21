@@ -22,6 +22,7 @@ pipeline {
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
         string(name:'TEST_TAGS', defaultValue: '', description: 'A tag to control job execution')
+        string(name: 'BROWSER', defaultValue: '', description: 'Specify the browser for cypress testing (by default uses chrome)')
         booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
         choice(name: 'JOB_STAGES', choices: ['all', 'deploy', 'test'], description: 'Select stage that should be executed by the job')
     }
@@ -191,6 +192,11 @@ pipeline {
                             TESTS_TYPE = "--test-type e2e"
                         }
 
+                    TEST_BROWSER = ""
+                    if (params.BROWSER != '') {
+                        TEST_BROWSER = "--test-browser ${params.BROWSER}"
+                    }
+
                     REPORT_SUFFIX = ""
                     if (params.TEST_TAGS == '@post-restore') {
                         REPORT_SUFFIX = "--report-suffix backup-restore"
@@ -198,7 +204,7 @@ pipeline {
                 }
 
                 sh """
-                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE $REPORT_SUFFIX
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM $TESTS_TYPE $TEST_BROWSER $REPORT_SUFFIX
                 """
             }
         }
