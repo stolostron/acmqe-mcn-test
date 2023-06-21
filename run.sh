@@ -135,6 +135,11 @@ function report() {
     report_polarion
 }
 
+function update_submariner_catalog() {
+    select_submariner_version_and_channel_to_deploy
+    update_catalog_source
+}
+
 function finalize() {
     if [[ "$TESTS_FAILURES" == "true" ]]; then
         WARNING "Tests execution contains failures"
@@ -155,6 +160,10 @@ function parse_arguments() {
                 ;;
             --deploy)
                 RUN_COMMAND="deploy"
+                shift
+                ;;
+            --subm-catalog-update)
+                RUN_COMMAND="catalog-update"
                 shift
                 ;;
             --test)
@@ -285,6 +294,11 @@ function main() {
         deploy)
             prepare
             deploy_submariner
+            finalize
+            ;;
+        catalog-update)
+            prepare
+            update_submariner_catalog
             finalize
             ;;
         test)

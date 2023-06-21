@@ -114,6 +114,27 @@ function create_catalog_source() {
     done
 }
 
+function update_catalog_source() {
+    INFO "Increase the submariner version"
+    local submariner_version="$SUBMARINER_VERSION_INSTALL"
+    submariner_version=${submariner_version%.*}
+    submariner_version=$(bc <<< "$submariner_version+0.01")
+    submariner_version=$(printf "%.2f" "$submariner_version")
+    export SUBMARINER_VERSION_INSTALL=$submariner_version
+
+    INFO "Update catalog source on the managed clusters for submariner version - $SUBMARINER_VERSION_INSTALL"
+    for cluster in $MANAGED_CLUSTERS; do
+        get_latest_iib
+        IMG_SRC="$LATEST_IIB" 
+
+        INFO "Update catalog source on $cluster cluster"
+        KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" \
+            oc -n openshift-marketplace patch catalogsource submariner-catalog --type=merge \
+            -p '{"spec":{"image":"'"$IMG_SRC"'"}}'
+    done
+    unset SUBMARINER_VERSION_INSTALL
+}
+
 # Verify required submariner version within the package manifest.
 # The package manifest created based on the IIB within the CatalogSource.
 function verify_package_manifest() {
