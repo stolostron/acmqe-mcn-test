@@ -219,6 +219,12 @@ function parse_arguments() {
                     shift 2
                 fi
                 ;;
+            --test-browser)
+                if [[ -n "$2" ]]; then
+                    export TEST_BROWSER="$2"
+                    shift 2
+                fi
+                ;;
             --report-suffix)
                 if [[ -n "$2" ]]; then
                     export TEST_REPORT_SUFFIX="$2"

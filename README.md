@@ -122,6 +122,12 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              (Optional)
                              By default - e2e,ui
 
+    --test-browser         - Select the browser to be used during UI testing.
+                             - chrome
+                             - electron
+                             (Optional)
+                             By default - chrome
+
     --report-suffix        - Add suffix to the tests basename.
                              (Optional)
                              By default - empty string

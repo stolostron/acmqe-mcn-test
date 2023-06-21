@@ -25,7 +25,7 @@ function execute_submariner_ui_tests() {
     export CYPRESS_CLUSTERSET="$CLUSTERSET"
     export CYPRESS_SUBMARINER_IPSEC_NATT_PORT="$SUBMARINER_IPSEC_NATT_PORT"
 
-    npx cypress run --browser chrome --headless --env grepFilterSpecs=true,grepTags=@e2e || true
+    npx cypress run --browser "$TEST_BROWSER" --headless --env grepFilterSpecs=true,grepTags=@e2e || true
 
     INFO "Combine cypress reports"
     npx jrm "$TESTS_LOGS_UI/${tests_basename}_junit.xml" results/test-results-*.xml
