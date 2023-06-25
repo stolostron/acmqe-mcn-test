@@ -5,8 +5,8 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
         properties([
             parameters([
                 extendedChoice(name: 'JOB_STAGES', description: 'Select the stages of the job to be executed',
-                    value: 'Deploy OCP cluster,Deploy ACM Hub,Deploy Clusters by ACM,Submariner Validate prerequisites,Submariner Deploy,Submariner Test - E2E,Submariner Test - Cypress UI,Report to Polarion',
-                    defaultValue: 'Deploy OCP cluster,Deploy ACM Hub,Deploy Clusters by ACM,Submariner Validate prerequisites,Submariner Deploy,Submariner Test - E2E,Submariner Test - Cypress UI,Report to Polarion',
+                    value: 'Deploy OCP cluster,Deploy ACM Hub,Deploy Clusters by ACM,Submariner Validate prerequisites,Submariner Deploy,Submariner Test - E2E,Report to Polarion',
+                    defaultValue: 'Deploy OCP cluster,Deploy ACM Hub,Deploy Clusters by ACM,Submariner Validate prerequisites,Submariner Deploy,Submariner Test - E2E,Report to Polarion',
                     multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 10),
                 credentials(name: 'SUBMARINER_CONFIG', defaultValue: 'acm-2.5-subm-0.12-aws-gcp-azure', description: 'Submariner config for environment deploy',
                     required: true, credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl')
