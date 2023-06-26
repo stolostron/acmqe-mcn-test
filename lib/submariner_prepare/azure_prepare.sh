@@ -79,7 +79,7 @@ function fetch_resource_group_name() {
 function label_worker_for_gateway() {
     INFO "Azure: Select and label worker as a gateway node"
     local cluster="$1"
-    local kube_conf="$LOGS/$cluster-kubeconfig.yaml"
+    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
 
     AZURE_GW_NODE=$(KUBECONFIG="$kube_conf" oc get nodes \
                      --selector "node-role.kubernetes.io/worker" \
