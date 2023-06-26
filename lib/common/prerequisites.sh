@@ -63,6 +63,10 @@ function verify_az_cli() {
         pip install -U requests
         pip install -U urllib3
         pip install azure-cli
+
+        # Add local BIN dir to PATH
+        [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+        INFO "The azure-cli command installed"
     fi
     INFO "The az command is found"
 }
