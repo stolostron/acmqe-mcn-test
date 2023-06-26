@@ -21,7 +21,6 @@ pipeline {
             value: 'aws,gcp,azure,vsphere', defaultValue: 'aws,gcp,azure,vsphere', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
-        booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
     }
     environment {
         // Parameter will be used to disable globalnet in
@@ -177,17 +176,10 @@ pipeline {
                     if (params.DOWNSTREAM) {
                         DOWNSTREAM = "--downstream true"
                     }
-
-                    // Deploy two submariner gateways on one of the clusters
-                    // to test submariner gateway fail-over scenario.
-                    SUBMARINER_GATEWAY_RANDOM = "--subm-gateway-random false"
-                    if (params.SUBMARINER_GATEWAY_RANDOM) {
-                        SUBMARINER_GATEWAY_RANDOM = "--subm-gateway-random true"
-                    }
                 }
 
                 sh """
-                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM
+                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM
                 """
             }
         }
@@ -211,31 +203,7 @@ pipeline {
                 }
 
                 sh """
-                ./run.sh --test --test-type e2e --platform "${params.PLATFORM}" $DOWNSTREAM
-                """
-            }
-        }
-        stage('Submariner Test - Cypress UI') {
-            when {
-                allOf {
-                    expression {
-                        params.JOB_STAGES.contains(STAGE_NAME)
-                    }
-                    expression {
-                        EXECUTE_JOB == true
-                    }
-                }
-            }
-            steps {
-                script {
-                    DOWNSTREAM = "--downstream false"
-                    if (params.DOWNSTREAM) {
-                        DOWNSTREAM = "--downstream true"
-                    }
-                }
-
-                sh """
-                ./run.sh --test --test-type ui --platform "${params.PLATFORM}" $DOWNSTREAM
+                ./run.sh --test --platform "${params.PLATFORM}" $DOWNSTREAM
                 """
             }
         }
