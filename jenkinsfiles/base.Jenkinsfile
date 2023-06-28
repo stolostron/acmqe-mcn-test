@@ -100,7 +100,7 @@ pipeline {
             }
             steps {
                 sh """
-                ansible-playbook -v playbooks/managed_cluster.yml -e @"${SUBMARINER_CONF}"
+                ansible-playbook -v playbooks/acm_hive_cluster.yml -e @"${SUBMARINER_CONF}"
                 """
             }
         }
