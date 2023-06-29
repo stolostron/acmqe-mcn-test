@@ -40,7 +40,7 @@ registry_secrets:
 
 ###############################
 
-managed_clusters:
+acm_hive_clusters:
   - name: cluster-aws
     credentials: aws-creds
     platform: aws
@@ -50,7 +50,7 @@ managed_clusters:
       machine: 10.0.0.0/16
       service: 172.30.0.0/16
       type: OVNKubernetes
-    managed_cluster_version: "4.12"  # Takes the latest available image
+    hive_cluster_version: "4.12"  # Takes the latest available image
   - name: cluster-gcp
     credentials: gcp-creds
     platform: gcp
@@ -60,7 +60,7 @@ managed_clusters:
       machine: 10.0.0.0/16
       service: 172.30.0.0/16
       type: OpenShiftSDN
-    managed_cluster_version: "4.11"
+    hive_cluster_version: "4.11"
   - name: cluster-azure
     credentials: azure-creds
     platform: azr
@@ -70,8 +70,8 @@ managed_clusters:
       machine: 10.0.0.0/16
       service: 172.30.0.0/16
       type: OVNKubernetes
-    # Specific image could be specified instead of "managed_cluster_version"
-    managed_cluster_image: quay.io/openshift-release-dev/ocp-release:4.12.7-multi
+    # Specific image could be specified instead of "hive_cluster_version"
+    hive_cluster_image: quay.io/openshift-release-dev/ocp-release:4.12.7-multi
   - name: cluster_vsphere
     credentials: vmware-creds
     platform: vmw
@@ -83,9 +83,9 @@ managed_clusters:
     network_name: "<vsphere_net_name>"
     network_api_vip: "<vsphere_api_vip>"
     network_ingress_vip: "<vsphere_ingress_vip>"
-    managed_cluster_version: "4.11"
+    hive_cluster_version: "4.11"
 
-managed_clusters_credentials:
+acm_hive_clusters_credentials:
   - name: aws-creds
     platform: aws
     namespace: <namespace_to_keep_the_credentials>
