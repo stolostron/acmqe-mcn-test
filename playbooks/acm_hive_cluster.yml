@@ -5,4 +5,4 @@
   collections:
     - stolostron.rhacm
   roles:
-    - managed_cluster
+    - acm_hive_cluster
