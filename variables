@@ -64,13 +64,13 @@ declare -A ACM_2_6_5=(
 export ACM_2_6_5
 declare -A ACM_2_6_6=(
     [acm_version]='2.6.6'
-    [submariner_version]='0.13.4'
+    [submariner_version]='0.13.5'
     [channel]='stable'
 )
 export ACM_2_6_6
 declare -A ACM_2_6_7=(
     [acm_version]='2.6.7'
-    [submariner_version]='0.13.5'
+    [submariner_version]='0.13.6'
     [channel]='stable'
 )
 export ACM_2_6_7
