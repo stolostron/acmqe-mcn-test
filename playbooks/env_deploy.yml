@@ -8,4 +8,4 @@
   roles:
     - ocp
     - acm
-    - managed_cluster
+    - acm_hive_cluster
