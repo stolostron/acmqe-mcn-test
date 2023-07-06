@@ -7,11 +7,8 @@
 function prepare_clusters_for_submariner() {
     INFO "Perform Submariner cloud prepare for the managed clusters"
     local creds
-    local submariner_channel
     local catalog_ns="openshift-marketplace"
     local catalog_source="redhat-operators"
-
-    submariner_channel="$SUBMARINER_CHANNEL_RELEASE-$(echo "$SUBMARINER_VERSION_INSTALL" | grep -Po '.*(?=\.)')"
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         catalog_source="submariner-catalog"
@@ -27,14 +24,13 @@ function prepare_clusters_for_submariner() {
         INFO "Apply SubmarinerConfig on cluster $cluster"
         INFO "Use $SUBMARINER_GATEWAY_COUNT gateway node for $cluster cluster"
 
-        CL="$cluster" CRED="$creds" SUBM_CHAN="$submariner_channel" \
+        CL="$cluster" CRED="$creds" \
             NS="$catalog_ns" SUBM_SOURCE="$catalog_source" \
             yq eval '.metadata.namespace = env(CL)
             | .spec.credentialsSecret.name = env(CRED)
             | .spec.IPSecNATTPort = env(SUBMARINER_IPSEC_NATT_PORT)
             | .spec.cableDriver = env(SUBMARINER_CABLE_DRIVER)
             | .spec.gatewayConfig.gateways = env(SUBMARINER_GATEWAY_COUNT)
-            | .spec.subscriptionConfig.channel = env(SUBM_CHAN)
             | .spec.subscriptionConfig.source = env(SUBM_SOURCE)
             | .spec.subscriptionConfig.sourceNamespace = env(NS)' \
             "$SCRIPT_DIR/manifests/submariner-config.yaml" | oc apply -f -

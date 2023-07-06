@@ -13,6 +13,5 @@ spec:
   credentialsSecret:
     name: $MANAGED_CLUSTER_PLATFORM_SECRET
   subscriptionConfig:
-    channel: $SUBMARINER_CHANNEL
     source: $SUBMARINER_SOURCE
     sourceNamespace: openshift-marketplace
