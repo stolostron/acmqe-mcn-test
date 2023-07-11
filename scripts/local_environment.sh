@@ -24,10 +24,10 @@ EOF
 }
 
 function check_container_engine() {
-    if command -v docker &> /dev/null; then
-        RUNTIME="docker"
-    elif command -v podman &> /dev/null; then
-        RUNTIME="podman"
+    if command -v podman &> /dev/null; then
+	RUNTIME=podman
+    elif command -v docker &> /dev/null; then
+        RUNTIME=docker
     else
         echo "Unable to locate container runtime - docker/podman"
         exit 1
