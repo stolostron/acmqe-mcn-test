@@ -49,11 +49,15 @@ endif
 
 
 env-deploy: check-config deploy-local-env ##Deploy ACM based environment with managed clusters
-	$(RUNTIME) exec -it $(SUBM_CONTAINER_NAME) \
-		ansible-playbook playbooks/env_deploy.yml -e @"$(CONF)"
+	$(RUNTIME) exec \
+		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
+		-it $(SUBM_CONTAINER_NAME) \
+		ansible-playbook playbooks/acm.yml -e @"$(CONF)"
 
 env-destroy: check-config deploy-local-env ##Destroy ACM based environment with managed clusters
-	$(RUNTIME) exec -it $(SUBM_CONTAINER_NAME) \
+	$(RUNTIME) exec \
+		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
+		-it $(SUBM_CONTAINER_NAME) \
 		ansible-playbook playbooks/env_destroy.yml -e @"$(CONF)"
 	$(MAKE) destroy-local-env
 
