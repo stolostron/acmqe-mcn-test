@@ -1,6 +1,8 @@
 SHELL := /bin/bash
+RUNTIME ?= docker
 SUBM_CONTAINER_NAME ?= subm-qe
-SUBM_CONTAINER_IMAGE ?= quay.io/maxbab/subm-test:test
+SUBM_CONTAINER_IMAGE ?= quay.io/maxbab/subm-test:latest
+export RUNTIME
 export SUBM_CONTAINER_NAME
 export SUBM_CONTAINER_IMAGE
 export ENV_CONF
@@ -25,8 +27,6 @@ help:
 	@echo ""
 	@echo "Options:"
 	@fgrep -h "##" $(MAKEFILE_LIST) | sed -e 's/\(\:.*\#\#\)/\:\ /' | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
-
-RUNTIME = $(shell scripts/local_environment.sh --get-runtime)
 
 
 check-config:
@@ -75,7 +75,7 @@ submariner-test: check-subm-env deploy-local-env ##Test Submariner on ACM based 
 		./run.sh --test --platform "$(SUBM_PLATFORM)" --downstream "$(SUBM_DOWNSTREAM)"
 
 deploy-local-env: ##Deploy container for environment deployment
-	scripts/local_environment.sh --deploy
+	scripts/local_environment.sh --deploy --runtime "$(RUNTIME)"
 
 destroy-local-env: ##Destroy container for environment deployment
-	scripts/local_environment.sh --destroy
+	scripts/local_environment.sh --destroy --runtime "$(RUNTIME)"
