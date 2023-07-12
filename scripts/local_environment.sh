@@ -18,21 +18,29 @@ function usage() {
     ----------
     --deploy        - Perform creation of test container
     --destroy       - Perform destroy of test container
-    --get-runtime   - Get available container runtime
+    --runtime       - Sets runtime to be used.
+                      Supported args: docker/podman
+                      By default - "docker"
     --help|-h       - Print help
 EOF
 }
 
 function check_container_engine() {
-    if command -v podman &> /dev/null; then
-	RUNTIME=podman
-    elif command -v docker &> /dev/null; then
-        RUNTIME=docker
+    if [[ "$RUNTIME" == "docker" ]]; then
+        if ! [[ -x "$(command -v docker)" && -S /var/run/docker.sock ]]; then
+            echo "Docker engine is not available"
+            exit 1
+        fi
+    elif [[ "$RUNTIME" == "podman" ]]; then
+        if ! [[ -x "$(command -v podman)" ]]; then
+            echo "Podman engine is not available"
+            exit 1
+        fi
     else
         echo "Unable to locate container runtime - docker/podman"
         exit 1
     fi
-    echo "$RUNTIME"
+    echo "Using $RUNTIME engine"
 }
 
 function start_container() {
@@ -53,22 +61,25 @@ function destroy_container() {
     fi
 }
 
-function main() {
+function parse_arguments() {
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
             --deploy)
-                check_container_engine
-                start_container
+                RUN_COMMAND="deploy"
                 shift
                 ;;
             --destroy)
-                check_container_engine
-                destroy_container
+                RUN_COMMAND="destroy"
                 shift
                 ;;
-            --get-runtime)
-                check_container_engine
-                shift
+            --runtime)
+                if [[ -n "$2" ]]; then
+                    RUNTIME="$2"
+                    shift 2
+                else
+                    echo "Runtime value was not provided"
+                    exit 1
+                fi
                 ;;
             --help|-h)
                 usage
@@ -81,6 +92,27 @@ function main() {
                 ;;
         esac
     done
+}
+
+function main() {
+    RUN_COMMAND=deploy
+    parse_arguments "$@"
+
+    case "$RUN_COMMAND" in
+        deploy)
+            check_container_engine
+            start_container
+            ;;
+        destroy)
+            check_container_engine
+            destroy_container
+            ;;
+        *)
+            echo "Invalid command given: $RUN_COMMAND"
+            usage
+            exit 1
+            ;;
+    esac
 }
 
 # Trigger main function
