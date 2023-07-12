@@ -52,13 +52,13 @@ env-deploy: check-config deploy-local-env ##Deploy ACM based environment with ma
 	$(RUNTIME) exec \
 		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
 		-it $(SUBM_CONTAINER_NAME) \
-		ansible-playbook playbooks/env_deploy.yml -e @"$(CONF)" -e state=present
+		ansible-playbook -v playbooks/env_deploy.yml -e @"$(CONF)" -e state=present
 
 env-destroy: check-config deploy-local-env ##Destroy ACM based environment with managed clusters
 	$(RUNTIME) exec \
 		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
 		-it $(SUBM_CONTAINER_NAME) \
-		ansible-playbook playbooks/env_destroy.yml -e @"$(CONF)" -e state=absent
+		ansible-playbook -v playbooks/env_destroy.yml -e @"$(CONF)" -e state=absent
 	$(MAKE) destroy-local-env
 
 submariner-deploy: check-subm-env deploy-local-env ##Deploy Submariner on ACM based environment
