@@ -6,7 +6,7 @@ spec:
   repositoryDigestMirrors:
   - mirrors:
     - "$BREW_REGISTRY"
-    source: registry.redhat.io
+    source: registry.redhat.io/rhacm2
   - mirrors:
     - "$BREW_REGISTRY"
     source: registry.stage.redhat.io
