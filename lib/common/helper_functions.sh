@@ -225,9 +225,14 @@ function fetch_kubeconfig_contexts_and_pass() {
             | .users[].name = env(CL)' "$KCONF/$cluster-kubeconfig.yaml"
 
         pass_name=$(oc get -n "$cluster" secrets --no-headers \
-                      -o custom-columns=NAME:.metadata.name | grep password)
-        oc get secrets "$pass_name" -n "$cluster" \
-            --template='{{index .data.password | base64decode}}' > "$KCONF/$cluster-password"
+                      -o custom-columns=NAME:.metadata.name | grep password || true)
+
+        if [[ "$pass_name" == "" ]]; then
+            WARNING "Unable to fetch admin password from $cluster cluster. Continue as not required..."
+        else
+            oc get secrets "$pass_name" -n "$cluster" \
+                --template='{{index .data.password | base64decode}}' > "$KCONF/$cluster-password"
+        fi
     done
 }
 
