@@ -47,7 +47,6 @@ pipeline {
                 anyOf {
                     // The job flow will be executed only if TEST_TAGS parameter
                     // will be empty or definited with the values below.
-                    // The last two values are used by the acm qe ci.
                     environment name: 'TEST_TAGS', value: ''
                     environment name: 'TEST_TAGS', value: '@e2e'
                     environment name: 'TEST_TAGS', value: '@Submariner'
@@ -55,6 +54,8 @@ pipeline {
                     environment name: 'TEST_TAGS', value: '@api'
                     environment name: 'TEST_TAGS', value: '@api-post-release'
                     environment name: 'TEST_TAGS', value: '@post-restore'
+                    environment name: 'TEST_TAGS', value: '@pre-upgrade'
+                    environment name: 'TEST_TAGS', value: '@post-upgrade'
                 }
             }
             steps {
@@ -154,10 +155,19 @@ pipeline {
                     if (params.TEST_TAGS == '@post-release') {
                         DOWNSTREAM = "--downstream false"
                     }
+
+                    // The FLOW controls execution of the "Deploy" stage.
+                    // By default - "--deploy"
+                    // When '@pre-upgrade' tag provided, it will use "--subm-catalog-update" to update the Submariner catalog source
+                    FLOW = "--deploy"
+                    if (params.TEST_TAGS == '@pre-upgrade') {
+                        FLOW = "--subm-catalog-update"
+                        println("Upgrade job is triggered")
+                    }
                 }
 
                 sh """
-                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM
+                ./run.sh $FLOW --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM
                 """
             }
         }
@@ -200,6 +210,10 @@ pipeline {
                     REPORT_SUFFIX = ""
                     if (params.TEST_TAGS == '@post-restore') {
                         REPORT_SUFFIX = "--report-suffix backup-restore"
+                    }
+
+                    if (params.TEST_TAGS == '@post-upgrade') {
+                        REPORT_SUFFIX = "--report-suffix upgrade"
                     }
                 }
 
