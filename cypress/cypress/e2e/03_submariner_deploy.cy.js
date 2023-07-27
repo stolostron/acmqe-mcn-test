@@ -10,7 +10,7 @@ import { clusterSetMethods } from '../views/clusterset/clusterset'
 import { clustersPages } from '../views/clusters/managedCluster'
 
 describe('submariner - Deployment validation', {
-    tags: ['@submariner'],
+    tags: ['@submariner', '@e2e'],
     retries: {
         runMode: 0,
         openMode: 0,
@@ -64,7 +64,7 @@ describe('submariner - Deployment validation', {
 
         cy.get('button').contains('Install').click()
 
-        cy.wait(330000)
+        cy.wait(350000)
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Gateway nodes labeled"]', 'Nodes labeled', 'submariner.io/gateway')
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Agent status"]', 'Healthy', 'is deployed on managed cluster')
         submarinerClusterSetMethods.testTheDataLabel('[data-label="Connection status"]', 'Healthy', 'established')
