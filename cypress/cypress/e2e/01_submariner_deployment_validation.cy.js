@@ -26,15 +26,15 @@ describe('submariner - Deployment validation', {
     })
 
     it('test the Connection status label', { tags: ['Connection'] }, function () {
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Connection status"]', 'Healthy', 'established')
+        submarinerClusterSetMethods.testTheDataLabel("Connection status", 'Healthy', 'established')
     })
 
     it('test the Agent status label', { tags: ['Agent'] }, function () {
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Agent status"]', 'Healthy', 'is deployed on managed cluster')
+        submarinerClusterSetMethods.testTheDataLabel("Agent status", 'Healthy', 'is deployed on managed cluster')
     })
 
     it('test the Gateway nodes labeled label', { tags: ['Gateway'] }, function () {
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Gateway nodes labeled"]', 'Nodes labeled', 'submariner.io/gateway')
+        submarinerClusterSetMethods.testTheDataLabel("Gateway nodes labeled", 'Nodes labeled', 'submariner.io/gateway')
     }) 
 })
 
