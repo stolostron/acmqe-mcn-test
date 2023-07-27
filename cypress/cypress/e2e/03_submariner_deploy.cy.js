@@ -30,15 +30,13 @@ describe('submariner - Deployment validation', {
         let downstream = Cypress.env('DOWNSTREAM')
 
         //check if a cluster set named submariner already exists
-        clustersPages.goToClusterSet()
-        cy.get('.pf-c-text-input-group__text-input').type(clusterSetName)
-        cy.get('[data-label=Name]').then(($clusterset) => {
+        submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName).then(($clusterset) => {
             if ($clusterset.text().includes(clusterSetName)) {
-                cy.log("found")
+                cy.log(clusterSetName + " was found")
                 cy.get('[data-label=Name]').contains(clusterSetName).click()
             }
             else{
-                cy.log('not found')
+                cy.log(clusterSetName + ' was not found')
                 clusterSetMethods.createClusterSet(clusterSetName)
                 submarinerClusterSetMethods.manageClusterSet(managed_clusters_list, clusterSetName)
                 cy.get('button').contains('Save').click()
@@ -65,9 +63,9 @@ describe('submariner - Deployment validation', {
         cy.get('button').contains('Install').click()
 
         cy.wait(350000)
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Gateway nodes labeled"]', 'Nodes labeled', 'submariner.io/gateway')
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Agent status"]', 'Healthy', 'is deployed on managed cluster')
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Connection status"]', 'Healthy', 'established')
+        submarinerClusterSetMethods.testTheDataLabel("Gateway nodes labeled", 'Nodes labeled', 'submariner.io/gateway')
+        submarinerClusterSetMethods.testTheDataLabel("Agent status", 'Healthy', 'is deployed on managed cluster')
+        submarinerClusterSetMethods.testTheDataLabel("Connection status", 'Healthy', 'established')
     })
 })
 
