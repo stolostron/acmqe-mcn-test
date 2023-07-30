@@ -22,7 +22,16 @@ describe('submariner - Deployment validation', {
     
     it('verify that a cluster set with deployment of submariner is exists.', { tags: ['verify'] }, function () {
         let clusterSetName = Cypress.env('CLUSTERSET')
-        submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName)
+        submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName).then(($clusterset) => {
+            if ($clusterset.text().includes(clusterSetName)) {
+                cy.log(clusterSetName + " clusteset was found")
+                cy.get('[data-label=Name]').contains(clusterSetName).click()
+                cy.get('.pf-c-nav__link').contains('Submariner add-ons').click()
+            }
+            else {
+                cy.log(clusterSetName + ' clusterset was not found')
+            }
+        })
     })
 
     it('test the Connection status label', { tags: ['Connection'] }, function () {

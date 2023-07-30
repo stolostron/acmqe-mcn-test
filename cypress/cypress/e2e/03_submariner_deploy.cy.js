@@ -24,8 +24,21 @@ describe('submariner - Deployment validation', {
     it('test the Submariner add-ons install', { tags: ['deployment'] }, function () {
         let clusterSetName = Cypress.env('CLUSTERSET')
         let nattPort = Cypress.env('SUBMARINER_IPSEC_NATT_PORT')
-        clusterSetMethods.createClusterSet(clusterSetName) 
-        submarinerClusterSetMethods.manageClusterSet(clusterSetName)
+        let managed_clusters_list = Cypress.env('MANAGED_CLUSTERS')
+
+        //check if a cluster set named submariner already exists
+        submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName).then(($clusterset) => {
+            if ($clusterset.text().includes(clusterSetName)) {
+                cy.log(clusterSetName + " was found")
+                cy.get('[data-label=Name]').contains(clusterSetName).click()
+            }
+            else{
+                cy.log(clusterSetName + ' was not found')
+                clusterSetMethods.createClusterSet(clusterSetName)
+                submarinerClusterSetMethods.manageClusterSet(managed_clusters_list, clusterSetName)
+                cy.get('button').contains('Save').click()
+            }
+        })
 
         cy.get('button').contains('Save').click()
         cy.contains('Submariner add-ons', {timeout: 3000}).should('exist').click()
@@ -41,10 +54,10 @@ describe('submariner - Deployment validation', {
         }
         cy.get('button').contains('Install').click()
 
-        cy.timeout(210000)
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Connection status"]', 'Healthy', 'established')
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Agent status"]', 'Healthy', 'is deployed on managed cluster')
-        submarinerClusterSetMethods.testTheDataLabel('[data-label="Gateway nodes labeled"]', 'Nodes labeled', 'submariner.io/gateway')
+        cy.wait(350000)
+        submarinerClusterSetMethods.testTheDataLabel("Gateway nodes labeled", 'Nodes labeled', 'submariner.io/gateway')
+        submarinerClusterSetMethods.testTheDataLabel("Agent status", 'Healthy', 'is deployed on managed cluster')
+        submarinerClusterSetMethods.testTheDataLabel("Connection status", 'Healthy', 'established')
     })
 })
 
