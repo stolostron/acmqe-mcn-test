@@ -6,24 +6,17 @@
 /// <reference types="cypress" />
 
 import { clusterSetMethods } from '../../../views/clusterset/clusterset'
+import { clustersPages } from '../../../views/clusters/managedCluster'
 
 export const submarinerClusterSetMethods = {
 
-    // The function verifies that submariner deployment exists.
+    // The function verifies that submariner cluster exists.
     submarinerClusterSetShouldExist: (clusterSetName) => {
-        cy.log("verify that a cluster set with deployment of submariner is exists")
-        clusterSetMethods.clusterSetShouldExist(clusterSetName)
+        cy.log("verify that a cluster set named " + clusterSetName + " exists")
+        clustersPages.goToClusterSet()
+        cy.get('.pf-c-text-input-group__text-input').type(clusterSetName)
 
-        cy.get('[data-label=Name]').eq(1).then(($clusterset) => {
-            if ($clusterset.text().includes(clusterSetName)) {
-                cy.log("A cluster set named " + clusterSetName + " was found")
-                cy.get('[data-label=Name]').contains(clusterSetName).click()
-                cy.get('.pf-c-nav__link').contains('Submariner add-ons').click()
-            }
-            else{
-                cy.log("A cluster set named " + clusterSetName + " was not found. can't continue with the test")
-            }
-        })
+        return cy.get('[data-label=Name]')
     },
 
     // The function adds the AWS an GCP clusters to the cluster set.
