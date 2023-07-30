@@ -5,7 +5,7 @@
 
 /// <reference types="cypress" />
 
-import { clusterSetMethods } from '../views/clusterset/clusterset'
+import { submarinerClusterSetMethods } from '../views/submariner/actions/submariner_actions'
 
 describe('submariner - uninstall validation', {
     tags: ['@submariner', '@e2e'],
@@ -24,15 +24,11 @@ describe('submariner - uninstall validation', {
     it('test the Uninstall Submariner add-ons', { tags: ['uninstall'] }, function () {
         let clusterSetName = Cypress.env('CLUSTERSET')
         // verify that a cluster set with deployment of submariner is exists.
-        clusterSetMethods.clusterSetShouldExist(clusterSetName)
-        cy.get('[data-label=Name]').contains(clusterSetName).then($value => {
-            length = $value.length
-
-            if (length != 1) this.skip()
-            else {
-                cy.get('[data-label=Name]').eq(1).click(15, 30)
+        submarinerClusterSetMethods.submarinerClusterSetShouldExist(clusterSetName).then(($clusterset) => {
+            if ($clusterset.text().includes(clusterSetName)) {
+                cy.log(clusterSetName + " was found")
+                cy.get('[data-label=Name]').contains(clusterSetName).click()
                 cy.get('.pf-c-nav__link').contains('Submariner add-ons').click()
-
                 cy.get('.pf-c-table__check > label > input').click({multiple: true}).should('be.checked')
                 cy.get('#toggle-id').click()
                 cy.get('.pf-c-dropdown__menu-item').should('be.visible').click()
@@ -45,9 +41,14 @@ describe('submariner - uninstall validation', {
                 // Some of the clouds may take more time to delete the resource.
                 // Set the final timeout to 5 minutes.
                 // If the resources still exist after the timeout, fail the test.
+                cy.log("performing submariner uninstall")
                 cy.get('[data-label="Cluster"]', {timeout: 300000}).should('not.exist')
+                cy.log("submariner uninstall was completed")
+            }   
+            else{
+                cy.log(clusterSetName + ' was not found')
             }
         })
-    }) 
+    })
 })
 

@@ -27,6 +27,7 @@ export const clustersPages = {
     },
 
     goToClusterSet: () => {
+        cy.log("go to cluster set page")
         acm23xheaderMethods.goToClusters()
         cy.get(commonElementSelectors.elements.pageNavLink).filter(`:contains("${managedClustersSelectors.elementTab.clustersets}")`).click()
         clusterSetPages.shouldLoad()
