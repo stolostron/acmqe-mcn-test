@@ -21,7 +21,8 @@ module.exports = defineConfig({
     SUBMARINER_IPSEC_NATT_PORT: "4505",
     DOWNSTREAM_CATALOG_SOURCE: "submariner-catalog",
     MANAGED_CLUSTERS: "",
-    DOWNSTREAM: "true"
+    DOWNSTREAM: "true",
+    LOGS_PATH: "logs"
   },
 
   e2e: {
