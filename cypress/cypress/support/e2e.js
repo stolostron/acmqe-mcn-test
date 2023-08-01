@@ -15,3 +15,20 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+
+var logs = {}
+var i = 0
+
+Cypress.on('log:added', (log) => {
+    if (log.end) {
+        logs[i] = log.message
+        i++
+    }
+})
+
+let name = Cypress.spec.name
+let path = Cypress.env('LOGS_PATH')
+
+after(() => {
+  cy.writeFile(path+'/'+name+'.log', logs)
+})
