@@ -34,6 +34,7 @@ export const submarinerClusterSetMethods = {
                         cy.get('[data-label=Name]').eq(index).then(($name) => { // get clusters from given list
                             if (managed_clusters_list.includes($name.text())){
                                 cy.get('[type="checkbox"]').eq(index).click()
+                                cy.log('add ' + $name.text() + ' cluster to the cluster set ' + clusterSetName)
                             }
                         })
                     }
