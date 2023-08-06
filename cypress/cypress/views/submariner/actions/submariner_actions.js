@@ -29,11 +29,21 @@ export const submarinerClusterSetMethods = {
         cy.get('[data-label="Name"]').each(($el, index) => {
             if (index > 0) {
                 if (!$el.text().includes('local-cluster')){// skip the local
-                    cy.get('[data-label=Infrastructure]').eq(index).then(($platform) => { // get cluster patform
-                        if ($platform.text().includes('Google') || $platform.text().includes('Amazon')){
-                            cy.get('[type="checkbox"]').eq(index).click()
-                        }
-                    })
+                    if (managed_clusters_list.length > 0){
+                        cy.get('[data-label=Name]').eq(index).then(($name) => { // get clusters from given list
+                            if (managed_clusters_list.includes($name.text())){
+                                cy.get('[type="checkbox"]').eq(index).click()
+                                cy.log('add ' + $name.text() + ' cluster to the cluster set ' + clusterSetName)
+                            }
+                        })
+                    }
+                    else{
+                        cy.get('[data-label=Infrastructure]').eq(index).then(($platform) => { // get cluster patform
+                            if ($platform.text().includes('Google') || $platform.text().includes('Amazon')){
+                                cy.get('[type="checkbox"]').eq(index).click()
+                            }
+                        })
+                    }
                 }
             }
         })
