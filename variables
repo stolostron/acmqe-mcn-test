@@ -14,10 +14,10 @@ export TESTS_LOGS_UI="$TESTS_LOGS/ui"
 export DEBUG_LOGS="$SUBM_LOGS/debug_logs"
 export POLARION_REPORTS="$TESTS_LOGS/polarion"
 export LOG_PATH=""
-export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases/releases"
+export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases"
 export SUBCTL_UPSTREAM_URL="https://github.com/submariner-io/subctl"
 export PLATFORM="aws,gcp"  # Default platform definition
-export SUPPORTED_PLATFORMS="aws,gcp,azure,vsphere,aro,rosa"  # Supported platform definition
+export SUPPORTED_PLATFORMS="aws,gcp,azure,vsphere,aro,rosa,ibmpower"  # Supported platform definition
 # Non critial failures will be stored into the variable
 # and printed at the end of the execution.
 # The testing will be performed,
