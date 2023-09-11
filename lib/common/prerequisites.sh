@@ -116,9 +116,7 @@ function get_subctl_for_testing() {
         # wget -qO- "$subctl_download_url" -O subctl.tar.xz
     else
         INFO "Download upstream subctl binary for testing"
-
-        WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
-        subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
+        subctl_download_url="$SUBCTL_URL_DOWNLOAD/releases/download/${subctl_version}/subctl-${subctl_version}-linux-amd64.tar.xz"
         wget -qO- "$subctl_download_url" -O subctl.tar.xz
     fi
 
