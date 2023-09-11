@@ -17,7 +17,11 @@ function prepare_clusters_for_submariner() {
 
     for cluster in $MANAGED_CLUSTERS; do
         creds=$(get_cluster_credential_name "$cluster")
+        platform=$(get_cluster_platform "$cluster")
         product=$(get_cluster_product "$cluster")
+        if [[ "$platform" =~ ("IBMPowerPlatform") ]]; then
+            creds="null"
+        fi
         # The ARO / ROSA cluster does not need cloud credentials
         # The ARO / ROSA cluster should use "loadBalancerEnable: true"
         local load_balancer="false"

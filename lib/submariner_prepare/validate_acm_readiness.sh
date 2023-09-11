@@ -84,6 +84,11 @@ function check_managed_clusters_readiness() {
 
     for cluster in $clusters; do
         local state=""
+
+        if [[ "$cluster" == "local-cluster" ]]; then
+            continue
+        fi
+
         state=$(oc get managedclusters "$cluster" --ignore-not-found \
                  -o jsonpath='{.status.conditions[?(@.type == "ManagedClusterConditionAvailable")].status}')
 
@@ -99,14 +104,15 @@ function check_managed_clusters_readiness() {
     fi
 }
 
-function check_managed_clusters_available_platform() {
+function fetch_managed_cluster_by_platform() {
     local platform="$1"
     local clusters
     INFO "Validate $platform clusters"
 
-    clusters=$(oc get clusterdeployment -A \
-        --selector "hive.openshift.io/cluster-platform in ($platform)" \
-        --no-headers=true -o custom-columns=NAME:".metadata.name")
+    clusters=$(oc get managedcluster -o json \
+        | jq -r '.items[] | select(.status.clusterClaims | from_entries
+        | select(."platform.open-cluster-management.io"
+        | contains("'"$platform"'"))).metadata.name')
 
     check_managed_clusters_readiness "$clusters"
 }
@@ -207,6 +213,9 @@ function check_clusters_deployment() {
     fi
     if [[ "$PLATFORM" =~ "rosa" ]]; then
         fetch_managed_cluster_by_product "ROSA"
+    fi
+    if [[ "$PLATFORM" =~ "ibmpower" ]]; then
+        fetch_managed_cluster_by_platform "IBMPowerPlatform"
     fi
 
     # The fetch is a workaround to get kubeconfig files from imported clusters
