@@ -8,15 +8,8 @@ The repository contains the following flows:
 * Report Tests results (used by QE)
 
 ## Prerequisites
-**Note** - Execution of Submariner addon deployment and testing, requires the following:
-* ACM Hub cluster
-* At least two active managed clusters
-  * The clusters could be deployed by the ACM hub
-  * The clusters could be deployed separately and imported into the hub  
-    **Note** - In case clusters were created separately and imported, ensure cluster and cloud credentials exists within the hub.
-
+Review the prerequisites documentation [file](docs/prerequisites.md).  
 **Note** - If any requirement is missing, the flow will fail with relevant error message.
-
 
 * In case required environment already exists, skip to the next section.
 * In case environment needs to be deployed, review the **ACM environment deployment** section.
