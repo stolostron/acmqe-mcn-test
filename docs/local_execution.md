@@ -7,7 +7,7 @@ Local execution of the pipeline could be done in two ways:
    * System requirements:
      * Install Docker and ensure it is running properly on your computer.
    * Deployment preparation:
-     * Prepare environment configuration file according to the [sample file](config.yml.sample).
+     * Prepare environment configuration file according to the [sample file](config-sample.yml).
    * Perform ACM environment deployment:
      * Execute `make env-deploy CONF=/path/to/config.yml` to deploy environment.
    * Perform Submariner deployment execution:  
