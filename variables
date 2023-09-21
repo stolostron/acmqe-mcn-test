@@ -68,6 +68,7 @@ export OFFICIAL_REGISTRY="registry.redhat.io"
 export STAGING_REGISTRY="registry.stage.redhat.io"
 # External RedHat downstream registry (require authentication)
 export BREW_REGISTRY="brew.registry.redhat.io"
+export PRIVATE_QUAY_REGISTRY="quay.io:443"
 export REGISTRY_IMAGE_PREFIX="rhacm2"
 export REGISTRY_IMAGE_IMPORT_PATH="rh-osbs"
 # Internal RedHat downstream registry
