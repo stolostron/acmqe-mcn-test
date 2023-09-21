@@ -101,7 +101,7 @@ function deploy_submariner() {
     select_submariner_version_and_channel_to_deploy
 
     if [[ "$DOWNSTREAM" == 'true' ]]; then
-        create_brew_secret
+        create_brew_and_private_quay_secret
         create_icsp
 
         create_catalog_source
