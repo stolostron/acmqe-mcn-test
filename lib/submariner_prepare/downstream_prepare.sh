@@ -188,12 +188,32 @@ function verify_brew_secret_existence() {
     echo "$brew_sec"
 }
 
-function create_brew_secret() {
-    INFO "Create Brew secret on the managed clusters"
+function verify_private_quay_secret_existence() {
+    local private_quay_sec
+    local private_quay_sec_state
+
+    private_quay_sec=$(oc -n openshift-config get secret pull-secret \
+        --template='{{index .data ".dockerconfigjson" | base64decode}}' \
+        | jq --arg private_quay "$PRIVATE_QUAY_REGISTRY" \
+        '{"auths": {($private_quay): .auths[$private_quay]}}' | base64 -w 0)
+
+    private_quay_sec_state=$(echo "$private_quay_sec" | base64 -d \
+                        | jq --arg private_quay "$PRIVATE_QUAY_REGISTRY" '.auths[$private_quay]')
+    if [[ "$private_quay_sec_state" == "null" ]]; then
+        ERROR "Private quay secret is required for downstream deployment but not available. Aborting."
+    fi
+    echo "$private_quay_sec"
+}
+
+function create_brew_and_private_quay_secret() {
+    INFO "Create Brew and private Quay secret on the managed clusters"
     local brew_sec
+    local private_quay_sec
 
     INFO "Verify Brew secret existence on ACM Hub"
     brew_sec=$(verify_brew_secret_existence)
+    INFO "Verify private Quay secret existence on ACM Hub"
+    private_quay_sec=$(verify_private_quay_secret_existence)
 
     local secret_ns=("openshift-config" "openshift-marketplace")
 
@@ -212,7 +232,18 @@ function create_brew_secret() {
                 | KUBECONFIG="$kube_conf" oc apply -f -
         done
 
-        INFO "Update the cluster global pull-secret"
+        INFO "Create private Quay registry secret in globally available namespace"
+        INFO "Create private Quay registry secret to be reachable for the catalog source"
+        for namespace in "${secret_ns[@]}"; do
+            NS="$namespace" HASH="$private_quay_sec" \
+                yq eval '.metadata.name = "private-quay-registry"
+                | .metadata.namespace = env(NS)
+                | .data.".dockerconfigjson" = env(HASH)' \
+                "$SCRIPT_DIR/manifests/secret.yaml" \
+                | KUBECONFIG="$kube_conf" oc apply -f -
+        done
+
+        INFO "Update the cluster global pull-secret with Brew secret"
         KUBECONFIG="$kube_conf" oc patch secret pull-secret -n openshift-config \
             -p '{"data":{".dockerconfigjson":"'"$(KUBECONFIG="$kube_conf" oc get \
             secret pull-secret -n openshift-config \
@@ -221,6 +252,16 @@ function create_brew_secret() {
             brew-registry -n openshift-config \
             --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
             | jq -r -c '.auths')"'' | base64 -w 0)"'"}}'
+
+        INFO "Update the cluster global pull-secret with private Quay secret"
+        KUBECONFIG="$kube_conf" oc patch secret pull-secret -n openshift-config \
+            -p '{"data":{".dockerconfigjson":"'"$(KUBECONFIG="$kube_conf" oc get \
+            secret pull-secret -n openshift-config \
+            --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
+            | jq -r -c '.auths |= . + '"$(KUBECONFIG="$kube_conf" oc get secret \
+            private-quay-registry -n openshift-config \
+            --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode \
+            | jq -r -c '.auths')"'' | base64 -w 0)"'"}}'
     done
-    INFO "Brew secret has been updated on all managed clusters"
+    INFO "Brew and private Quay secret has been updated on all managed clusters"
 }
