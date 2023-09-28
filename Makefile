@@ -11,9 +11,11 @@ SUBM_PLATFORM ?= aws,gcp
 SUBM_GLOBALNET ?= true
 SUBM_DOWNSTREAM ?= true
 SUBM_GW_RANDOM ?= false
+SUBM_TEST_TYPE ?= e2e,ui
 export SUBM_PLATFORM
 export SUBM_GLOBALNET
 export SUBM_DOWNSTREAM
+export SUBM_TEST_TYPE
 export OC_CLUSTER_API
 export OC_CLUSTER_USER
 export OC_CLUSTER_PASS
@@ -72,7 +74,7 @@ submariner-test: check-subm-env deploy-local-env ##Test Submariner on ACM based 
 	$(RUNTIME) exec \
 		-e OC_CLUSTER_API=$(OC_CLUSTER_API) -e OC_CLUSTER_USER=$(OC_CLUSTER_USER) -e OC_CLUSTER_PASS=$(OC_CLUSTER_PASS) \
 		-it $(SUBM_CONTAINER_NAME) \
-		./run.sh --test --platform "$(SUBM_PLATFORM)" --downstream "$(SUBM_DOWNSTREAM)"
+		./run.sh --test --test-type "$(SUBM_TEST_TYPE)" --platform "$(SUBM_PLATFORM)" --downstream "$(SUBM_DOWNSTREAM)"
 
 deploy-local-env: ##Deploy container for environment deployment
 	scripts/local_environment.sh --deploy --runtime "$(RUNTIME)"
