@@ -44,10 +44,10 @@ RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
 
 COPY requirements.txt requirements.yml ./
 
-RUN pip install --no-cache-dir -r requirements.txt \
-    && mkdir -p /usr/share/ansible/collections \
-    && ansible-galaxy collection install --no-cache -r requirements.yml -p /usr/share/ansible/collections
+RUN pip install --no-cache-dir -r requirements.txt
 
 USER "$SUBM"
+
+RUN ansible-galaxy collection install --no-cache -r requirements.yml
 
 WORKDIR /"$SUBM"
