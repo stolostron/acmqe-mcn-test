@@ -20,7 +20,7 @@ spec:
         cpu: 50m
         memory: 256Mi
   - name: submariner
-    image: 'quay.io/maxbab/subm-test@sha256:00a811fa9e6340c7ce4a361cbefcfc3b187038fa15b3bbab6b48cbc80317af7c'
+    image: 'quay.io/maxbab/subm-test@sha256:aeae0452e05f2faaf0c56b1e1be9b6b8e1acc078dd022d79411e9cda679575d4'
     # imagePullSecrets: 'agent-image-secret'
     ttyEnabled: true
     alwaysPullImage: true
