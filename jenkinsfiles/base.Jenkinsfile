@@ -65,6 +65,9 @@ pipeline {
                         env.OC_CLUSTER_PASS == '') {
                             println "OCP cluster deploy"
                             sh """
+                            id
+                            pwd
+                            ls -l
                             ansible-playbook -v playbooks/ocp.yml -e @"${SUBMARINER_CONF}"
                             """
 
