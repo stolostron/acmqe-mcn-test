@@ -8,8 +8,9 @@ ARG YQ=https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64
 ARG AWS_CLI=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 ARG ROSA_CLI=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/latest/rosa-linux.tar.gz
 
+# The user ID set to match the one used in Jenkins and avoid permissions issues during job execution
 RUN mkdir -p /"$SUBM" \
-    && adduser "$SUBM" \
+    && adduser -u 1006010000 "$SUBM" \
     && chown -R "$SUBM" /"$SUBM"
 
 RUN dnf install --nodocs -y \
