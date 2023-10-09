@@ -69,10 +69,10 @@ pipeline {
                             """
 
                             env.OC_CLUSTER_API = sh(
-                                script: "yq eval '.[].api' logs/ocp_assets/clusters_details.yml | head -1",
+                                script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
                                 returnStdout: true).trim()
                             env.OC_CLUSTER_PASS = sh(
-                                script: "yq eval '.[].pass' logs/ocp_assets/clusters_details.yml | head -1",
+                                script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
                                 returnStdout: true).trim()
                             env.OC_CLUSTER_USER = "kubeadmin"
                     } else {
