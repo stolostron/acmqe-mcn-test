@@ -53,24 +53,6 @@ function verify_jq() {
     INFO "The jq command is found"
 }
 
-# ROSA (aws ocp managed cluster)
-function verify_rosa_cli() {
-    if ! command -v rosa &> /dev/null; then
-        WARNING "Missing rosa command. Installing..."
-        mkdir -p "$HOME"/.local/bin
-        wget -qO- "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/latest/rosa-linux.tar.gz" \
-            -O rosa.tar.gz
-        tar zxvf rosa.tar.gz
-        rm -f rosa.tar.gz
-        mv rosa "$HOME"/.local/bin
-
-        # Add local BIN dir to PATH
-        [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
-        INFO "The oc and kubectl installed"
-    fi
-    INFO "The rosa command is found"
-}
-
 function verify_prerequisites_tools() {
     INFO "Verify prerequisites tools"
     verify_ocp_clients
