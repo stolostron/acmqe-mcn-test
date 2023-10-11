@@ -57,31 +57,7 @@ function prepare_clusters_for_submariner() {
         if [[ "$reset_gw_count" == "true" ]]; then
             SUBMARINER_GATEWAY_COUNT=1
         fi
-
-        if [[ "$product" == "ROSA" ]]; then
-            deploy_gw_node_for_rosa "$cluster"
-        fi
     done
-}
-
-# Deploying GW node for ROSA cluster should
-# be done by using "rosa" binary.
-function deploy_gw_node_for_rosa() {
-    INFO "Deploy Gateway node for ROSA cluster"
-    local cluster="$1"
-    local machinepool_name="sm-gw-mp"
-    local machinepool_state
-
-    rosa login --token "$ROSA_TOKEN"
-    machinepool_state=$(rosa list machinepool --cluster "$cluster" -o json \
-        | jq -r '.[] | select(.id | contains("'"$machinepool_name"'")).id')
-
-    # Until https://issues.redhat.com/browse/ACM-2494 is fixed,
-    # create 3 machinepool replicas.
-    if [[ "$machinepool_state" == "" ]]; then
-        rosa create machinepool --cluster="$cluster" \
-            --name="$machinepool_name" --replicas=3 --labels='submariner.io/gateway=true'
-    fi
 }
 
 function deploy_submariner_broker() {
