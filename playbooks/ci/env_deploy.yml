@@ -1,0 +1,18 @@
+- name: Deploy OCP and ACM environment
+  hosts: localhost
+  gather_facts: false
+  vars:
+    state: present
+  collections:
+    - stolostron.rhacm
+  roles:
+    - role: ocp
+      when: run_ocp
+    - role: acm
+      when: run_acm
+    - role: acm_hive_cluster
+      when: run_acm_hive_cluster
+    - role: managed_openshift
+      when: run_managed_openshift
+    - role: acm_import_cluster
+      when: run_acm_import_cluster
