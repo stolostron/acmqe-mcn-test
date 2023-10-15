@@ -10,7 +10,7 @@ ARG ROSA_CLI=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/l
 
 # The user ID set to match the one used in Jenkins and avoid permissions issues during job execution
 RUN mkdir -p /"$SUBM" \
-    && adduser -u 1006010000 "$SUBM" \
+    && adduser "$SUBM" \
     && chown -R "$SUBM" /"$SUBM"
 
 RUN dnf install --nodocs -y \
@@ -45,10 +45,10 @@ RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
 
 COPY requirements.txt requirements.yml ./
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && mkdir -p /usr/share/ansible/collections \
+    && ansible-galaxy collection install --no-cache -r requirements.yml -p /usr/share/ansible/collections
 
 USER "$SUBM"
-
-RUN ansible-galaxy collection install --no-cache -r requirements.yml
 
 WORKDIR /"$SUBM"
