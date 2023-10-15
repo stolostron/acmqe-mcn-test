@@ -2,7 +2,7 @@
 
 RUNTIME="docker"
 SUBM_CONTAINER_NAME="${SUBM_CONTAINER_NAME:-subm-qe}"
-SUBM_CONTAINER_IMAGE="${SUBM_CONTAINER_IMAGE:-quay.io/maxbab/subm-test:test}"
+SUBM_CONTAINER_IMAGE="${SUBM_CONTAINER_IMAGE:-quay.io/maxbab/subm-test:latest}"
 
 function usage() {
     cat <<EOF
@@ -48,7 +48,9 @@ function start_container() {
 
     echo "Creating $SUBM_CONTAINER_NAME test container"
     "$RUNTIME" run --name "$SUBM_CONTAINER_NAME" -t -d --network host \
-        -v "$(pwd)":/submariner -w /submariner -e PWD="/submariner" "$SUBM_CONTAINER_IMAGE" cat
+        -e ANSIBLE_COLLECTIONS_PATHS=/usr/share/ansible/collections \
+        -v "$(pwd)":/submariner -w /submariner \
+        -e PWD="/submariner" "$SUBM_CONTAINER_IMAGE" cat
 }
 
 function destroy_container() {
