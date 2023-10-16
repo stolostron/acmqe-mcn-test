@@ -40,7 +40,7 @@ pipeline {
         stage('Destroy environment') {
             steps {
                 sh """
-                ansible-playbook -v playbooks/env_destroy.yml -e @"${SUBMARINER_CONF}"
+                ansible-playbook -v playbooks/ci/env_destroy.yml -e @"${SUBMARINER_CONF}"
                 """
             }
         }
