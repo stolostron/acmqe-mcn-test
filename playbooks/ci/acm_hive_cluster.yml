@@ -1,0 +1,9 @@
+---
+- name: ACM Hive Clusters
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - stolostron.rhacm
+  roles:
+    - role: acm_hive_cluster
+      when: run_acm_hive_cluster
