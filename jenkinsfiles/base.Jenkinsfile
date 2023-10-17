@@ -18,7 +18,7 @@ pipeline {
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
-            value: 'aws,gcp,azure,vsphere', defaultValue: 'aws,gcp,azure,vsphere', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
+            value: 'aws,gcp,azure,vsphere,aro,rosa', defaultValue: 'aws,gcp,azure,vsphere,aro,rosa', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
         booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
@@ -65,7 +65,7 @@ pipeline {
                         env.OC_CLUSTER_PASS == '') {
                             println "OCP cluster deploy"
                             sh """
-                            ansible-playbook -v playbooks/ocp.yml -e @"${SUBMARINER_CONF}"
+                            ansible-playbook -v playbooks/ci/ocp.yml -e @"${SUBMARINER_CONF}"
                             """
 
                             env.OC_CLUSTER_API = sh(
@@ -89,7 +89,7 @@ pipeline {
             }
             steps {
                 sh """
-                ansible-playbook -v playbooks/acm.yml -e @"${SUBMARINER_CONF}"
+                ansible-playbook -v playbooks/ci/acm.yml -e @"${SUBMARINER_CONF}"
                 """
             }
         }
@@ -101,7 +101,31 @@ pipeline {
             }
             steps {
                 sh """
-                ansible-playbook -v playbooks/acm_hive_cluster.yml -e @"${SUBMARINER_CONF}"
+                ansible-playbook -v playbooks/ci/acm_hive_cluster.yml -e @"${SUBMARINER_CONF}"
+                """
+            }
+        }
+        stage('Deploy Managed OCP') {
+            when {
+                expression {
+                    params.JOB_STAGES.contains(STAGE_NAME)
+                }
+            }
+            steps {
+                sh """
+                ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
+                """
+            }
+        }
+        stage('Import OCP into ACM Hub') {
+            when {
+                expression {
+                    params.JOB_STAGES.contains(STAGE_NAME)
+                }
+            }
+            steps {
+                sh """
+                ansible-playbook -v playbooks/ci/acm_import_cluster.yml -e @"${SUBMARINER_CONF}"
                 """
             }
         }
