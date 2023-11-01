@@ -3,8 +3,6 @@
   gather_facts: false
   vars:
     state: absent
-  collections:
-    - stolostron.rhacm
   roles:
-    - acm_hive_cluster
-    - ocp
+    - stolostron.rhacm.acm_hive_cluster
+    - stolostron.rhacm.ocp

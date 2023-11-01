@@ -1,8 +1,6 @@
 - hosts: localhost
   connection: local
   gather_facts: false
-  collections:
-    - stolostron.rhacm
   roles:
-    - role: acm_import_cluster
+    - role: stolostron.rhacm.acm_import_cluster
       when: run_acm_import_cluster

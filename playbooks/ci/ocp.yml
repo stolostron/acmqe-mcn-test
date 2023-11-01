@@ -2,8 +2,6 @@
 - name: OpenShift cluster
   hosts: localhost
   gather_facts: false
-  collections:
-    - stolostron.rhacm
   roles:
-    - role: ocp
+    - role: stolostron.rhacm.ocp
       when: run_ocp
