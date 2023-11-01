@@ -2,7 +2,5 @@
 - name: ACM Hive Clusters
   hosts: localhost
   gather_facts: false
-  collections:
-    - stolostron.rhacm
   roles:
-    - acm_hive_cluster
+    - stolostron.rhacm.acm_hive_cluster

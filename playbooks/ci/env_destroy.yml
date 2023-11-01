@@ -3,14 +3,12 @@
   gather_facts: false
   vars:
     state: absent
-  collections:
-    - stolostron.rhacm
   roles:
-    - role: acm_import_cluster
+    - role: stolostron.rhacm.acm_import_cluster
       when: run_acm_import_cluster
-    - role: managed_openshift
+    - role: stolostron.rhacm.managed_openshift
       when: run_managed_openshift
-    - role: acm_hive_cluster
+    - role: stolostron.rhacm.acm_hive_cluster
       when: run_acm_hive_cluster
-    - role: ocp
+    - role: stolostron.rhacm.ocp
       when: run_ocp
