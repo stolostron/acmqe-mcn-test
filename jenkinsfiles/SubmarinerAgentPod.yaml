@@ -20,7 +20,7 @@ spec:
         cpu: 50m
         memory: 256Mi
   - name: submariner
-    image: 'quay.io/maxbab/subm-test@sha256:00a811fa9e6340c7ce4a361cbefcfc3b187038fa15b3bbab6b48cbc80317af7c'
+    image: 'quay.io/maxbab/subm-test@sha256:2d6c0a39865f5ffa55fafaea337777473325811d02a1641fbd93bb9a01e5deba'
     # imagePullSecrets: 'agent-image-secret'
     ttyEnabled: true
     alwaysPullImage: true
@@ -29,6 +29,8 @@ spec:
     env:
       - name: HOME
         value: '/home/jenkins'
+      - name: ANSIBLE_COLLECTIONS_PATHS
+        value: '/usr/share/ansible/collections'
     resources:
       limits:
         cpu: 2000m
