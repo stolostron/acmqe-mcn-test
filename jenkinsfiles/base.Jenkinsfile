@@ -18,7 +18,7 @@ pipeline {
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
-            value: 'aws,gcp,azure,vsphere', defaultValue: 'aws,gcp,azure,vsphere', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
+            value: 'aws,gcp,azure', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX')
         booleanParam(name: 'GLOBALNET', defaultValue: true, description: 'Deploy Globalnet on Submariner')
         booleanParam(name: 'DOWNSTREAM', defaultValue: true, description: 'Deploy downstream version of Submariner')
     }
@@ -68,10 +68,10 @@ pipeline {
                             """
 
                             env.OC_CLUSTER_API = sh(
-                                script: "yq eval '.[].api' logs/ocp_assets/clusters_details.yml | head -1",
+                                script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
                                 returnStdout: true).trim()
                             env.OC_CLUSTER_PASS = sh(
-                                script: "yq eval '.[].pass' logs/ocp_assets/clusters_details.yml | head -1",
+                                script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
                                 returnStdout: true).trim()
                             env.OC_CLUSTER_USER = "kubeadmin"
                     } else {
