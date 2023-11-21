@@ -108,8 +108,10 @@ function get_subctl_for_testing() {
     tar xfJ subctl.tar.xz --strip-components 1
 
     mkdir -p "$HOME"/.local/bin
-    install subctl*linux-amd64 "$HOME"/.local/bin/subctl
+    # install subctl*linux-amd64 "$HOME"/.local/bin/subctl
+    install subctl "$HOME"/.local/bin/subctl
     rm -f subctl.tar.xz subctl*linux-amd64
+
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
