@@ -76,33 +76,23 @@ function fetch_submariner_addon_version() {
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
-    # local image_prefix="$REGISTRY_IMAGE_PREFIX"
+    local image_prefix="$REGISTRY_IMAGE_PREFIX"
     local subctl_version
     local subctl_download_url
     subctl_version=$(fetch_submariner_addon_version | cut -d '-' -f1)
 
     if [[ "$DOWNSTREAM" == "true" ]]; then
-        # INFO "Download downstream subctl binary for testing"
-        # subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
-        # INFO "Download subctl from - $subctl_download_url"
-        # oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
-        # mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
-
-        # Untill the https://github.com/submariner-io/subctl/pull/526 patch will be available downstream,
-        # use upstream subctl binary
-
-        INFO "Download subctl binary for testing"
-        subctl_version="${subctl_version:1:4}"
-        subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-release-$subctl_version/subctl-release-$subctl_version-linux-amd64.tar.xz"
-        INFO "Download subctl from - $subctl_download_url"
-        wget -qO- "$subctl_download_url" -O subctl.tar.xz
+        INFO "Download downstream subctl binary for testing"
+        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
     else
-        INFO "Download upstream subctl binary for testing"
-
-        WARNING "Due to https://github.com/submariner-io/submariner-operator/issues/1977 devel version will be used"
-        subctl_download_url="$SUBCTL_UPSTREAM_URL/releases/download/subctl-devel/subctl-devel-linux-amd64.tar.xz"
-        wget -qO- "$subctl_download_url" -O subctl.tar.xz
+        INFO "Download subctl binary for testing from official RH registry - registry.redhat.io"
+        oc registry login --registry "$OFFICIAL_REGISTRY" --auth-basic="${RH_REG_USR}:${RH_REG_PSW}"
+        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel8:$subctl_version"
     fi
+
+    INFO "Download subctl from - $subctl_download_url"
+    oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
+    mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
 
     INFO "Submariner addon version - $subctl_version"
     INFO "Download subctl from - $subctl_download_url"
