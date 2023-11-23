@@ -31,6 +31,8 @@ pipeline {
         // and other details for report publish
         POLARION_SECRET = credentials('submariner-polarion-secret')
         SUBMARINER_CONF = credentials('SUBMARINER_CONFIG')
+        // Credentials for the registry.redhat.io
+        RH_REG = credentials('submariner-rh-registry')
     }
     stages {
         // Environment vars defined within "environment" block

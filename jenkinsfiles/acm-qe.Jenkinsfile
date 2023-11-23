@@ -37,6 +37,8 @@ pipeline {
         // The secret contains polarion authentication
         // and other details for report publish
         POLARION_SECRET = credentials('submariner-polarion-secret')
+        // Credentials for the registry.redhat.io
+        RH_REG = credentials('submariner-rh-registry')
     }
     stages {
         // This stage will validate the environment for the job.
