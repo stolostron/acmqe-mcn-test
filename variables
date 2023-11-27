@@ -92,6 +92,13 @@ declare -A ACM_2_7_9=(
     [channel]='stable'
 )
 export ACM_2_7_9
+declare -A ACM_2_7_10=(
+    [acm_version]='2.7.10'
+    [submariner_version]='0.14.7'
+    [channel]='stable'
+)
+export ACM_2_7_10
+
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
 
