@@ -217,6 +217,9 @@ function check_clusters_deployment() {
     if [[ "$PLATFORM" =~ "ibmpower" ]]; then
         fetch_managed_cluster_by_platform "IBMPowerPlatform"
     fi
+    if [[ "$PLATFORM" =~ "osp" ]]; then
+        fetch_managed_cluster_by_platform "OpenStack"
+    fi
 
     # The fetch is a workaround to get kubeconfig files from imported clusters
     # to validate information. Later this function will run again to fetch
