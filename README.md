@@ -26,7 +26,7 @@ The following clusters platforms are supported by the Submariner Addon deploymen
 - [X] VMware
 - [X] ARO
 - [X] ROSA
-- [ ] OSP
+- [X] OSP
 - [X] IBMPower
 
 The user is able to define manually which platforms should be deployed and tested.  
