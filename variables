@@ -63,6 +63,8 @@ export DOWNSTREAM_CATALOG_SOURCE="submariner-catalog"
 # on first cluster and 1 gateway on other clusters
 # Used by the testing pipeline
 export SUBMARINER_GATEWAY_RANDOM="false"
+# Manually label Submariner Gateway node for the specified clusters.
+export SUBMARINER_MANUAL_LABEL_GW_NODE=""
 # Official RedHat registry
 export OFFICIAL_REGISTRY="registry.redhat.io"
 export STAGING_REGISTRY="registry.stage.redhat.io"
