@@ -57,7 +57,26 @@ function prepare_clusters_for_submariner() {
         if [[ "$reset_gw_count" == "true" ]]; then
             SUBMARINER_GATEWAY_COUNT=1
         fi
+
+        if [[ -n "$SUBMARINER_MANUAL_LABEL_GW_NODE" && "$SUBMARINER_MANUAL_LABEL_GW_NODE" == "$cluster" ]]; then
+            INFO "Manually labeling $cluster cluster"
+            manually_label_node_for_subm_gw "$cluster"
+        fi
     done
+}
+
+function manually_label_node_for_subm_gw() {
+    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
+    local worker
+    INFO "Manually label node with Submariner GW label"
+    INFO "Select first worker node from the cluster"
+
+    worker=$(KUBECONFIG="$kube_conf" oc get nodes \
+        --selector "node-role.kubernetes.io/worker" \
+        --no-headers=true -o custom-columns=NAME:".metadata.name" | head -n 1)
+    KUBECONFIG="$kube_conf" oc label nodes "$worker" submariner.io/gateway=true
+
+    INFO "The $worker node has been labeled as Submariner GW in $cluster cluster"
 }
 
 function deploy_submariner_broker() {

@@ -43,7 +43,7 @@ function verify_required_env_vars() {
             'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_API'"
         fi
     fi
-    if [[ "$DOWNSTREAM" == "false" ]]; then
+    if [[ "$DOWNSTREAM" == "false" && "$RUN_COMMAND" == "test" ]]; then
         if [[ -z "$RH_REG_USR" || -z "$RH_REG_PSW" ]]; then
             if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
                 VALIDATION_STATE+="Not ready! Missing OFFICIAL_REG_USER or OFFICIAL_REG_PASS environment vars."
@@ -244,6 +244,12 @@ function parse_arguments() {
             --subm-gateway-random)
                 if [[ -n "$2" ]]; then
                     export SUBMARINER_GATEWAY_RANDOM="$2"
+                    shift 2
+                fi
+                ;;
+            --subm-label-gw-node)
+                if [[ -n "$2" ]]; then
+                    export SUBMARINER_MANUAL_LABEL_GW_NODE="$2"
                     shift 2
                 fi
                 ;;
