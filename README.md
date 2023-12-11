@@ -159,6 +159,15 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              (Optional)
                              By default - false
 
+    --subm-catalog-update  - Update CatalogSource to the latest version of Submariner.
+                             Used in upgrade flow scenario.
+                             (Optional)
+
+    --subm-label-gw-node   - Manually label Submariner Gateway node for the specified clusters.
+                             Separate multiple clusters by comma.
+                             (Optional)
+                             By default, no used.
+
     Reporting arguments:
     --------------------
     --polarion-vars-file   - A path to the file that contains Polarion details.
