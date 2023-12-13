@@ -18,7 +18,7 @@ pipeline {
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
-            value: 'aws,gcp,azure,vsphere,aro,rosa', defaultValue: 'aws,gcp,azure,vsphere,aro,rosa', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 6)
+            value: 'aws,gcp,azure,vsphere,osp,aro,rosa', defaultValue: 'aws,gcp,azure,vsphere,osp,aro,rosa', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 7)
         booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
     }
     environment {
@@ -208,10 +208,15 @@ pipeline {
                     if (params.SUBMARINER_GATEWAY_RANDOM) {
                         SUBMARINER_GATEWAY_RANDOM = "--subm-gateway-random true"
                     }
+
+                    NODE_TO_LABEL_AS_GW = ""
+                    if (params.NODE_TO_LABEL_AS_GW != '') {
+                        NODE_TO_LABEL_AS_GW = "--subm-label-gw-node ${params.NODE_TO_LABEL_AS_GW}"
+                    }
                 }
 
                 sh """
-                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM
+                ./run.sh --deploy --platform "${params.PLATFORM}" $GLOBALNET $DOWNSTREAM $SUBMARINER_GATEWAY_RANDOM $NODE_TO_LABEL_AS_GW
                 """
             }
         }
