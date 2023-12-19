@@ -17,9 +17,6 @@ pipeline {
         string(name: 'OC_CLUSTER_API', defaultValue: '', description: 'ACM Hub API URL')
         string(name: 'OC_CLUSTER_USER', defaultValue: '', description: 'ACM Hub username')
         string(name: 'OC_CLUSTER_PASS', defaultValue: '', description: 'ACM Hub password')
-        extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
-            value: 'aws,gcp,azure,vsphere,aro,rosa', defaultValue: 'aws,gcp,azure,vsphere,aro,rosa', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 6)
-        booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters')
     }
     environment {
         // Parameter will be used to disable globalnet in
