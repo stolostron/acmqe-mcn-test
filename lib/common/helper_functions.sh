@@ -147,9 +147,10 @@ function usage() {
                              (Optional)
                              By default - false
 
-    --subm-catalog-update  - Update CatalogSource to the latest version of Submariner.
-                             Used in upgrade flow scenario.
-                             (Optional)
+    --upgrade              - Perform upgrade process of ACM and Submariner
+                             The process will update catalog sources of ACM and Submariner
+                             and then will trigger the ACM upgrade the will upgrade Submariner
+                             as part of the process.
 
     --subm-label-gw-node   - Manually label Submariner Gateway node for the specified clusters.
                              Separate multiple clusters by comma.
@@ -336,6 +337,16 @@ function validate_version() {
         version_state="not_valid"
     fi
     echo "$version_state"
+}
+
+# The function will take the semantic version as an input,
+# increase the minor version and return the version as MAJOR.MINOR output
+function increase_minor_version() {
+    local version="$1"
+
+    version=${version%.*}
+    version=$(echo "$version" | awk -F. -v OFS=. '{$NF += 1 ; print}')
+    echo "$version"
 }
 
 function catch_error() {
