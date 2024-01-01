@@ -127,9 +127,11 @@ function report() {
     report_polarion
 }
 
-function update_submariner_catalog() {
+function upgrade() {
     select_submariner_version_and_channel_to_deploy
-    update_catalog_source
+    update_subm_catalog_source
+    update_acm_catalog_source
+    perform_acm_upgrade
 }
 
 function finalize() {
@@ -154,10 +156,6 @@ function parse_arguments() {
                 RUN_COMMAND="deploy"
                 shift
                 ;;
-            --subm-catalog-update)
-                RUN_COMMAND="catalog-update"
-                shift
-                ;;
             --test)
                 RUN_COMMAND="test"
                 shift
@@ -173,6 +171,10 @@ function parse_arguments() {
             --validate-prereq)
                 # The argument is used by the ci flow
                 RUN_COMMAND="validate-prereq"
+                shift
+                ;;
+            --upgrade)
+                RUN_COMMAND="upgrade"
                 shift
                 ;;
             --platform)
@@ -294,11 +296,6 @@ function main() {
             deploy_submariner
             finalize
             ;;
-        catalog-update)
-            prepare
-            update_submariner_catalog
-            finalize
-            ;;
         test)
             prepare
             test_submariner
@@ -314,6 +311,11 @@ function main() {
             ;;
         validate-prereq)
             validate_prerequisites
+            ;;
+        upgrade)
+            prepare
+            upgrade
+            finalize
             ;;
         *)
             echo "Invalid command given: $RUN_COMMAND"

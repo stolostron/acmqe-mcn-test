@@ -61,6 +61,8 @@ export COMPONENT_VERSIONS=("${!ACM@}")
 # Note - the use of brew will require a secret with brew credentials to present in cluster
 # If DOWNSTREAM flag is set to "true", it will fetch downstream images.
 export DOWNSTREAM="false"
+export ACM_VERSION=""
+export ACM_SNAPSHOT=""
 # The submariner version will be defined and used
 # if the source of the images will be set to quay (downstream).
 # The submariner version will be selected automatically.
