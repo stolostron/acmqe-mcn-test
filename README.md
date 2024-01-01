@@ -73,8 +73,6 @@ export OC_CLUSTER_PASS=<password of the cluster user>
 
     --test                 - Perform testing of the Submariner addon
 
-    --subm-catalog-update  - Perform update of the Submariner's catalog source
-
     --report               - Report tests results to Polarion
 
     --gather-logs          - Gather debug info and logs for environment
@@ -159,9 +157,10 @@ export OC_CLUSTER_PASS=<password of the cluster user>
                              (Optional)
                              By default - false
 
-    --subm-catalog-update  - Update CatalogSource to the latest version of Submariner.
-                             Used in upgrade flow scenario.
-                             (Optional)
+    --upgrade              - Perform upgrade process of ACM and Submariner
+                             The process will update catalog sources of ACM and Submariner
+                             and then will trigger the ACM upgrade the will upgrade Submariner
+                             as part of the process.
 
     --subm-label-gw-node   - Manually label Submariner Gateway node for the specified clusters.
                              Separate multiple clusters by comma.
