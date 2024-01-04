@@ -78,34 +78,21 @@ function verify_prerequisites_tools() {
     verify_jq
 }
 
-
-### Prerequisites tools install for test
-function fetch_submariner_addon_version() {
-    local sub_cluster_ns
-    local sub_version
-
-    sub_cluster_ns=$(echo "$MANAGED_CLUSTERS" | head -n 1)
-    sub_version=$(oc get managedclusteraddon/submariner -n "$sub_cluster_ns" \
-                    -o jsonpath='{.status.conditions[?(@.type == "SubmarinerAgentDegraded")].message}' \
-                    | grep -Po '(?<=submariner.)[^)]*')
-    echo "$sub_version"
-}
-
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
     local image_prefix="$REGISTRY_IMAGE_PREFIX"
     local subctl_version
     local subctl_download_url
-    subctl_version=$(fetch_submariner_addon_version | cut -d '-' -f1)
+    subctl_version=$(fetch_installed_submariner_version)
 
     if [[ "$DOWNSTREAM" == "true" ]]; then
         INFO "Download downstream subctl binary for testing"
-        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:$subctl_version"
+        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:v$subctl_version"
     else
         INFO "Download subctl binary for testing from official RH registry - registry.redhat.io"
         oc registry login --registry "$OFFICIAL_REGISTRY" --auth-basic="${RH_REG_USR}:${RH_REG_PSW}"
-        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel8:$subctl_version"
+        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel8:v$subctl_version"
     fi
 
     INFO "Download subctl from - $subctl_download_url"
@@ -137,7 +124,7 @@ function verify_subctl_command() {
     local submariner_version
     local subctl_client
 
-    submariner_version=$(fetch_submariner_addon_version)
+    submariner_version=$(fetch_installed_submariner_version)
     subctl_client=$(get_subctl_version)
 
     if ! command -v subctl &> /dev/null; then
