@@ -19,7 +19,8 @@ function update_subm_catalog_source() {
     local submariner_version
     submariner_version=$(fetch_installed_submariner_version)
     submariner_version=$(increase_minor_version "$submariner_version")
-    export SUBMARINER_VERSION_INSTALL=$submariner_version
+    export SUBMARINER_UPGRADE_VERSION="$submariner_version"
+    export SUBMARINER_VERSION_INSTALL="$submariner_version"
 
     INFO "Update catalog source on the managed clusters for submariner version - $SUBMARINER_VERSION_INSTALL"
     for cluster in $MANAGED_CLUSTERS; do
@@ -71,7 +72,9 @@ function perform_acm_upgrade() {
     INFO "Perform ACM upgrade"
     local acm_subs_name
     local acm_hub_version
+    local subm_version
     local acm_upgrade_version="$ACM_UPGRADE_VERSION"
+    local subm_upgrade_version="$SUBMARINER_UPGRADE_VERSION"
     local acm_ns="open-cluster-management"
     local acm_channel="release"
     local timeout=0
@@ -95,4 +98,18 @@ function perform_acm_upgrade() {
         ERROR "ACM Hub upgrade to version $acm_upgrade_version failed"
     fi
     INFO "ACM Hub upgrade has been completed"
+
+    INFO "Verifying Submariner upgrade"
+    timeout=0
+    until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "${subm_version%.*}" == "$subm_upgrade_version" ]]; do
+        INFO "Waiting for Submariner upgrade to complete..."
+        subm_version=$(fetch_installed_submariner_version)
+        sleep $(( timeout++ ))
+    done
+
+    if [[ "${subm_version%.*}" != "$subm_upgrade_version" ]]; then
+        ERROR "Submariner upgrade to version $subm_upgrade_version failed"
+    fi
+    INFO "Submariner upgrade has been completed"
+    INFO "Upgrade has been completed - ACM $acm_hub_version / Submariner $subm_version"
 }
