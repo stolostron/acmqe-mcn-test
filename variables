@@ -97,6 +97,7 @@ export LATEST_IIB=""
 # Upgrade parameters
 export ACM_UPGRADE_VERSION=""
 export ACM_UPGRADE_SNAPSHOT=""
+export SUBMARINER_UPGRADE_VERSION=""
 
 # Test type that should be executed.
 # e2e (api testing), ui (cypress testing)
