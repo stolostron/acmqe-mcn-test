@@ -25,6 +25,8 @@ source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_prepare.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_deploy/submariner_deploy.sh"
 # shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/submariner_upgrade/submariner_upgrade.sh"
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_test/submariner_test.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_test/submariner_e2e.sh"
@@ -114,6 +116,12 @@ function deploy_submariner() {
     wait_for_submariner_ready_state
 }
 
+function upgrade() {
+    update_subm_catalog_source
+    update_acm_catalog_source
+    perform_acm_upgrade
+}
+
 function test_submariner() {
     execute_submariner_tests
 
@@ -125,12 +133,6 @@ function test_submariner() {
 
 function report() {
     report_polarion
-}
-
-function upgrade() {
-    update_subm_catalog_source
-    update_acm_catalog_source
-    perform_acm_upgrade
 }
 
 function finalize() {
@@ -155,6 +157,10 @@ function parse_arguments() {
                 RUN_COMMAND="deploy"
                 shift
                 ;;
+            --upgrade)
+                RUN_COMMAND="upgrade"
+                shift
+                ;;
             --test)
                 RUN_COMMAND="test"
                 shift
@@ -170,10 +176,6 @@ function parse_arguments() {
             --validate-prereq)
                 # The argument is used by the ci flow
                 RUN_COMMAND="validate-prereq"
-                shift
-                ;;
-            --upgrade)
-                RUN_COMMAND="upgrade"
                 shift
                 ;;
             --platform)
@@ -295,6 +297,11 @@ function main() {
             deploy_submariner
             finalize
             ;;
+        upgrade)
+            prepare
+            upgrade
+            finalize
+            ;;
         test)
             prepare
             test_submariner
@@ -310,11 +317,6 @@ function main() {
             ;;
         validate-prereq)
             validate_prerequisites
-            ;;
-        upgrade)
-            prepare
-            upgrade
-            finalize
             ;;
         *)
             echo "Invalid command given: $RUN_COMMAND"
