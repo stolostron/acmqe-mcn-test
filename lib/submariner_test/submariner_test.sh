@@ -58,10 +58,7 @@ function combine_tests_basename() {
     fi
 
     acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}' | cut -d '-' -f1)
-    subm_ver=$(KUBECONFIG="$KCONF/$primary_cluster-kubeconfig.yaml" \
-        oc -n submariner-operator get subs submariner \
-        -o jsonpath='{.status.currentCSV}' \
-        | grep -Po '(?<=submariner.v)[^)]*' | cut -d '-' -f1)
+    subm_ver=$(fetch_installed_submariner_version "$primary_cluster")
 
     globalnet_state=$(KUBECONFIG="$KCONF/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get pods -l=app=submariner-globalnet \
