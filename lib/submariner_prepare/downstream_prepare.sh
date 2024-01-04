@@ -76,14 +76,14 @@ function get_acm_latest_snapshot() {
     INFO "Fetch ACM latest snapshot from QUAY.IO registry"
 
     local acm_snapshot
-    local acm_version="$ACM_VERSION"
+    local acm_version="$ACM_UPGRADE_VERSION"
     local acm_iib_reg="https://quay.io/api/v1/repository/acm-d/acm-custom-registry/tag/"
 
     acm_snapshot=$(curl -s -X GET "$acm_iib_reg" \
         | jq -S '.tags[] | {name: .name} | select(.name | startswith("'"$acm_version"'"))' | jq -r '.name' | head -1)
 
-    ACM_SNAPSHOT="$acm_snapshot"
-    INFO "Detected ACM snapshot - $ACM_SNAPSHOT"
+    ACM_UPGRADE_SNAPSHOT="$acm_snapshot"
+    INFO "Detected ACM snapshot - $ACM_UPGRADE_SNAPSHOT"
 }
 
 # The CatalogSource will be created with the iib image
@@ -113,7 +113,8 @@ function create_catalog_source() {
 
 function update_subm_catalog_source() {
     INFO "Increase the submariner version"
-    local submariner_version="$SUBMARINER_VERSION_INSTALL"
+    local submariner_version
+    submariner_version=$(fetch_installed_submariner_version)
     submariner_version=$(increase_minor_version "$submariner_version")
     export SUBMARINER_VERSION_INSTALL=$submariner_version
 
@@ -139,21 +140,22 @@ function update_acm_catalog_source() {
     local catalog_image
     local registry_url
     local acm_image
-    local acm_version="$ACM_VERSION"
+    local acm_version="$ACM_UPGRADE_VERSION"
     local acm_catalog_ns="openshift-marketplace"
     local acm_catalogs=("acm-custom-registry" "mce-custom-registry")
 
+    acm_version=$(fetch_multiclusterhub_version)
     acm_version=$(increase_minor_version "$acm_version")
-    export ACM_VERSION=$acm_version
+    export ACM_UPGRADE_VERSION="$acm_version"
 
     get_acm_latest_snapshot
-    INFO "Update catalog source on the ACM hub to version - $ACM_VERSION with snapshot - $ACM_SNAPSHOT"
+    INFO "Update catalog source on the ACM hub to version - $ACM_UPGRADE_VERSION with snapshot - $ACM_UPGRADE_SNAPSHOT"
 
     INFO "Update ACM CatalogSources with the newer version"
     for catalog in "${acm_catalogs[@]}"; do
         catalog_image=$(oc -n "$acm_catalog_ns" get catalogsource "$catalog" -o jsonpath='{.spec.image}')
         registry_url=${catalog_image%:*}
-        acm_image="$registry_url:$ACM_SNAPSHOT"
+        acm_image="$registry_url:$ACM_UPGRADE_SNAPSHOT"
 
         oc -n "$acm_catalog_ns" patch catalogsource "$catalog" --type=merge \
             -p '{"spec":{"image":"'"$acm_image"'"}}'
@@ -196,7 +198,7 @@ function perform_acm_upgrade() {
     INFO "Perform ACM upgrade"
     local acm_subs_name
     local acm_hub_version
-    local acm_upgrade_version="$ACM_VERSION"
+    local acm_upgrade_version="$ACM_UPGRADE_VERSION"
     local acm_ns="open-cluster-management"
     local acm_channel="release"
     local timeout=0
