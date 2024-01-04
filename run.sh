@@ -145,7 +145,6 @@ function report() {
 }
 
 function upgrade() {
-    select_submariner_version_and_channel_to_deploy
     update_subm_catalog_source
     update_acm_catalog_source
     perform_acm_upgrade

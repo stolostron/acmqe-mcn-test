@@ -349,6 +349,27 @@ function increase_minor_version() {
     echo "$version"
 }
 
+function fetch_multiclusterhub_version() {
+    local mch_version
+
+    mch_version=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
+    echo "$mch_version"
+}
+
+function fetch_installed_submariner_version() {
+    local primary_cl="$1"  # optional
+    local subm_ver
+
+    if [[ -z "$primary_cl" ]]; then
+        primary_cl=$(echo "$MANAGED_CLUSTERS" | head -n 1)
+    fi
+
+    subm_ver=$(KUBECONFIG="$KCONF/$primary_cl-kubeconfig.yaml" \
+        oc -n "$SUBMARINER_NS" get submariner submariner -o jsonpath='{.status.version}' \
+        | grep -Po '(?<=v)[^)]*')
+    echo "$subm_ver"
+}
+
 function catch_error() {
     if [[ "$1" != "0" ]]; then
         if [[ "$SKIP_GATHER_LOGS" == "false" ]]; then
