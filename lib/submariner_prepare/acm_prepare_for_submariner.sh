@@ -38,13 +38,6 @@ function assign_clusters_to_clusterset() {
     INFO "Clusters have been assigned to the clusterset $CLUSTERSET. Assigned: $MANAGED_CLUSTERS"
 }
 
-function fetch_multiclusterhub_version() {
-    local mch_version
-
-    mch_version=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}')
-    echo "$mch_version"
-}
-
 # The submariner version selection will be done
 # when brew image source will be selected.
 # Otherwise, it will install from official source:
@@ -60,11 +53,10 @@ function select_submariner_version_and_channel_to_deploy() {
     declare -n acm_ref
     for acm_ref in "${COMPONENT_VERSIONS[@]}"; do
         if [[ "$mch_ver" == "${acm_ref[acm_version]}"* ]]; then
-            ACM_VERSION="$mch_ver"
             SUBMARINER_VERSION_INSTALL="${acm_ref[submariner_version]}"
             SUBMARINER_CHANNEL_RELEASE="${acm_ref[channel]}"
             INFO "Submariner version - $SUBMARINER_VERSION_INSTALL will be installed
-            into the '$SUBMARINER_CHANNEL_RELEASE' channel with ACM $ACM_VERSION"
+            into the '$SUBMARINER_CHANNEL_RELEASE' channel"
         fi
     done
 
