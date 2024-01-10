@@ -99,17 +99,22 @@ function perform_acm_upgrade() {
     fi
     INFO "ACM Hub upgrade has been completed"
 
-    INFO "Verifying Submariner upgrade"
-    timeout=0
-    until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "${subm_version%.*}" == "$subm_upgrade_version" ]]; do
-        INFO "Waiting for Submariner upgrade to complete..."
-        subm_version=$(fetch_installed_submariner_version)
-        sleep $(( timeout++ ))
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Verifying Submariner upgrade on cluster $cluster"
+        timeout=0
+        subm_version=""
+        until [[ "$timeout" -eq "$wait_timeout" ]] || [[ "${subm_version%.*}" == "$subm_upgrade_version" ]]; do
+            INFO "Waiting for Submariner upgrade to complete..."
+            subm_version=$(fetch_installed_submariner_version "$cluster")
+            sleep $(( timeout++ ))
+        done
+
+        if [[ "${subm_version%.*}" != "$subm_upgrade_version" ]]; then
+            ERROR "Submariner upgrade to version $subm_upgrade_version failed"
+        fi
     done
 
-    if [[ "${subm_version%.*}" != "$subm_upgrade_version" ]]; then
-        ERROR "Submariner upgrade to version $subm_upgrade_version failed"
-    fi
+    wait_for_submariner_ready_state
     INFO "Submariner upgrade has been completed"
     INFO "Upgrade has been completed - ACM $acm_hub_version / Submariner $subm_version"
 }
