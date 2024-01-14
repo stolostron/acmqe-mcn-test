@@ -21,7 +21,6 @@ pipeline {
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
             value: 'aws,gcp,azure', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 3)
         string(name: 'BASE_JOB_NAME', defaultValue: 'ACM-2.8-Submariner-0.15-AWS-GCP-Azure', description: 'Initial base job name')
-        booleanParam(name: 'POLARION', defaultValue: true, description: 'Publish tests results to Polarion')
     }
     environment {
         // The secret contains polarion authentication
@@ -38,6 +37,7 @@ pipeline {
         stage('Init env params') {
             steps {
                 script {
+                    EXECUTE_JOB = true
                     SKIP_BASE_ENV_DEPLOY = false
                     if (params.OC_CLUSTER_API != '' &&
                         params.OC_CLUSTER_USER != '' &&
@@ -52,22 +52,39 @@ pipeline {
         }
         stage('Deploy Base Env') {
             when {
-                expression {
-                    SKIP_BASE_ENV_DEPLOY == false
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        SKIP_BASE_ENV_DEPLOY == false
+                    }
                 }
             }
             steps {
                 script {
-                    def buildResult = build propagate: true, job: "${BASE_JOB_NAME}"
+                    def buildResult = build propagate: false, job: "${BASE_JOB_NAME}"
                     def buildNumber = buildResult.getNumber()
                     env.jobBuildNumber = buildNumber
+
+                    def buildState = buildResult.result
+                    if (buildState == 'FAILURE') {
+                        println("Deploy Base Env job failed. Skipping the job...")
+                        EXECUTE_JOB = false
+                        currentBuild.result = 'NOT_BUILT'
+                    }
                 }
             }
         }
         stage('Fetch Base Env job details') {
             when {
-                expression {
-                    SKIP_BASE_ENV_DEPLOY == false
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        SKIP_BASE_ENV_DEPLOY == false
+                    }
                 }
             }
             steps {
@@ -95,6 +112,16 @@ pipeline {
             }
         }
         stage('Upgrade') {
+            when {
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        EXECUTE_JOB == true
+                    }
+                }
+            }
             steps {
                 sh """
                 ./run.sh --upgrade --platform "${params.PLATFORM}" --downstream true
@@ -102,6 +129,16 @@ pipeline {
             }
         }
         stage('Submariner Test - E2E') {
+            when {
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        EXECUTE_JOB == true
+                    }
+                }
+            }
             steps {
                 sh """
                 ./run.sh --test --test-type e2e --platform "${params.PLATFORM}" --downstream true --report-suffix upgrade
@@ -109,6 +146,16 @@ pipeline {
             }
         }
         stage('Submariner Test - Cypress UI') {
+            when {
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        EXECUTE_JOB == true
+                    }
+                }
+            }
             steps {
                 sh """
                 ./run.sh --test --test-type ui --platform "${params.PLATFORM}" --downstream true --report-suffix upgrade
@@ -117,8 +164,13 @@ pipeline {
         }
         stage('Report to Polarion') {
             when {
-                expression {
-                    params.POLARION == true
+                allOf {
+                    expression {
+                        params.JOB_STAGES.contains(STAGE_NAME)
+                    }
+                    expression {
+                        EXECUTE_JOB == true
+                    }
                 }
             }
             steps {
