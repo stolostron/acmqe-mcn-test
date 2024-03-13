@@ -1,7 +1,7 @@
-FROM quay.io/fedora/fedora:36
+FROM quay.io/fedora/fedora:39
 
 ARG SUBM=submariner
-ARG NODE=nodejs:18
+ARG NODE_VERSION=20
 ARG CHROME=https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
 ARG OCP_CLI=https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz
 ARG YQ=https://github.com/mikefarah/yq/releases/download/v4.16.2/yq_linux_amd64
@@ -32,8 +32,8 @@ RUN dnf install --nodocs -y \
     nss \
     libXScrnSaver \
     alsa-lib \
-    && dnf module enable -y "$NODE" \
-    && dnf module install -y "$NODE"/common \
+    && curl -fsSL https://rpm.nodesource.com/setup_"$NODE_VERSION".x | bash - \
+    && dnf install -y nodejs \
     && dnf install -y "$CHROME" \
     && dnf clean all \
     && rm -rf /var/cache/yum
