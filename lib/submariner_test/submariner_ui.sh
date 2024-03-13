@@ -48,7 +48,6 @@ function execute_submariner_ui_tests() {
 function prepare_cypress_env() {
     rm -rf "$SCRIPT_DIR/cypress/results/"
 
-    npm config set unsafe-perm true
     npm ci
     npm_config_yes=true npx browserslist@latest --update-db
 }

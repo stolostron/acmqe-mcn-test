@@ -1,7 +1,6 @@
-ansible==7.0.0
-ansible-core==2.14.1
-kubernetes==25.3.0
-requests==2.27.1
+ansible==8.0.0
+kubernetes==29.0.0
+requests==2.31.0
 
 # Azure collection requirements
 packaging
