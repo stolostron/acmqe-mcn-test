@@ -365,7 +365,7 @@ function fetch_installed_submariner_version() {
     fi
 
     subm_ver=$(KUBECONFIG="$KCONF/$primary_cl-kubeconfig.yaml" \
-        oc -n "$SUBMARINER_NS" get submariner submariner -o jsonpath='{.status.version}' \
+        oc -n "$SUBMARINER_NS" get Gateway -o jsonpath='{.items[0].status.version}' \
         | grep -Po '(?<=v)[^)]*')
     echo "$subm_ver"
 }
