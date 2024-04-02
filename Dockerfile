@@ -36,7 +36,8 @@ RUN dnf install --nodocs -y \
     && dnf install -y nodejs \
     && dnf install -y "$CHROME" \
     && dnf clean all \
-    && rm -rf /var/cache/yum
+    && rm -rf /var/cache/yum \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
     && wget -qO- "$YQ" -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq \
