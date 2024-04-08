@@ -34,58 +34,11 @@ export VALIDATION_STATE=""
 # Declare associative arrays for acm/submariner versions
 declare -A ACM_2_6=(
     [acm_version]='2.6'
-    [submariner_version]='0.13.0'
+    [submariner_version]='0.13'
     [channel]='stable'
 )
 export ACM_2_6
-declare -A ACM_2_6_2=(
-    [acm_version]='2.6.2'
-    [submariner_version]='0.13.1'
-    [channel]='stable'
-)
-export ACM_2_6_2
-declare -A ACM_2_6_3=(
-    [acm_version]='2.6.3'
-    [submariner_version]='0.13.1'
-    [channel]='stable'
-)
-export ACM_2_6_3
-declare -A ACM_2_6_4=(
-    [acm_version]='2.6.4'
-    [submariner_version]='0.13.3'
-    [channel]='stable'
-)
-export ACM_2_6_4
-declare -A ACM_2_6_5=(
-    [acm_version]='2.6.5'
-    [submariner_version]='0.13.4'
-    [channel]='stable'
-)
-export ACM_2_6_5
-declare -A ACM_2_6_6=(
-    [acm_version]='2.6.6'
-    [submariner_version]='0.13.5'
-    [channel]='stable'
-)
-export ACM_2_6_6
-declare -A ACM_2_6_7=(
-    [acm_version]='2.6.7'
-    [submariner_version]='0.13.6'
-    [channel]='stable'
-)
-export ACM_2_6_7
-declare -A ACM_2_6_8=(
-    [acm_version]='2.6.8'
-    [submariner_version]='0.13.6'
-    [channel]='stable'
-)
-export ACM_2_6_8
-declare -A ACM_2_6_9=(
-    [acm_version]='2.6.9'
-    [submariner_version]='0.13.6'
-    [channel]='stable'
-)
-export ACM_2_6_9
+
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
 
