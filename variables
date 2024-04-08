@@ -32,84 +32,12 @@ export VALIDATION_STATE=""
 # The value will define the version of Submariner and a channel
 
 # Declare associative arrays for acm/submariner versions
-declare -A ACM_2_7_0=(
-    [acm_version]='2.7.0'
-    [submariner_version]='0.14.1'
+declare -A ACM_2_7=(
+    [acm_version]='2.7'
+    [submariner_version]='0.14'
     [channel]='stable'
 )
-export ACM_2_7_0
-declare -A ACM_2_7_1=(
-    [acm_version]='2.7.1'
-    [submariner_version]='0.14.1'
-    [channel]='stable'
-)
-export ACM_2_7_1
-declare -A ACM_2_7_2=(
-    [acm_version]='2.7.2'
-    [submariner_version]='0.14.2'
-    [channel]='stable'
-)
-export ACM_2_7_2
-declare -A ACM_2_7_3=(
-    [acm_version]='2.7.3'
-    [submariner_version]='0.14.3'
-    [channel]='stable'
-)
-export ACM_2_7_3
-declare -A ACM_2_7_4=(
-    [acm_version]='2.7.4'
-    [submariner_version]='0.14.4'
-    [channel]='stable'
-)
-export ACM_2_7_4
-declare -A ACM_2_7_5=(
-    [acm_version]='2.7.5'
-    [submariner_version]='0.14.5'
-    [channel]='stable'
-)
-export ACM_2_7_5
-declare -A ACM_2_7_6=(
-    [acm_version]='2.7.6'
-    [submariner_version]='0.14.5'
-    [channel]='stable'
-)
-export ACM_2_7_6
-declare -A ACM_2_7_7=(
-    [acm_version]='2.7.7'
-    [submariner_version]='0.14.6'
-    [channel]='stable'
-)
-export ACM_2_7_7
-declare -A ACM_2_7_8=(
-    [acm_version]='2.7.8'
-    [submariner_version]='0.14.6'
-    [channel]='stable'
-)
-export ACM_2_7_8
-declare -A ACM_2_7_9=(
-    [acm_version]='2.7.9'
-    [submariner_version]='0.14.6'
-    [channel]='stable'
-)
-export ACM_2_7_9
-declare -A ACM_2_7_10=(
-    [acm_version]='2.7.10'
-    [submariner_version]='0.14.7'
-    [channel]='stable'
-)
-export ACM_2_7_10
-declare -A ACM_2_7_11=(
-    [acm_version]='2.7.11'
-    [submariner_version]='0.14.7'
-    [channel]='stable'
-)
-export ACM_2_7_11
-declare -A ACM_2_7_12=(
-    [acm_version]='2.7.12'
-    [submariner_version]='0.14.7'
-    [channel]='stable'
-)
-export ACM_2_7_12
+export ACM_2_7
 
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
