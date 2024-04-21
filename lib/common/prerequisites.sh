@@ -70,11 +70,11 @@ function get_subctl_for_testing() {
 
     if [[ "$DOWNSTREAM" == "true" ]]; then
         INFO "Download downstream subctl binary for testing"
-        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel8:v$subctl_version"
+        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel9:v$subctl_version"
     else
         INFO "Download subctl binary for testing from official RH registry - registry.redhat.io"
         oc registry login --registry "$OFFICIAL_REGISTRY" --auth-basic="${RH_REG_USR}:${RH_REG_PSW}"
-        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel8:v$subctl_version"
+        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel9:v$subctl_version"
     fi
 
     INFO "Download subctl from - $subctl_download_url"
