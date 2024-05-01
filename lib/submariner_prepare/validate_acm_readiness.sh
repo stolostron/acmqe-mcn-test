@@ -220,6 +220,9 @@ function check_clusters_deployment() {
     if [[ "$PLATFORM" =~ "osp" ]]; then
         fetch_managed_cluster_by_platform "OpenStack"
     fi
+    if [[ "$PLATFORM" =~ "roks" ]]; then
+        fetch_managed_cluster_by_product "ROKS"
+    fi
 
     # The fetch is a workaround to get kubeconfig files from imported clusters
     # to validate information. Later this function will run again to fetch
