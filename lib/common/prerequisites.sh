@@ -60,6 +60,26 @@ function verify_prerequisites_tools() {
     verify_jq
 }
 
+function verify_ibmcloud_binary() {
+    local ver
+
+    if ! command -v ibmcloud &> /dev/null; then
+        WARNING "Missing ibmcloud command. Installing..."
+        mkdir -p "$HOME"/.local/bin
+        ver=$(curl -s -X GET \
+            https://api.github.com/repos/IBM-Cloud/ibm-cloud-cli-release/releases/latest \
+            | jq '.name' | tr -d "'\"" | grep -Po '(?<=v)[^)]*')
+
+        wget -qO- "https://download.clis.cloud.ibm.com/ibm-cloud-cli/${ver}/binaries/IBM_Cloud_CLI_${ver}_linux_amd64.tgz" \
+            -O - | tar -zx --strip=1 --no-anchored -C "$HOME"/.local/bin/ ibmcloud
+
+        # Add local BIN dir to PATH
+        [[ ":$PATH:" = *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
+        INFO "The ibmcloud command installed"
+    fi
+    INFO "The ibmcloud binary is found"
+}
+
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 

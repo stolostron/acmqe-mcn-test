@@ -17,7 +17,7 @@ export LOG_PATH=""
 export SUBCTL_URL_DOWNLOAD="https://github.com/submariner-io/releases"
 export SUBCTL_UPSTREAM_URL="https://github.com/submariner-io/subctl"
 export PLATFORM="aws,gcp"  # Default platform definition
-export SUPPORTED_PLATFORMS="aws,gcp,azure,vsphere,osp,aro,rosa,ibmpower"  # Supported platform definition
+export SUPPORTED_PLATFORMS="aws,gcp,azure,vsphere,osp,aro,rosa,ibmpower,roks"  # Supported platform definition
 # Non critial failures will be stored into the variable
 # and printed at the end of the execution.
 # The testing will be performed,
