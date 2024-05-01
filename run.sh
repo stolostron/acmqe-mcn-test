@@ -21,6 +21,8 @@ source "${SCRIPT_DIR}/lib/submariner_prepare/validate_acm_readiness.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/acm_prepare_for_submariner.sh"
 # shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/submariner_prepare/roks_prepare_for_submariner.sh"
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_prepare/downstream_prepare.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/submariner_deploy/submariner_deploy.sh"
@@ -43,6 +45,15 @@ function verify_required_env_vars() {
         else
             ERROR "Execution of the script require all env variables provided:
             'OC_CLUSTER_USER', 'OC_CLUSTER_PASS', 'OC_CLUSTER_API'"
+        fi
+    fi
+    if [[ "$PLATFORM" =~ "roks" ]]; then
+        if [[ -z "${ROKS_TOKEN}" ]]; then
+            if [[ "$RUN_COMMAND" == "validate-prereq" ]]; then
+                VALIDATION_STATE+="Not ready! Missing environment vars. ROKS_TOKEN env var is missing."
+            else
+                ERROR "Execution of the script require the following env variable provided: 'ROKS_TOKEN'"
+            fi
         fi
     fi
     if [[ "$DOWNSTREAM" == "false" && "$RUN_COMMAND" == "test" ]]; then
@@ -100,9 +111,20 @@ function deploy_submariner() {
 
     select_submariner_version_and_channel_to_deploy
 
+    if [[ "$PLATFORM" =~ "roks" ]]; then
+        verify_ibmcloud_binary
+        create_roks_clusters_list
+        enable_calico_api_on_roks_cluster
+    fi
+
     if [[ "$DOWNSTREAM" == 'true' ]]; then
         create_brew_and_private_quay_secret
         create_icsp
+
+        if [[ "$PLATFORM" =~ "roks" ]]; then
+            reload_roks_cluster_nodes
+            inset_mirror_to_roks_nodes
+        fi
 
         create_catalog_source
     fi
