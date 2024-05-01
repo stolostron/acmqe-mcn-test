@@ -25,7 +25,7 @@ function prepare_clusters_for_submariner() {
         # The ARO / ROSA cluster does not need cloud credentials
         # The ARO / ROSA cluster should use "loadBalancerEnable: true"
         local load_balancer="false"
-        if [[ "$product" =~ ("ARO"|"ROSA") ]]; then
+        if [[ "$product" =~ ("ARO"|"ROSA"|"ROKS") ]]; then
             creds="null"
             load_balancer="true"
         fi
