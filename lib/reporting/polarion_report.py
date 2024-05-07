@@ -98,10 +98,9 @@ class PolarionProcessReports:
 
     def generate_polarion_testplan_id_and_testcase_doc(self, test_name):
         """Generate testplan id and testcase doc out of test name."""
-        acm_ver = re.search(r'(?<=ACM-)[0-9].[0-9].[0-9]*', test_name)
+        acm_ver = re.search(r'(?<=ACM-)[0-9]+(?:\.[0-9]+){2}', test_name)
         acm_ver = acm_ver.group().replace('.', '_')
-        subm_ver = re.search(r'(?<=Submariner-)[0-9].[0-9][0-9].[0-9]*',
-                             test_name)
+        subm_ver = re.search(r'(?<=Submariner-)[0-9]+(?:\.[0-9]+){2}', test_name)
         subm_ver = subm_ver.group().replace('.', '_')
 
         test_plan_id = f"Submariner_{subm_ver}_in_ACM_{acm_ver}"
