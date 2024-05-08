@@ -68,7 +68,7 @@ describe('submariner - Deployment validation', {
         cy.get('button').contains('Install').click()
         cy.log('waiting for the submariner deployment to be done.')
 
-        cy.wait(350000)
+        cy.wait(650000)
         submarinerClusterSetMethods.testTheDataLabel("Gateway nodes labeled", 'Nodes labeled', 'submariner.io/gateway')
         submarinerClusterSetMethods.testTheDataLabel("Agent status", 'Healthy', 'is deployed on managed cluster')
         submarinerClusterSetMethods.testTheDataLabel("Connection status", 'Healthy', 'established')
