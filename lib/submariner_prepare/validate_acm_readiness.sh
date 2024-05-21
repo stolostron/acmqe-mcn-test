@@ -217,6 +217,9 @@ function check_clusters_deployment() {
     if [[ "$PLATFORM" =~ "ibmpower" ]]; then
         fetch_managed_cluster_by_platform "IBMPowerPlatform"
     fi
+    if [[ "$PLATFORM" =~ "ibmz" ]]; then
+        fetch_managed_cluster_by_platform "IBMZPlatform"
+    fi
     if [[ "$PLATFORM" =~ "osp" ]]; then
         fetch_managed_cluster_by_platform "OpenStack"
     fi
