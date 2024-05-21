@@ -19,7 +19,7 @@ function prepare_clusters_for_submariner() {
         creds=$(get_cluster_credential_name "$cluster")
         platform=$(get_cluster_platform "$cluster")
         product=$(get_cluster_product "$cluster")
-        if [[ "$platform" =~ ("IBMPowerPlatform"|"OpenStack") ]]; then
+        if [[ "$platform" =~ ("IBMPowerPlatform"|"IBMZPlatform"|"OpenStack") ]]; then
             creds="null"
         fi
         # The ARO / ROSA cluster does not need cloud credentials
