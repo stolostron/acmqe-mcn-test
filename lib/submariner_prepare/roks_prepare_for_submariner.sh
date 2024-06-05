@@ -8,7 +8,7 @@ function create_roks_clusters_list() {
         product=$(get_cluster_product "$cluster")
 
         if [[ "$product" == "ROKS" ]]; then
-            clusters+="$cluster"
+            clusters+="$cluster,"
         fi
     done
     clusters=$(echo "${clusters%,}" | tr "," "\n")
