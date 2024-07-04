@@ -27,12 +27,16 @@ function execute_submariner_ui_tests() {
 
     export CYPRESS_LOGS_PATH="$TESTS_LOGS_UI"
 
-    npx cypress run --browser "$TEST_BROWSER" --headless --env grepFilterSpecs=true,grepTags=@e2e || true
+    npx cypress run --browser "$TEST_BROWSER" \
+        --config screenshotsFolder="${TESTS_LOGS_UI}/results/screenshots,videosFolder=${TESTS_LOGS_UI}/results/videos" \
+        --headless --env grepFilterSpecs=true,grepTags=@e2e || true
 
     INFO "Combine cypress reports"
     npx jrm "$TESTS_LOGS_UI/${tests_basename}_junit.xml" results/test-results-*.xml
 
     popd || return
+
+    tar -czf "$TESTS_LOGS_UI/cypress_results.tar.gz" --remove-files -C "$TESTS_LOGS_UI" results
 
     # Restore submariner deployment in case it was deleted by one of the tests
     subm_state=$(oc -n "$primary_cluster" get managedclusteraddon submariner \
