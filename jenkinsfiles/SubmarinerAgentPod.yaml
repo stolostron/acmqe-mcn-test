@@ -34,10 +34,10 @@ spec:
     resources:
       limits:
         cpu: 2000m
-        memory: 3Gi
+        memory: 4Gi
       requests:
         cpu: 2000m
-        memory: 3Gi
+        memory: 4Gi
     volumeMounts:
       - name: skynet-data
         mountPath: '/var/skynet-data'
