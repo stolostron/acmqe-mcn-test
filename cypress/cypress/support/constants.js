@@ -36,5 +36,3 @@ export const apiUrl = (Cypress.config().baseUrl.startsWith("https://multicloud-c
 export const ocpUrl = (Cypress.config().baseUrl.startsWith("https://multicloud-console.apps")) ? Cypress.config().baseUrl.replace("multicloud-console.apps", "console-openshift-console.apps") : Cypress.config().baseUrl
 export const prometheusUrl = (Cypress.config().baseUrl.startsWith("https://multicloud-console.apps")) ? Cypress.config().baseUrl.replace("multicloud-console.apps", "prometheus-k8s-openshift-monitoring.apps") : Cypress.config().baseUrl.replace("console-openshift-console.apps", "prometheus-k8s-openshift-monitoring.apps")
 export const authUrl = (Cypress.config().baseUrl.startsWith("https://multicloud-console.apps")) ? Cypress.config().baseUrl.replace("multicloud-console.apps", "oauth-openshift.apps") : Cypress.config().baseUrl.replace("console-openshift-console.apps", "oauth-openshift.apps")
-
-export const supportedOCPReleasesRegex = "4.10|4.11|4.12|4.13"

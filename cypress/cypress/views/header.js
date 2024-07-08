@@ -38,23 +38,14 @@ export const acm23xheaderMethods = {
     openMenu: () => {
         cy.get(acmHeaderSelectors.leftNavigation.leftSideBar).should('exist').and('be.visible')
         // The cluster switcher dropdown placement is different from OCP 4.13+
-        cy.ocGetHubClusterVersion()   
-        .then( (result) => {
-          cy.log(`ocp version is ${result}`)
-          if (Number(result) > ('4.12')) {
-              cy.get(`[data-test-id='cluster-dropdown-toggle']`)
-                .click()
-              cy.get(`[data-test-id='cluster-dropdown-item']`)
-                .contains('All Clusters')
-                .click()
-          } else {
-              cy.get('.oc-nav-header > .pf-c-dropdown > button')
-                .first()
-                .click()
-              cy.contains('All Clusters')
-                .click()
-          }
-        })
+        // but since this version of MCE/ACM hub supports OCP 4.14+, we don't need to worry about it
+        cy.get(`[data-test-id='cluster-dropdown-toggle']`)
+          .should('be.visible')
+          .click()
+        cy.get(`[data-test-id='cluster-dropdown-item']`)
+          .contains('button', 'All Clusters')
+          .should('be.visible')
+          .click()
     },
 
     expandInfrastructure: () => {
