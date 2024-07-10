@@ -181,7 +181,7 @@ EOF
         for worker in $cluster_nodes; do
             INFO "Update and reboot node $worker on cluster $cluster"
             KUBECONFIG="$kube_conf" oc debug node/"$worker" -- \
-                /bin/sh -c 'echo "'"${mirror}"'" >> /host/etc/containers/registries.conf;'
+                /bin/sh -c 'echo "'"${mirror}"'" >> /host/etc/containers/registries.conf && echo "Registries updated"'
         done
         for worker in $(ibmcloud ks worker ls --cluster "$cluster" --output json | jq -r '.[].id'); do
             ibmcloud ks worker reboot --cluster "$cluster" --worker "$worker" -f
