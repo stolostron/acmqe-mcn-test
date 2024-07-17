@@ -78,6 +78,18 @@ pipeline {
                 }
             }
         }
+        stage('Deploy Managed OCP') {
+            when {
+                expression {
+                    params.JOB_STAGES.contains(STAGE_NAME)
+                }
+            }
+            steps {
+                sh """
+                ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
+                """
+            }
+        }
         stage('Deploy ACM Hub') {
             when {
                 expression {
@@ -99,18 +111,6 @@ pipeline {
             steps {
                 sh """
                 ansible-playbook -v playbooks/ci/acm_hive_cluster.yml -e @"${SUBMARINER_CONF}"
-                """
-            }
-        }
-        stage('Deploy Managed OCP') {
-            when {
-                expression {
-                    params.JOB_STAGES.contains(STAGE_NAME)
-                }
-            }
-            steps {
-                sh """
-                ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
                 """
             }
         }
