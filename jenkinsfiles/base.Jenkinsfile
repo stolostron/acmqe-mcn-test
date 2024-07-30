@@ -85,9 +85,28 @@ pipeline {
                 }
             }
             steps {
-                sh """
-                ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
-                """
+                script {
+                    if (env.OC_CLUSTER_API == '' &&
+                        env.OC_CLUSTER_USER == '' &&
+                        env.OC_CLUSTER_PASS == '') {
+                            println "Managed OCP cluster deploy"
+                            sh """
+                            ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
+                            """
+
+                            env.OC_CLUSTER_API = sh(
+                                script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
+                                returnStdout: true).trim()
+                            env.OC_CLUSTER_PASS = sh(
+                                script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
+                                returnStdout: true).trim()
+                            env.OC_CLUSTER_USER = sh(
+                                script: "yq eval '.[].user' logs/clusters_details.yml | head -1",
+                                returnStdout: true).trim()
+                    } else {
+                        println "OCP cluster details has been provided externally. Skipping creation..."
+                    }
+                }
             }
         }
         stage('Deploy ACM Hub') {
@@ -97,8 +116,14 @@ pipeline {
                 }
             }
             steps {
+                script {
+                    ACM_DOWNSTREAM = "-e deploy_test_env=false"
+                    if (params.DOWNSTREAM) {
+                        ACM_DOWNSTREAM = "-e deploy_test_env=true"
+                    }
+                }
                 sh """
-                ansible-playbook -v playbooks/ci/acm.yml -e @"${SUBMARINER_CONF}"
+                ansible-playbook -v playbooks/ci/acm.yml -e @"${SUBMARINER_CONF}" $ACM_DOWNSTREAM
                 """
             }
         }
