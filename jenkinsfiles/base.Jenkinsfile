@@ -62,16 +62,25 @@ pipeline {
                         env.OC_CLUSTER_PASS == '') {
                             println "OCP cluster deploy"
                             sh """
-                            ansible-playbook -v playbooks/ci/ocp.yml -e @"${SUBMARINER_CONF}"
+                            #ansible-playbook -v playbooks/ci/ocp.yml -e @"${SUBMARINER_CONF}"
+                            echo "ocp playbook"
                             """
 
-                            env.OC_CLUSTER_API = sh(
-                                script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
-                                returnStdout: true).trim()
-                            env.OC_CLUSTER_PASS = sh(
-                                script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
-                                returnStdout: true).trim()
+                            // env.OC_CLUSTER_API = sh(
+                            //     script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
+                            //     returnStdout: true).trim()
+                            // env.OC_CLUSTER_PASS = sh(
+                            //     script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
+                            //     returnStdout: true).trim()
+                            // env.OC_CLUSTER_USER = "kubeadmin"
+
+                            ///////////////////
+                            env.OC_CLUSTER_API = "test-api"
+                            env.OC_CLUSTER_PASS = "test-pass"
                             env.OC_CLUSTER_USER = "kubeadmin"
+                            ///////////////////
+
+                            env.OCP_AS_HUB = true
                     } else {
                         println "OCP cluster details has been provided externally. Skipping creation..."
                     }
@@ -86,25 +95,33 @@ pipeline {
             }
             steps {
                 script {
-                    if (env.OC_CLUSTER_API == '' &&
+                    if (env.OCP_AS_HUB?.toBoolean() == true ||
+                        (env.OC_CLUSTER_API == '' &&
                         env.OC_CLUSTER_USER == '' &&
-                        env.OC_CLUSTER_PASS == '') {
+                        env.OC_CLUSTER_PASS == '')) {
                             println "Managed OCP cluster deploy"
                             sh """
-                            ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
+                            #ansible-playbook -v playbooks/ci/managed_openshift.yml -e @"${SUBMARINER_CONF}"
+                            echo "managed cluster playbook"
                             """
 
-                            env.OC_CLUSTER_API = sh(
-                                script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
-                                returnStdout: true).trim()
-                            env.OC_CLUSTER_PASS = sh(
-                                script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
-                                returnStdout: true).trim()
-                            env.OC_CLUSTER_USER = sh(
-                                script: "yq eval '.[].user' logs/clusters_details.yml | head -1",
-                                returnStdout: true).trim()
+                            // env.OC_CLUSTER_API = sh(
+                            //     script: "yq eval '.[].api' logs/clusters_details.yml | head -1",
+                            //     returnStdout: true).trim()
+                            // env.OC_CLUSTER_PASS = sh(
+                            //     script: "yq eval '.[].pass' logs/clusters_details.yml | head -1",
+                            //     returnStdout: true).trim()
+                            // env.OC_CLUSTER_USER = sh(
+                            //     script: "yq eval '.[].user' logs/clusters_details.yml | head -1",
+                            //     returnStdout: true).trim()
+
+                            ///////////////////
+                            env.OC_CLUSTER_API = "test-api"
+                            env.OC_CLUSTER_PASS = "test-pass"
+                            env.OC_CLUSTER_USER = "kubeadmin"
+                            ///////////////////
                     } else {
-                        println "OCP cluster details has been provided externally. Skipping creation..."
+                        println "Managed Cluster cluster details has been provided externally. Skipping creation..."
                     }
                 }
             }
