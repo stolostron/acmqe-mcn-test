@@ -38,11 +38,11 @@ spec:
       requests:
         cpu: 2000m
         memory: 3Gi
-    volumeMounts:
-      - name: skynet-data
-        mountPath: '/var/skynet-data'
-        readOnly: false
-  volumes:
-    - name: skynet-data
-      persistentVolumeClaim:
-        claimName: skynet-workspace
+  #   volumeMounts:
+  #     - name: skynet-data
+  #       mountPath: '/var/skynet-data'
+  #       readOnly: false
+  # volumes:
+  #   - name: skynet-data
+  #     persistentVolumeClaim:
+  #       claimName: skynet-workspace
