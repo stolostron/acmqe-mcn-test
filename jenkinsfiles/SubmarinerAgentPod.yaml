@@ -7,7 +7,7 @@ spec:
   activeDeadlineSeconds: 18000
   containers:
   - name: jnlp
-    image: "image-registry.openshift-image-registry.svc:5000/jenkins-csb-skynet/qe-jenkins-agent:latest"
+    image: "image-registry.openshift-image-registry.svc:5000/dno--jenkins-csb-skynet/qe-jenkins-agent:latest"
     workingDir: '/home/jenkins'
     env:
       - name: HOME
