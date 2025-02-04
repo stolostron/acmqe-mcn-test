@@ -37,7 +37,7 @@ declare -A ACM_2_13=(
     [submariner_version]='0.20'
     [channel]='stable'
 )
-export ACM_2_12
+export ACM_2_13
 
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
