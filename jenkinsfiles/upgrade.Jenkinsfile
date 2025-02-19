@@ -20,7 +20,7 @@ pipeline {
             multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 6)
         extendedChoice(name: 'PLATFORM', description: 'The managed clusters platform that should be tested',
             value: 'aws,gcp,azure', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 3)
-        string(name: 'BASE_JOB_NAME', defaultValue: 'ACM-2.11-Submariner-0.18-AWS-GCP-Azure', description: 'Initial base job name')
+        string(name: 'BASE_JOB_NAME', defaultValue: 'ACM-2.12-Submariner-0.19-AWS-GCP-Azure', description: 'Initial base job name')
     }
     environment {
         // The secret contains polarion authentication
