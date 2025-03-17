@@ -110,9 +110,9 @@ function fetch_managed_cluster_by_platform() {
     INFO "Validate $platform clusters"
 
     clusters=$(oc get managedcluster -o json \
-        | jq -r '.items[] | select(.status.clusterClaims | from_entries
+        | jq -r '.items[] | select((.status.clusterClaims | from_entries
         | select(."platform.open-cluster-management.io"
-        | contains("'"$platform"'"))).metadata.name')
+        | contains("'"$platform"'")))?).metadata.name')
 
     check_managed_clusters_readiness "$clusters"
 }
