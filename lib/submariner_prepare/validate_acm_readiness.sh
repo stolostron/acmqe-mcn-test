@@ -111,8 +111,8 @@ function fetch_managed_cluster_by_platform() {
 
     clusters=$(oc get managedcluster -o json \
         | jq -r '.items[] | select((.status.clusterClaims | from_entries
-        | select(."platform.open-cluster-management.io"
-        | contains("'"$platform"'")))?).metadata.name')
+        | select((."platform.open-cluster-management.io"
+        | contains("'"$platform"'"))?))?).metadata.name')
 
     check_managed_clusters_readiness "$clusters"
 }
@@ -125,9 +125,9 @@ function fetch_managed_cluster_by_product() {
     INFO "Validate $product clusters"
 
     clusters=$(oc get managedcluster -o json \
-        | jq -r '.items[] | select(.status.clusterClaims | from_entries
-        | select(."product.open-cluster-management.io"
-        | contains("'"$product"'"))).metadata.name')
+        | jq -r '.items[] | select((.status.clusterClaims | from_entries
+        | select((."platform.open-cluster-management.io"
+        | contains("'"$product"'"))?))?).metadata.name')
 
     check_managed_clusters_readiness "$clusters"
 }
