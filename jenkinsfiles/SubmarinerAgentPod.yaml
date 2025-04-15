@@ -7,7 +7,7 @@ spec:
   activeDeadlineSeconds: 18000
   containers:
   - name: jnlp
-    image: "image-registry.openshift-image-registry.svc:5000/jenkins-csb-skynet/qe-jenkins-agent:latest"
+    image: "image-registry.openshift-image-registry.svc:5000/dno--jenkins-csb-skynet/qe-jenkins-agent:latest"
     workingDir: '/home/jenkins'
     env:
       - name: HOME
@@ -20,7 +20,7 @@ spec:
         cpu: 50m
         memory: 256Mi
   - name: submariner
-    image: 'quay.io/maxbab/subm-test@sha256:eb50a87a94fcfa65f90a15ed2f6437889fbdc8bbb3aca1f4e92fdf69a825d005'
+    image: 'quay.io/maxbab/subm-test@sha256:ca1acc7a1ec273f0554c0f2fb43c391ac729729000b04e121ba814f0b6c59b6e'
     # imagePullSecrets: 'agent-image-secret'
     ttyEnabled: true
     alwaysPullImage: true
