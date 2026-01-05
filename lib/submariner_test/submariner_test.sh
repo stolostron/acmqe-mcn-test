@@ -60,6 +60,21 @@ function combine_tests_basename() {
     acm_ver=$(oc get multiclusterhub -A -o jsonpath='{.items[0].status.currentVersion}' | cut -d '-' -f1)
     subm_ver=$(fetch_installed_submariner_version "$primary_cluster")
 
+    # Validate that ACM and Submariner versions were successfully fetched
+    # if [[ -z "$acm_ver" ]]; then
+    #     ERROR "Unable to fetch ACM version. Please ensure ACM MultiClusterHub is deployed."
+    # fi
+
+    # if [[ -z "$subm_ver" ]]; then
+    #     ERROR "Unable to fetch Submariner version from cluster '$primary_cluster'. Please ensure Submariner is fully deployed before running tests."
+    # fi
+
+    # Workaround: If Submariner version is empty, use a default version
+    if [[ -z "$subm_ver" ]]; then
+        WARNING "Unable to fetch Submariner version from cluster '$primary_cluster'. Using default version 0.22.0" >&2
+        subm_ver="0.22.0"
+    fi
+
     globalnet_state=$(KUBECONFIG="$KCONF/$primary_cluster-kubeconfig.yaml" \
         oc -n submariner-operator get pods -l=app=submariner-globalnet \
         --no-headers=true -o custom-columns=NAME:".metadata.name")

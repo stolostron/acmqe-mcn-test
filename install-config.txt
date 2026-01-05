@@ -1,0 +1,710 @@
+apiVersion: v1
+baseDomain: subm.red-chesterfield.com
+metadata:
+  name: submqe-osp
+platform:
+  openstack:
+    cloud: openstack-creds
+    computeFlavor: PnTAE.CPU_4_Memory_16384_Disk_50
+    externalNetwork: provider_net_cci_13
+    apiFloatingIP: 10.0.213.174
+    ingressFloatingIP: 10.0.213.192
+    trunkSupport: true
+    octaviaSupport: true
+    externalDNS:
+      - 1.1.1.1
+      - 1.0.0.1
+networking:
+  networkType: OVNKubernetes
+  machineNetwork:
+    - cidr: 192.168.10.0/24
+  clusterNetwork:
+    - cidr: 10.132.0.0/14
+      hostPrefix: 23
+  serviceNetwork:
+    - 172.31.0.0/16
+controlPlane:
+  name: master
+  replicas: 3
+  platform:
+    openstack:
+      type: PnTAE.CPU_4_Memory_16384_Disk_50
+compute:
+  - name: worker
+    replicas: 3
+    platform:
+      openstack:
+        type: PnTAE.CPU_4_Memory_16384_Disk_50
+pullSecret: '{"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2FzdXJ5YW5hMXN6ZW50aGpvN2ozaXlrcm5zMWZuYW00M2NkOjNEWDZKVjJKUUI5NUVDUDVINEFEUExRMDVZQTZCTTkzTjM5SUdINUxNU0c2TjFJWTlSUDBaQ1czQjk2WUsxT0k=","email":"asuryana@redhat.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2FzdXJ5YW5hMXN6ZW50aGpvN2ozaXlrcm5zMWZuYW00M2NkOjNEWDZKVjJKUUI5NUVDUDVINEFEUExRMDVZQTZCTTkzTjM5SUdINUxNU0c2TjFJWTlSUDBaQ1czQjk2WUsxT0k=","email":"asuryana@redhat.com"},"registry.connect.redhat.com":{"auth":"NTIzNDc3MTN8dWhjLTFTWkVOdGhKTzdKM2l5a1JOUzFGbmFNNDNDRDpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSmtNakUzTlRNNE9UVmxZelEwTWpOallqazJPRGN4TVRNeE1XWmpOakUyWVNKOS5zdHd2NnNVakdLOHZNTlJBTGZXdjAxZnRRa2FHUC12allHcUs2cnIzTG9MOS1mUWZrTkQ1eG50OHhoZ3FCOXJkbXdodW4ycUF0anM1SU1fVjhIR0tnQmU5QXR4bnZad3h1QmRuOVd5Sjc1c3JLUTlHcDFPOFlBb3F4aWVKSkpWTjRRd2ZkanJxR09HdkNKUGh3S3l0SXdMOERHbERUWE5wU1loMGs1bEZKclVSNkdEaUNxOE1JTlJUUUdONjFMazdNdlRVT3RSeXhiQ2FyTDZQMDBYX1dwQWlCaDlZRk1Gd2RQQXVPNEZuLTgwaW9ENUFIOGdrOEtvQy1fVmdqZ2pHVURnTVNucnVHYnRJT2E1cnY2VUhFLVVqSm4wWkp1ZFZIODk1UkxESklYeDNUbW5wbkgwRGFkZEZBcFpkaXp5WDI1SDB5R2lwSUFIczVpLXlNTFJ2NlZJb0dTbEl1SThDYlpFYlBDYjl5T3p6MDdxc0ZjaEJZMWNPMlpCT2VfTkRGUVpjTTBMcUE1LXFOUE9mNGFWVkk4Q0psMWJnaDYyMzI2bVQ3b0dYbWZVWWVjMGNUeFNpSXhKcWpQb09va25DSHBKQWNKSlNsQ2FRRng4Q3pqcjV5T1NvVVVkajdod180SUgwYzQ0cEQtRVpxTzNGekhXVDFZTDF6TFZucmotczNSenR0Q0pLZUVUS05kNkxKVk5YSi1kam1wYlpjV0xfVG1nUzJEcHVsRk1YT1NlXzlfdXFkUnRSZWsxdm1uVHpZWm1ZemRjOW9vajRLa1JIZkZQeVVYTGVJYnRTUHRRaGVfYlJSODltV1FHNWZQQ0xacld4M2MtdVB0SGdXOXFqZFNsd2hGR19FYUp1RlBURVp4UGFJMVc1b3JoWEhWVnVvU2ZPTS02THQ1Zw==","email":"asuryana@redhat.com"},"registry.redhat.io":{"auth":"NTIzNDc3MTN8dWhjLTFTWkVOdGhKTzdKM2l5a1JOUzFGbmFNNDNDRDpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSmtNakUzTlRNNE9UVmxZelEwTWpOallqazJPRGN4TVRNeE1XWmpOakUyWVNKOS5zdHd2NnNVakdLOHZNTlJBTGZXdjAxZnRRa2FHUC12allHcUs2cnIzTG9MOS1mUWZrTkQ1eG50OHhoZ3FCOXJkbXdodW4ycUF0anM1SU1fVjhIR0tnQmU5QXR4bnZad3h1QmRuOVd5Sjc1c3JLUTlHcDFPOFlBb3F4aWVKSkpWTjRRd2ZkanJxR09HdkNKUGh3S3l0SXdMOERHbERUWE5wU1loMGs1bEZKclVSNkdEaUNxOE1JTlJUUUdONjFMazdNdlRVT3RSeXhiQ2FyTDZQMDBYX1dwQWlCaDlZRk1Gd2RQQXVPNEZuLTgwaW9ENUFIOGdrOEtvQy1fVmdqZ2pHVURnTVNucnVHYnRJT2E1cnY2VUhFLVVqSm4wWkp1ZFZIODk1UkxESklYeDNUbW5wbkgwRGFkZEZBcFpkaXp5WDI1SDB5R2lwSUFIczVpLXlNTFJ2NlZJb0dTbEl1SThDYlpFYlBDYjl5T3p6MDdxc0ZjaEJZMWNPMlpCT2VfTkRGUVpjTTBMcUE1LXFOUE9mNGFWVkk4Q0psMWJnaDYyMzI2bVQ3b0dYbWZVWWVjMGNUeFNpSXhKcWpQb09va25DSHBKQWNKSlNsQ2FRRng4Q3pqcjV5T1NvVVVkajdod180SUgwYzQ0cEQtRVpxTzNGekhXVDFZTDF6TFZucmotczNSenR0Q0pLZUVUS05kNkxKVk5YSi1kam1wYlpjV0xfVG1nUzJEcHVsRk1YT1NlXzlfdXFkUnRSZWsxdm1uVHpZWm1ZemRjOW9vajRLa1JIZkZQeVVYTGVJYnRTUHRRaGVfYlJSODltV1FHNWZQQ0xacld4M2MtdVB0SGdXOXFqZFNsd2hGR19FYUp1RlBURVp4UGFJMVc1b3JoWEhWVnVvU2ZPTS02THQ1Zw==","email":"asuryana@redhat.com"}}}'
+Collapse
+
+
+
+
+
+
+
+
+
+
+1:37
+This is my install config
+1:38
+what do i need to add in /etc/hosts?
+
+
+pyadav
+  1:50 AM
+Can you create cluster using this file?
+1:52
+I need help in creating cluster... somehow I am not able to create and import
+1:56
+or if you can create cluster and import to cluster-hub
+submqe-cluster-hub:
+  console: https://console-openshift-console.apps.submqe-cluster-hub.subm.red-chesterfield.com
+  api: https://api.submqe-cluster-hub.subm.red-chesterfield.com:6443
+  pass: z5nZP-85SiM-zZvKj-gfGoF
+
+
+asuryana
+  1:57 AM
+Openstck cluster?
+
+
+pyadav
+  1:57 AM
+Yes open shift on osp
+
+
+asuryana
+  1:58 AM
+for that hub need vpn access , I need to explore the scripts to check how that is handled
+
+
+pyadav
+  1:59 AM
+Also on open stack channel they suggested
+“also note that you can upload the image yourself and tell OCP to use the image you've uploaded earlier, if your issue is that you have a slow connection to the OpenStack cloud.” (edited) 
+
+
+asuryana
+  1:59 AM
+ah ok
+
+
+pyadav
+  1:59 AM
+I am leaving now… will check your msg in morning and continue after that
+
+
+asuryana
+  2:00 AM
+ok between you tried the above option?
+
+
+pyadav
+  2:00 AM
+Yes for me it is also not working
+
+
+asuryana
+  2:00 AM
+you mean still stuck at same stage?
+
+
+pyadav
+  2:00 AM
+No no
+2:01
+I downloaded image
+2:01
+And while uploading command it not returning
+2:02
+Also if you are installing cluster using different config, please share kubeconfig as well… I will need it while installing submariner
+
+
+asuryana
+  2:02 AM
+ah ok , we could probably point to one of the existing images
+2:02
+i will try that
+2:02
+ok GN
+
+
+asuryana
+  8:27 AM
+my image got uploaded when  I tried , but unfortunately hub deployment had failed( may be vpn disconnected) , will try again tomorrow (edited) 
+
+1
+
+
+
+pyadav
+  5:04 PM
+Hi
+5:04
+please ping me once you are online
+
+
+pyadav
+  6:56 PM
+https://drive.google.com/file/d/1w7C2CIWJg5MiUhrVTvYOHYH1pM2zgTzR/view
+
+
+asuryana
+  6:57 PM
+i dont have access
+6:57
+requested now
+
+
+pyadav
+  6:57 PM
+check now
+
+
+asuryana
+  6:58 PM
+yes I can
+6:58
+i just logged in now at the time of meeting , I will try the deployment today , first I will go through the recording
+
+
+pyadav
+  6:58 PM
+ok
+
+
+asuryana
+  8:07 PM
+can I try to deploy a cluster now ?
+
+
+pyadav
+  8:07 PM
+Yes
+
+
+asuryana
+  8:08 PM
+"failed to fetch Cluster Infrastructure Variables: failed to fetch dependency of \"Cluster Infrastructure Variables\": failed to generate asset \"Platform Provisioning Check\": baseDomain: Invalid value: \"subm.red-chesterfield.com\": the zone already has record sets for the domain of the cluster: [api.submqe-cluster-hub.subm.red-chesterfield.com. (A), \\052.apps.submqe-cluster-hub.subm.red-chesterfield.com. (A)]"
+^C 
+
+
+pyadav
+  8:08 PM
+We already have cluster-hub which is running
+
+
+asuryana
+  8:08 PM
+getting this error , should I cleanu p something?
+8:08
+oh ok
+
+
+pyadav
+  8:09 PM
+Are you creating osp?
+
+
+asuryana
+  8:09 PM
+i need to comment out the hub part then?
+
+
+pyadav
+  8:09 PM
+Yes
+
+
+asuryana
+  8:09 PM
+ok
+
+
+asuryana
+  9:06 PM
+the cluster is up
+9:06
+time="2025-07-24T11:33:06-04:00" level=info msg="Access the OpenShift web-console here: https://console-openshift-console.apps.submqe-osp.subm.red-chesterfield.com"
+time="2025-07-24T11:33:06-04:00" level=info msg="Login to the console with user: \"kubeadmin\", and password: \"X22Mv-pcCBj-rrctb-mbxNQ\""
+
+1
+
+
+
+pyadav
+  9:08 PM
+Wow
+9:08
+Is it imported in hub?
+
+
+asuryana
+  9:08 PM
+not yet , should I?
+
+
+pyadav
+  9:08 PM
+Yes please
+9:08
+I am making dinner
+
+
+asuryana
+  9:08 PM
+you use the kubeconfig right?
+
+
+pyadav
+  9:08 PM
+Will be available after 1-1/2 hour
+
+1
+
+
+
+asuryana
+  9:09 PM
+I am making dinner
+Fried cheese ? 
+
+
+pyadav
+  9:09 PM
+Hahahaha
+9:09
+Puri sabji
+
+1
+
+9:09
+And sewai
+
+
+asuryana
+  9:13 PM
+how do you import kubeconfig?
+9:13
+have you tried this method before?
+
+
+asuryana
+  9:20 PM
+ok from UI we cannot do it due to missing vpn access. Hub cannot reach the openstack cluster , but we do the manual option , openstack can reach hub and the cluster gets imported (edited) 
+
+
+pyadav
+  10:20 PM
+Hi
+10:20
+I am back
+10:20
+Is it imported?
+
+
+asuryana
+  10:33 PM
+Yes
+
+
+pyadav
+  10:44 PM
+Can i get a kubeconfig?
+10:44
+i will need it for submariner installation
+
+
+asuryana
+  11:06 PM
+kubeconfig
+ 
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURqVENDQW5XZ0F3SUJBZ0lJWU1vUlJ3ZlRBQ0F3RFFZSktvWklodmNOQVFFTEJRQXdKakVrTUNJR0ExVUUKQXd3YmFXNW5jbVZ6Y3kxdmNHVnlZWFJ2Y2tBeE56VXpNelk1TnpZME1CNFhEVEkxTURjeU5ERTFNRGt5TTFvWApEVEkzTURjeU5ERTFNRGt5TkZvd05qRTBNRElHQTFVRUF3d3JLaTVoY0hCekxuTjFZbTF4WlMxdmMzQXVjM1ZpCmJTNXlaV1F0WTJobGMzUmxjbVpwWld4a0xtTnZiVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0MKQVFvQ2dnRUJBTGVlVjk2eFY5cEoxNERhQkF3OVJLUTd4MkpHTXBaYkRnV1VrSFNSMEZTQWFGM2tOM3UwR0ZzUwpXSUs5VFUwZGgybHVvRitlTmVjZS9QS25yM3ZKN3R0SXJuQm5pZjBabTh6a2lmMmVaUVRMdzdGb2prYThCNlFlCnc3aXBLbFR6dyt1OU1WclB2OUd5NS9sWjJHOHBjK3BQUnRXMnVlRVBJN0NDREo2L3h0QU1jUHRQdlg3VTQ2NlgKc2VHRWt0NHNrTU5ZbUx6VmdLVThGaG5NMlhEZWJEaUlZcHY2V0RqbVgxV0hYUDl1WjBhQlpGZkpFczhxQjJLMgowZFpUbC9yRk9LYklwaFBLam9IbE54SzVRMzhaNW54Vmc3U0RrbG1uck5yZHNhaDJxY0MrUEZvb0pYSXN0UzYvCnFpN1JaT0dadFVHSzJQZ1IwblFtVktYTTZHT0NVb0VDQXdFQUFhT0JyakNCcXpBT0JnTlZIUThCQWY4RUJBTUMKQmFBd0V3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3RXdEQVlEVlIw...
+Click to expand inline (20 lines)
+
+
+11:07
+metadata.json
+ 
+{"clusterName":"submqe-osp","clusterID":"e9e16f24-934b-4330-846d-bed761c80b09","infraID":"submqe-osp-ksqwx","openstack":{"cloud":"rhacm-automation","identifier":{"openshiftClusterID":"submqe-osp-ksqwx"}},"featureSet":"","customFeatureSet":null}
+
+
+
+
+pyadav
+  11:07 PM
+Thank you
+Friday, September 19th
+
+
+pyadav
+  12:38 AM
+Hi
+12:39
+I need help in submariner 0.20.2 testing
+12:39
+I am able to install submariner on GCP but gateway is not getting created for AWS
+12:40
+I am using catalog source to install submariner
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: submariner-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/redhat-user-workloads/submariner-tenant/submariner-fbc-4-18@sha256:26caa5fd4957d4bec3efb71a4b0cecd4d8da238ed9d88d8980898dea4d470b83
+  #brew.registry.redhat.io/rh-osbs/iib:1011883
+  displayName: Submariner Test Catalog Source
+  publisher: Red Hat Partner (Test)
+12:40
+submqe-cluster-hub:
+  console: https://console-openshift-console.apps.submqe-cluster-hub.subm.red-chesterfield.com
+  api: https://api.submqe-cluster-hub.subm.red-chesterfield.com:6443
+  pass: Vm6dH-MZfa9-Tn246-Pkj4B
+12:41
+these are clusterhub details
+12:41
+could you please check in your timezone.... i will re-work tomorrow from where you left
+
+
+asuryana
+  12:42 AM
+Just came to pick my daughter from school , will check once back
+
+
+pyadav
+  12:43 AM
+Thank you
+
+
+asuryana
+  6:06 AM
+it is an issue related to subscription
+  - reason: UnpackingInProgress
+    status: "True"
+    type: BundleUnpacking
+  - lastTransitionTime: "2025-09-18T10:52:41Z"
+    message: all available catalogsources are healthy
+    reason: AllCatalogSourcesHealthy
+    status: "False"
+    type: CatalogSourcesUnhealthy
+  - message: 'bundle unpacking failed. Reason: DeadlineExceeded, and Message: Job
+      was active longer than specified deadline'
+    reason: BundleUnpackFailed
+    status: "True"
+    type: BundleUnpackFailed
+  lastUpdated: "2025-09-18T11:02:37Z"
+
+
+pyadav
+  8:46 AM
+Hi
+8:46
+But it was installed on gcp
+
+
+asuryana
+  5:31 PM
+May be a timing issue.
+
+
+pyadav
+  5:31 PM
+Hello
+5:31
+I have created a new env with 4.19
+
+
+asuryana
+  5:31 PM
+Ok , worked?
+
+
+pyadav
+  5:33 PM
+no, in between
+
+
+asuryana
+  5:34 PM
+Ok
+
+
+pyadav
+  8:22 PM
+Hello
+8:23
+Now it is not getting installed on any
+8:23
+I am using 4.19 FBC
+8:25
+I posted on our channel
+
+
+pyadav
+  8:49 PM
+what command do i need to check subscription?
+
+
+asuryana
+  8:50 PM
+oc get subscriptions.operators.coreos.com -n submariner-operator submariner -o yaml
+
+
+pyadav
+  8:50 PM
+submariner is not installed
+
+
+asuryana
+  8:51 PM
+oh then where did you see the subscription error?
+
+
+pyadav
+  8:51 PM
+i did not see
+
+
+asuryana
+  8:51 PM
+ok you pasted output of catalog source
+8:52
+do you have addon pod in the spoke?
+
+
+pyadav
+  8:52 PM
+oc edit catalogsource submariner-catalog -n openshift-marketplace
+8:52
+i got catalogsource from above command
+
+
+asuryana
+  8:52 PM
+ya I got it
+8:52
+this is from hub or spoke'?
+
+
+pyadav
+  9:00 PM
+from hub
+9:00
+submqe-cluster-hub:
+  console: https://console-openshift-console.apps.submqe-cluster-hub.subm.red-chesterfield.com
+  api: https://api.submqe-cluster-hub.subm.red-chesterfield.com:6443
+  pass: 5bHPj-7Badp-C7oWC-yMmF7
+9:00
+you can check
+
+
+asuryana
+  9:01 PM
+ok whihc step did it fail?
+
+
+pyadav
+  9:02 PM
+while installation, during
+INFO: Check CatalogSource state on cluster submqe-gcp
+INFO: Waiting for CatalogSource 'READY' state...
+9:04
+we are applying catalog source while it is getting created
+
+
+asuryana
+  9:04 PM
+ok,
+9:04
+may be as Vishal suggested we need to check catalog source
+
+
+pyadav
+  9:04 PM
+yes
+Tuesday, September 23rd
+
+
+pyadav
+  12:26 AM
+Hi
+
+
+asuryana
+  12:27 AM
+Hi
+
+
+pyadav
+  12:28 AM
+I need help in testing submariner 0.20.2
+12:28
+I am able to install submariner but unable to run test
+12:29
+If you have some time today, can you please try running test and i will continue tomorrow?
+
+1
+
+12:29
+#BEGIN submqe-cluster-hub details
+submqe-cluster-hub:
+  console: https://console-openshift-console.apps.submqe-cluster-hub.subm.red-chesterfield.com
+  api: https://api.submqe-cluster-hub.subm.red-chesterfield.com:6443
+  pass: Hkj5W-J4sIy-rAiEi-TtEXQ
+#END submqe-cluster-hub details
+
+
+asuryana
+  12:29 AM
+You want to run e2e?
+
+
+pyadav
+  12:30 AM
+both, e2e and UI if possible
+
+
+asuryana
+  12:30 AM
+And how to get subctl
+
+
+pyadav
+  12:30 AM
+actually i am running
+./run.sh --test --test-type e2e --platform aws,gcp,azure --downstream true
+12:31
+while running this i am getting error:
+INFO: Execute Submariner tests
+INFO: Verify subctl command existence
+INFO: Installing subctl client
+INFO: Download downstream subctl binary for testing
+INFO: Download subctl from - registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-subctl-rhel9:v
+error: image "registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-subctl-rhel9:v" not found: manifest unknown: manifest unknown
+INFO: Gather debug info from ACM Hub and managed clusters
+INFO: Verify subctl command existence
+INFO: Installing subctl client
+INFO: Download downstream subctl binary for testing
+INFO: Download subctl from - registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-subctl-rhel9:v
+error: image "registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-subctl-rhel9:v" not found: manifest unknown: manifest unknown
+
+
+asuryana
+  12:31 AM
+Oh download is failing?
+
+
+pyadav
+  12:32 AM
+yes
+
+
+asuryana
+  12:32 AM
+Ok let me check
+
+
+asuryana
+  5:54 AM
+the release here is ( from managed cluster)
+oc -n submariner-operator get submariner submariner -o jsonpath='{.status.version}'
+release-0.20
+
+
+asuryana
+  6:16 AM
+git diff  lib/common/helper_functions.sh
+diff --git a/lib/common/helper_functions.sh b/lib/common/helper_functions.sh
+index 56e8a5c..5d3d216 100644
+--- a/lib/common/helper_functions.sh
++++ b/lib/common/helper_functions.sh
+@@ -366,7 +366,7 @@ function fetch_installed_submariner_version() {
+ 
+     subm_ver=$(KUBECONFIG="$KCONF/$primary_cl-kubeconfig.yaml" \
+         oc -n "$SUBMARINER_NS" get submariner submariner -o jsonpath='{.status.version}' \
+-        | grep -Po '(?<=v)[^)]*')
++        | sed 's/release-//' | sed 's/^v//')
+     echo "$subm_ver"
+ }
+6:16
+just changes the regex to match this version , and e2e passed
+6:16
+------------------------------
+[ReportAfterSuite] Autogenerated ReportAfterSuite for --junit-report
+autogenerated by Ginkgo
+[ReportAfterSuite] PASSED [0.007 seconds]
+------------------------------
+
+Ran 29 of 48 Specs in 485.848 seconds
+SUCCESS! -- 29 Passed | 0 Failed | 0 Pending | 19 Skipped
+INFO: The E2E tests execution finished
+6:17
+but I am not sure why the version shown is not as exepcted , I think it expects a "v" in it
+Friday, September 26th
+
+
+pyadav
+  6:57 PM
+submqe-azure-kubeconfig.yaml
+ 
+clusters:
+  - cluster:
+      certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURRRENDQWlpZ0F3SUJBZ0lJY2hCaFhrd1Y1cjB3RFFZSktvWklodmNOQVFFTEJRQXdQakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1TZ3dKZ1lEVlFRREV4OXJkV0psTFdGd2FYTmxjblpsY2kxc2IyTmhiR2h2YzNRdApjMmxuYm1WeU1CNFhEVEkxTURreU5EQTROVE0wTWxvWERUTTFNRGt5TWpBNE5UTTBNbG93UGpFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNU2d3SmdZRFZRUURFeDlyZFdKbExXRndhWE5sY25abGNpMXNiMk5oYkdodmMzUXQKYzJsbmJtVnlNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXIyTkdERFY0TW40ZQo0WDJlNzBmNlpVQVR0L2pCR1g0N1h2dS8wS3pSTDZTNVM2SHZ5QitUTHlGRVVpTXQ4cDlPcWljN3FOTVd5ajA5CkJEZDZnVzB4S1lLUjJMa3UzSkFGL3o0bndoUDMvd20zUjZNTWdVT2p3WXNXWVVNYlRjL0c4ZGg1V0NwS29ISTEKVmtoYStRN01nL3pJZWNpN2dodWcyMmxhVHFTSEhTVmFkbHZXWk1zZ0wrNHZKN3RadnNvRlljN2ZPdk1zRHkyQgpweTJvaytDSVRaQ1I5NVVFbENVaTBLTVE1RHVmVXJ2aUswNEU3Mk5wbUY1RENSVGZEeHljVFNoNnJONzg0U1JFCmxvM0lVS0YyV2N3emxHY0xlSDVKeHJhbVlOOUFVQ09sRDJjaDlEMUNMbk1GSW5BYkYvczJXU2ZaSXVXc0ppR2wKOUhpM0NqU1c0d0lEQVFBQm8wSXdRREFPQmdOVkhROEJBZjhFQkFNQ0FxUXdEd1l...
+Click to expand inline (18 lines)
+
+
+
+
+1
+
+Monday, September 29th
+
+
+pyadav
+  7:42 PM
+Hello
+
+
+asuryana
+  7:46 PM
+Hi
+
+
+pyadav
+  7:47 PM
+How are you?
+7:47
+Happy Monday 
+
+
+asuryana
+  7:47 PM
+Good how about you?
+7:47
+You too
+
+
+pyadav
+  7:47 PM
+I am good
+7:47
+I was trying to install SUbmariner 0.20.2 on Azure 4.18, and can see the same issue as friday
+7:48
+Can you confirm?
+7:48
+submqe-azure2-kubeconfig.yaml
+ 
+clusters:
+  - cluster:
+      certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURRRENDQWlpZ0F3SUJBZ0lJR3liRTJ1ZGtNODR3RFFZSktvWklodmNOQVFFTEJRQXdQakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1TZ3dKZ1lEVlFRREV4OXJkV0psTFdGd2FYTmxjblpsY2kxc2IyTmhiR2h2YzNRdApjMmxuYm1WeU1CNFhEVEkxTURreU9UQTVNVEkwTUZvWERUTTFNRGt5TnpBNU1USTBNRm93UGpFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNU2d3SmdZRFZRUURFeDlyZFdKbExXRndhWE5sY25abGNpMXNiMk5oYkdodmMzUXQKYzJsbmJtVnlNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQTBiNDM1cnFXRktoTQphaEk1QUN4OXp6SXJjUDN2YjVhUmRobnAvc2ZMSE5NVE5UQ1gvMnNyOE1ZWG1HeVFta05ISGRmblMvMW9EQmVNCndnZVcrQzh3V3lZcWNudTNla3VxWnA0Y2JWYW51UHJadS8xL05hNERPTUpDSmVTWmdBaG9QTUN5MnlkQTdscy8KWGxQaXFoQjVERjl5L1IzVGFvUnVMKzVYY09jcHM0VHZ5UC9CMER2YWRqZlBSc1hGUnYyWVdPbFZnZ1prRG1SYQo3ZFNiTmVrQ29waldzOVJIclNlVFIvWTdpMzZuSGFqdGViL2NEZ05TMGpFbE9rYXk2S25sV2tIODgxVW04WVFOCmFydlhIVWtCN2NWNW9nWER2RUd3Z1J5MW91am8vSHh2NHU1RjB2T2prREVINFhZNXZXdjBXVnNrSldrVTZmRVoKYjd0MVl0NTJtd0lEQVFBQm8wSXdRREFPQmdOVkhROEJBZjhFQkFNQ0FxUXdEd1l...
+Click to expand inline (18 lines)
+Loading history…
+

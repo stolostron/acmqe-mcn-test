@@ -90,7 +90,8 @@ function get_subctl_for_testing() {
 
     if [[ "$DOWNSTREAM" == "true" ]]; then
         INFO "Download downstream subctl binary for testing"
-        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel9:v$subctl_version"
+        # subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel9:v$subctl_version"
+        subctl_download_url="quay.io/redhat-user-workloads/submariner-tenant/subctl-0-22@sha256:ee16a7ed568288fe82928e5176f1fcd9d78a76cc751cf65ac92825810c5ac271"
     else
         INFO "Download subctl binary for testing from official RH registry - registry.redhat.io"
         oc registry login --registry "$OFFICIAL_REGISTRY" --auth-basic="${RH_REG_USR}:${RH_REG_PSW}"
@@ -98,17 +99,20 @@ function get_subctl_for_testing() {
     fi
 
     INFO "Download subctl from - $subctl_download_url"
-    oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
-    mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
+    # oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
+    oc image extract --insecure=true "$subctl_download_url" --path=/usr/local/bin/subctl:./ --confirm
+    # mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
 
     INFO "Submariner addon version - $subctl_version"
     INFO "Download subctl from - $subctl_download_url"
 
-    tar xfJ subctl.tar.xz --strip-components 1
+    # tar xfJ subctl.tar.xz --strip-components 1
 
     mkdir -p "$HOME"/.local/bin
-    install subctl*linux-amd64 "$HOME"/.local/bin/subctl
-    rm -f subctl.tar.xz subctl*linux-amd64
+    # install subctl*linux-amd64 "$HOME"/.local/bin/subctl
+    install subctl "$HOME"/.local/bin/subctl
+    # rm -f subctl.tar.xz subctl*linux-amd64
+    rm -f subctl
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"

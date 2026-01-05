@@ -16,63 +16,92 @@ function create_icsp() {
 
 # The image index builder (iib) will be used by the downstream deployment
 # to serve as a CatalogSource for the submariner images
-function get_latest_iib() {
-    INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
+# function get_latest_iib() {
+#     INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
+#
+#     local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
+#     local submariner_version="$SUBMARINER_VERSION_INSTALL"
+#     local latest_iib
+#     local ocp_version
+#     local umb_output
+#     local index_images
+#
+#     local bundle_name="submariner-operator-bundle"
+#     local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
+#     local submariner_component="cvp-teamredhatadvancedclustermanagement"
+#     local latest_builds_number=5
+#     local rows=$((latest_builds_number * 5))
+#     local number_of_days=30
+#     local delta=$((number_of_days * 86400)) # 1296000 = 15 days * 86400 seconds
+#     local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete"
+#         and .artifact.component=="'"$submariner_component"'")
+#         | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
+#
+#     umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
+#         "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}" || :)
+#
+#     if [[ "$umb_output" == "" ]]; then
+#         ERROR "Unable to fetch IIB data. Verify VPN connection"
+#     fi
+#
+#     index_images=$(echo "$umb_output" | jq -r "$iib_query")
+#
+#     if [[ "$index_images" == "null" ]]; then
+#         WARNING "Failed to retrieve IIB by using the last $number_of_days days.
+#         Retrying with the number of days multiplied $number_of_days days x6."
+#
+#         delta=$((delta * 6))
+#         umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
+#                   "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
+#         index_images=$(echo "$umb_output" | jq -r "$iib_query")
+#
+#         if [[ "$index_images" == "null" ]]; then
+#             ERROR "Unable to retrieve IIB images"
+#         fi
+#     fi
+#     INFO "Retrieved the following index images - $index_images"
+#
+#     ocp_version=$(KUBECONFIG="$kube_conf" oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
+#     latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
+#
+#     if [[ ! "$latest_iib" =~ iib:[0-9]+ ]]; then
+#         ERROR "No image index bundle $bundle_name for OCP version $ocp_version detected"
+#     fi
+#
+#     LATEST_IIB="$BREW_REGISTRY/$(echo "$latest_iib" | cut -d'/' -f2-)"
+#     INFO "Detected IIB - $LATEST_IIB for cluster $cluster"
+# }
+
+# Get Konflux image from image.yaml based on OCP version
+function get_konflux_image() {
+    INFO "Fetch Konflux image from image.yaml based on OCP version"
 
     local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
-    local submariner_version="$SUBMARINER_VERSION_INSTALL"
-    local latest_iib
     local ocp_version
-    local umb_output
-    local index_images
+    local konflux_image
+    local image_file="$SCRIPT_DIR/image.yaml"
 
-    local bundle_name="submariner-operator-bundle"
-    local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
-    local submariner_component="cvp-teamredhatadvancedclustermanagement"
-    local latest_builds_number=5
-    local rows=$((latest_builds_number * 5))
-    local number_of_days=30
-    local delta=$((number_of_days * 86400)) # 1296000 = 15 days * 86400 seconds
-    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
-        and .artifact.component=="'"$submariner_component"'") 
-        | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
-
-    umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-        "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}" || :)
-
-    if [[ "$umb_output" == "" ]]; then
-        ERROR "Unable to fetch IIB data. Verify VPN connection"
-    fi
-
-    index_images=$(echo "$umb_output" | jq -r "$iib_query")
-
-    if [[ "$index_images" == "null" ]]; then
-        WARNING "Failed to retrieve IIB by using the last $number_of_days days.
-        Retrying with the number of days multiplied $number_of_days days x6."
-
-        delta=$((delta * 6))
-        umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-                  "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
-        index_images=$(echo "$umb_output" | jq -r "$iib_query")
-
-        if [[ "$index_images" == "null" ]]; then
-            ERROR "Unable to retrieve IIB images"
-        fi
-    fi
-    INFO "Retrieved the following index images - $index_images"
-
+    # Get OCP version from the cluster
     ocp_version=$(KUBECONFIG="$kube_conf" oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
-    latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
 
-    if [[ ! "$latest_iib" =~ iib:[0-9]+ ]]; then
-        ERROR "No image index bundle $bundle_name for OCP version $ocp_version detected"
+    # Check if image.yaml file exists
+    if [[ ! -f "$image_file" ]]; then
+        ERROR "Image file not found: $image_file"
     fi
 
-    LATEST_IIB="$BREW_REGISTRY/$(echo "$latest_iib" | cut -d'/' -f2-)"
-    INFO "Detected IIB - $LATEST_IIB for cluster $cluster"
+    # Extract the image for the specific OCP version from image.yaml
+    # The file format is: #4.XX Image followed by the image URL on the next line
+    konflux_image=$(grep -A 1 "^#${ocp_version} Image" "$image_file" | tail -n 1)
+
+    if [[ -z "$konflux_image" || "$konflux_image" =~ ^# ]]; then
+        ERROR "Failed to find Konflux image for OCP version $ocp_version in $image_file"
+    fi
+
+    LATEST_IIB="$konflux_image"
+    INFO "Detected Konflux image - $LATEST_IIB for cluster $cluster (OCP $ocp_version)"
 }
 
-# The CatalogSource will be created with the iib image
+# The CatalogSource will be created with the Konflux image
 # and used to fetch the submariner components images
 function create_catalog_source() {
     INFO "Create CatalogSource on the managed clusters"
@@ -80,7 +109,7 @@ function create_catalog_source() {
     local catalog_ns="openshift-marketplace"
 
     for cluster in $MANAGED_CLUSTERS; do
-        get_latest_iib
+        get_konflux_image
         image_source="$LATEST_IIB"
 
 
