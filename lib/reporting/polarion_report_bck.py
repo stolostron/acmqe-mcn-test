@@ -99,18 +99,9 @@ class PolarionProcessReports:
     def generate_polarion_testplan_id_and_testcase_doc(self, test_name):
         """Generate testplan id and testcase doc out of test name."""
         acm_ver = re.search(r'(?<=ACM-)[0-9]+(?:\.[0-9]+){2}', test_name)
-        if acm_ver is None:
-            raise ValueError(f"Polarion: Could not extract ACM version from test name: {test_name}")
         acm_ver = acm_ver.group().replace('.', '_')
-
         subm_ver = re.search(r'(?<=Submariner-)[0-9]+(?:\.[0-9]+){2}', test_name)
-        # Handle missing Submariner version in filename (e.g., ACM-2.14.1-Submariner--GCP...)
-        if subm_ver is None:
-            print(f"Polarion: Warning - Submariner version not found in test name: {test_name}")
-            print("Polarion: Using 'unknown' as Submariner version placeholder")
-            subm_ver = "unknown"
-        else:
-            subm_ver = subm_ver.group().replace('.', '_')
+        subm_ver = subm_ver.group().replace('.', '_')
 
         test_plan_id = f"Submariner_{subm_ver}_in_ACM_{acm_ver}"
         test_case_id = f"{test_plan_id}_Testscases"

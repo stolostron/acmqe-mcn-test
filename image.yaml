@@ -1,0 +1,8 @@
+#4.18 Image
+quay.io/redhat-user-workloads/submariner-tenant/submariner-fbc-4-18@sha256:ac09c23bcdac67cd41b34e0f6fa309d40b50f0655fe68934e8f33bc04caf80f3
+
+#4.19 Image
+quay.io/redhat-user-workloads/submariner-tenant/submariner-fbc-4-19@sha256:00f2975afeae785239a39991a3ffed620571bbdb2565c47e52af3c84e16fdc91
+
+#4.20 Image
+quay.io/redhat-user-workloads/submariner-tenant/submariner-fbc-4-20@sha256:eece7fe34e9a2161463b2b61989e39326f5c032eb1fb2a0c40968b6f99cf4d4e

@@ -24,7 +24,7 @@ function update_subm_catalog_source() {
 
     INFO "Update catalog source on the managed clusters for submariner version - $SUBMARINER_VERSION_INSTALL"
     for cluster in $MANAGED_CLUSTERS; do
-        get_latest_iib
+        get_konflux_image
         IMG_SRC="$LATEST_IIB" 
 
         INFO "Update catalog source on $cluster cluster"

@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: submariner-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/redhat-user-workloads/submariner-tenant/submariner-fbc-4-19@sha256:00f2975afeae785239a39991a3ffed620571bbdb2565c47e52af3c84e16fdc91
+  #brew.registry.redhat.io/rh-osbs/iib:1011883
+  displayName: Submariner Test Catalog Source
+  publisher: Red Hat Partner (Test)
