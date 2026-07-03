@@ -83,26 +83,73 @@ function verify_ibmcloud_binary() {
 function get_subctl_for_testing() {
     INFO "Installing subctl client"
 
-    local image_prefix="$REGISTRY_IMAGE_PREFIX"
     local subctl_version
     local subctl_download_url
     subctl_version=$(fetch_installed_submariner_version)
 
-    if [[ "$DOWNSTREAM" == "true" ]]; then
-        INFO "Download downstream subctl binary for testing"
-        subctl_download_url="$VPN_REGISTRY/$REGISTRY_IMAGE_IMPORT_PATH/$image_prefix-subctl-rhel9:v$subctl_version"
-    else
-        INFO "Download subctl binary for testing from official RH registry - registry.redhat.io"
-        oc registry login --registry "$OFFICIAL_REGISTRY" --auth-basic="${RH_REG_USR}:${RH_REG_PSW}"
-        subctl_download_url="$OFFICIAL_REGISTRY/$REGISTRY_IMAGE_PREFIX/subctl-rhel9:v$subctl_version"
+    # Check if SUBCTL_DOWNLOAD_URL is provided as environment variable
+    if [[ -z "${SUBCTL_DOWNLOAD_URL}" ]]; then
+        ERROR "SUBCTL_DOWNLOAD_URL environment variable is not set. Please provide subctl download URL through Jenkins parameter."
     fi
 
-    INFO "Download subctl from - $subctl_download_url"
-    oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm
-    mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
+    subctl_download_url="$SUBCTL_DOWNLOAD_URL"
+    INFO "Using subctl download URL from Jenkins parameter: $subctl_download_url"
+
+    INFO "Extracting subctl from container image: $subctl_download_url"
+
+    # Try multiple paths for different image structures
+    # Standard images use /dist/, Konflux images use /usr/local/bin/
+    local extracted=false
+
+    # Try path 1: /dist/subctl-*-linux-amd64.tar.xz (standard downstream path)
+    if oc image extract --insecure=true "$subctl_download_url" --path=/dist/subctl-*-linux-amd64.tar.xz:./ --confirm 2>/dev/null; then
+        if ls subctl-*-linux-amd64.tar.xz 1>/dev/null 2>&1; then
+            extracted=true
+            INFO "Extracted subctl from /dist/ path"
+        fi
+    fi
+
+    # Try path 2: /usr/local/bin/subctl (Konflux images)
+    if [[ "$extracted" == "false" ]]; then
+        INFO "Trying alternative extraction path for Konflux image..."
+        if oc image extract --insecure=true "$subctl_download_url" --path=/usr/local/bin/subctl:./ --confirm 2>/dev/null; then
+            if [[ -f subctl ]]; then
+                # Create a tar.xz file with the extracted binary to match expected format
+                mkdir -p subctl-temp
+                mv subctl "subctl-temp/subctl-v${subctl_version}-linux-amd64"
+                tar -C subctl-temp -cJf subctl.tar.xz "subctl-v${subctl_version}-linux-amd64"
+                rm -rf subctl-temp
+                extracted=true
+                INFO "Extracted subctl from /usr/local/bin/ path (Konflux)"
+            fi
+        fi
+    fi
+
+    # Try path 3: /usr/bin/subctl (fallback)
+    if [[ "$extracted" == "false" ]]; then
+        if oc image extract --insecure=true "$subctl_download_url" --path=/usr/bin/subctl:./ --confirm 2>/dev/null; then
+            if [[ -f subctl ]]; then
+                mkdir -p subctl-temp
+                mv subctl "subctl-temp/subctl-v${subctl_version}-linux-amd64"
+                tar -C subctl-temp -cJf subctl.tar.xz "subctl-v${subctl_version}-linux-amd64"
+                rm -rf subctl-temp
+                extracted=true
+                INFO "Extracted subctl from /usr/bin/ path"
+            fi
+        fi
+    fi
+
+    if [[ "$extracted" == "false" ]]; then
+        ERROR "Failed to extract subctl binary from $subctl_download_url. Tried paths: /dist/, /usr/local/bin/, and /usr/bin/"
+    fi
+
+    # If we extracted a tar.xz directly, rename it
+    if ls subctl-*-linux-amd64.tar.xz 1>/dev/null 2>&1; then
+        mv subctl-*-linux-amd64.tar.xz subctl.tar.xz
+    fi
 
     INFO "Submariner addon version - $subctl_version"
-    INFO "Download subctl from - $subctl_download_url"
+    INFO "Downloaded subctl from - $subctl_download_url"
 
     tar xfJ subctl.tar.xz --strip-components 1
 
@@ -112,7 +159,7 @@ function get_subctl_for_testing() {
 
     # Add local BIN dir to PATH
     [[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || export PATH="$HOME/.local/bin:$PATH"
-    INFO "Subctl has been donwload and placed under $HOME/.local/bin/"
+    INFO "Subctl has been downloaded and placed under $HOME/.local/bin/"
     subctl version
 }
 

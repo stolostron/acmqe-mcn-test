@@ -121,6 +121,10 @@ function deploy_submariner() {
         create_brew_and_private_quay_secret
         create_icsp
 
+        # Create IDMS (imagedigest.yaml) and submariner bundle ICSP before CatalogSource
+        # This ensures image mirrors are configured before FBC is applied
+        create_idms_and_icsp_combined
+
         if [[ "$PLATFORM" =~ "roks" ]]; then
             reload_roks_cluster_nodes
             inset_mirror_to_roks_nodes

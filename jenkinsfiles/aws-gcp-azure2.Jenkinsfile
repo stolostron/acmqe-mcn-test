@@ -14,7 +14,12 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
                     value: 'aws,gcp,azure,vsphere,osp,aro,rosa', defaultValue: 'aws,gcp,azure', multiSelectDelimiter: ',', type: 'PT_CHECKBOX', visibleItemCount: 7),
                 booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters'),
                 string(name: 'NODE_TO_LABEL_AS_GW', defaultValue: '', description: 'Specify cluster node to be manually labeled as Submariner Gateway'),
-                credentials(name: 'SUBMARINER_CONFIG', defaultValue: 'acm-2.14-subm-0.21-aws-gcp-azure2', description: 'Submariner config for environment deploy',
+                string(name: 'FBC_URL_4_15', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.15'),
+                string(name: 'FBC_URL_4_16', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.16'),
+                string(name: 'FBC_URL_4_17', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.17'),
+                string(name: 'FBC_URL_4_18', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.18'),
+                string(name: 'SUBCTL_DOWNLOAD_URL', defaultValue: '', description: 'Subctl container image URL (required)'),
+                credentials(name: 'SUBMARINER_CONFIG', defaultValue: 'acm-2.17-subm-0.24-aws-gcp-azure2', description: 'Submariner config for environment deploy',
                     required: true, credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl')
             ])
         ])
