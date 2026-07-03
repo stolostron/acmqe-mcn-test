@@ -1,5 +1,9 @@
 ---
 collections:
-  - name: https://github.com/stolostron/ansible-collection.rhacm.git
-    type: git
-    version: latest
+  # - name: https://github.com/stolostron/ansible-collection.rhacm.git
+  #   type: git
+  #   version: main
+
+
+  - name: /home/pyadav/ansible/ansible-collection.rhacm
+    type: dir
