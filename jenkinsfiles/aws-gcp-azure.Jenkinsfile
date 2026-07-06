@@ -1,7 +1,7 @@
 podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
     node(POD_LABEL) {
         checkout scm
-
+        
         properties([
             parameters([
                 booleanParam(name: 'GLOBALNET', defaultValue: false, description: 'Deploy Globalnet on Submariner'),
@@ -86,4 +86,3 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
         }
     }
 }
-#added to remove extended plugin
