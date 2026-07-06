@@ -86,3 +86,4 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
         }
     }
 }
+#added to remove extended plugin
