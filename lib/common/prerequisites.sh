@@ -117,7 +117,7 @@ function get_subctl_for_testing() {
                 # Create a tar.xz file with the extracted binary to match expected format
                 mkdir -p subctl-temp
                 mv subctl "subctl-temp/subctl-v${subctl_version}-linux-amd64"
-                tar -C subctl-temp -cJf subctl.tar.xz "subctl-v${subctl_version}-linux-amd64"
+                tar -cJf subctl.tar.xz -C subctl-temp "subctl-v${subctl_version}-linux-amd64"
                 rm -rf subctl-temp
                 extracted=true
                 INFO "Extracted subctl from /usr/local/bin/ path (Konflux)"
@@ -131,7 +131,7 @@ function get_subctl_for_testing() {
             if [[ -f subctl ]]; then
                 mkdir -p subctl-temp
                 mv subctl "subctl-temp/subctl-v${subctl_version}-linux-amd64"
-                tar -C subctl-temp -cJf subctl.tar.xz "subctl-v${subctl_version}-linux-amd64"
+                tar -cJf subctl.tar.xz -C subctl-temp "subctl-v${subctl_version}-linux-amd64"
                 rm -rf subctl-temp
                 extracted=true
                 INFO "Extracted subctl from /usr/bin/ path"
@@ -151,7 +151,7 @@ function get_subctl_for_testing() {
     INFO "Submariner addon version - $subctl_version"
     INFO "Downloaded subctl from - $subctl_download_url"
 
-    tar xfJ subctl.tar.xz --strip-components 1
+    tar xfJ subctl.tar.xz
 
     mkdir -p "$HOME"/.local/bin
     install subctl*linux-amd64 "$HOME"/.local/bin/subctl
