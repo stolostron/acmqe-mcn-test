@@ -32,12 +32,12 @@ export VALIDATION_STATE=""
 # The value will define the version of Submariner and a channel
 
 # Declare associative arrays for acm/submariner versions
-declare -A ACM_2_17=(
-    [acm_version]='2.17'
-    [submariner_version]='0.24'
+declare -A ACM_2_16=(
+    [acm_version]='2.16'
+    [submariner_version]='0.23'
     [channel]='stable'
 )
-export ACM_2_17
+export ACM_2_16
 
 # Declare array of COMPONENTS_VERSIONS of associative arrays
 export COMPONENT_VERSIONS=("${!ACM@}")
