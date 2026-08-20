@@ -14,63 +14,264 @@ function create_icsp() {
     done
 }
 
-# The image index builder (iib) will be used by the downstream deployment
-# to serve as a CatalogSource for the submariner images
-function get_latest_iib() {
-    INFO "Fetch latest Image Index Builder (IIB) from UBI (datagrepper.engineering.redhat)"
+# ━━━ KONFLUX CONSTANTS ━━━
+readonly KONFLUX_API="${KONFLUX_CLUSTER_API:-https://api.kflux-prd-rh02.0fk9.p1.openshiftapps.com:6443}"
+readonly KONFLUX_NAMESPACE="submariner-tenant"
 
-    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
-    local submariner_version="$SUBMARINER_VERSION_INSTALL"
-    local latest_iib
-    local ocp_version
-    local umb_output
-    local index_images
+# Global flag to track Konflux login status
+KONFLUX_LOGGED_IN=false
 
-    local bundle_name="submariner-operator-bundle"
-    local umb_url="https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-image.pipeline.complete"
-    local submariner_component="cvp-teamredhatadvancedclustermanagement"
-    local latest_builds_number=5
-    local rows=$((latest_builds_number * 5))
-    local number_of_days=30
-    local delta=$((number_of_days * 86400)) # 1296000 = 15 days * 86400 seconds
-    local iib_query='[.raw_messages[].msg | select(.pipeline.status=="complete" 
-        and .artifact.component=="'"$submariner_component"'") 
-        | {nvr: .artifact.nvr, index_image: .pipeline.index_image}] | .[0]'
-
-    umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-        "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}" || :)
-
-    if [[ "$umb_output" == "" ]]; then
-        ERROR "Unable to fetch IIB data. Verify VPN connection"
+# ━━━ KONFLUX LOGIN ━━━
+# Login to Konflux cluster using token, username/password, or interactive web login
+function login_to_konflux() {
+    # If already logged in, skip
+    if [[ "$KONFLUX_LOGGED_IN" == "true" ]]; then
+        return 0
     fi
 
-    index_images=$(echo "$umb_output" | jq -r "$iib_query")
+    INFO "Logging into Konflux cluster at $KONFLUX_API"
 
-    if [[ "$index_images" == "null" ]]; then
-        WARNING "Failed to retrieve IIB by using the last $number_of_days days.
-        Retrying with the number of days multiplied $number_of_days days x6."
+    # Check prerequisites
+    command -v oc &>/dev/null || ERROR "oc command not found - install OpenShift CLI"
 
-        delta=$((delta * 6))
-        umb_output=$(curl --retry 30 --retry-delay 5 -k -Ls \
-                  "${umb_url}&rows_per_page=${rows}&delta=${delta}&contains=${bundle_name}-container-v${submariner_version}")
-        index_images=$(echo "$umb_output" | jq -r "$iib_query")
+    # Save current KUBECONFIG
+    local saved_kubeconfig="${KUBECONFIG:-}"
+    unset KUBECONFIG
 
-        if [[ "$index_images" == "null" ]]; then
-            ERROR "Unable to retrieve IIB images"
+    # Check if already logged in
+    if oc whoami &>/dev/null 2>&1; then
+        local server
+        server=$(oc whoami --show-server 2>/dev/null || echo "")
+        if [[ "$server" =~ "kflux" ]]; then
+            INFO "Already logged into Konflux cluster"
+            KONFLUX_LOGGED_IN=true
+            [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+            return 0
         fi
     fi
-    INFO "Retrieved the following index images - $index_images"
 
-    ocp_version=$(KUBECONFIG="$kube_conf" oc version | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
-    latest_iib=$(echo "$index_images" | jq -r '.index_image."v'"${ocp_version}"'"' ) || :
-
-    if [[ ! "$latest_iib" =~ iib:[0-9]+ ]]; then
-        ERROR "No image index bundle $bundle_name for OCP version $ocp_version detected"
+    # Try token authentication if token is set
+    if [[ -n "${KONFLUX_CLUSTER_TOKEN}" ]]; then
+        INFO "Attempting token authentication to Konflux"
+        if oc login --token="${KONFLUX_CLUSTER_TOKEN}" --server="${KONFLUX_API}" --insecure-skip-tls-verify=true &>/dev/null; then
+            if oc whoami &>/dev/null 2>&1; then
+                INFO "Successfully logged into Konflux using token"
+                KONFLUX_LOGGED_IN=true
+                [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+                return 0
+            fi
+        fi
+        WARNING "Token authentication failed - token may be invalid or expired"
+        WARNING "Falling back to interactive web login"
     fi
 
-    LATEST_IIB="$BREW_REGISTRY/$(echo "$latest_iib" | cut -d'/' -f2-)"
-    INFO "Detected IIB - $LATEST_IIB for cluster $cluster"
+    # Try username/password authentication if credentials are set
+    if [[ -n "${KONFLUX_CLUSTER_USER}" && -n "${KONFLUX_CLUSTER_PASS}" ]]; then
+        INFO "Attempting username/password authentication to Konflux"
+        if oc login -u "${KONFLUX_CLUSTER_USER}" -p "${KONFLUX_CLUSTER_PASS}" --server="${KONFLUX_API}" --insecure-skip-tls-verify=true &>/dev/null; then
+            if oc whoami &>/dev/null 2>&1; then
+                INFO "Successfully logged into Konflux using username/password"
+                KONFLUX_LOGGED_IN=true
+                [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+                return 0
+            fi
+        fi
+        WARNING "Username/password authentication failed"
+        WARNING "Falling back to interactive web login"
+    fi
+
+    # No credentials or credentials failed - try interactive web login
+    INFO "No valid credentials found - initiating interactive web login to Konflux"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Konflux Interactive Login Required"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "Opening browser for authentication to Konflux cluster..."
+    echo "Server: ${KONFLUX_API}"
+    echo ""
+    echo "After successful login, the script will continue automatically."
+    echo ""
+
+    # Perform web login (interactive)
+    if oc login --web --server="${KONFLUX_API}" --insecure-skip-tls-verify=true; then
+        if oc whoami &>/dev/null 2>&1; then
+            local server
+            server=$(oc whoami --show-server 2>/dev/null || echo "")
+            if [[ "$server" =~ "kflux" ]]; then
+                local user
+                user=$(oc whoami 2>/dev/null)
+                INFO "Successfully logged into Konflux cluster (user: $user)"
+                echo ""
+                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo ""
+                KONFLUX_LOGGED_IN=true
+                [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+                return 0
+            fi
+        fi
+    fi
+
+    # Login failed
+    [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+    ERROR "Failed to login to Konflux cluster. Please check your credentials and try again."
 }
+
+# ━━━ VERSION MATCHING ━━━
+function release_matches_version() {
+    local release="$1"
+    local version="$2"
+    local sha_title
+
+    sha_title=$(oc get release "$release" -n "$KONFLUX_NAMESPACE" \
+        -o jsonpath='{.metadata.annotations.pac\.test\.appstudio\.openshift\.io/sha-title}' 2>/dev/null || echo "")
+
+    echo "$sha_title" | head -1 | grep -q "v${version}"
+}
+
+function snapshot_matches_version() {
+    local snapshot="$1"
+    local version="$2"
+    local sha_title
+
+    sha_title=$(oc get snapshot "$snapshot" -n "$KONFLUX_NAMESPACE" \
+        -o jsonpath='{.metadata.annotations.pac\.test\.appstudio\.openshift\.io/sha-title}' 2>/dev/null || echo "")
+
+    if echo "$sha_title" | head -1 | grep -q "v${version}"; then
+        return 0
+    fi
+
+    return 1
+}
+
+# ━━━ GET FBC URL ━━━
+# Get FBC catalog URL from Jenkins parameter based on OCP version
+function get_latest_iib() {
+    INFO "Detecting OCP version to select appropriate FBC URL"
+
+    local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
+    local ocp_version
+    local ocp_minor
+    local fbc_var_name
+    local fbc_url
+
+    ocp_version=$(KUBECONFIG="$kube_conf" oc version 2>/dev/null | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
+
+    if [[ -z "$ocp_version" ]]; then
+        ERROR "Failed to get OCP version from cluster $cluster"
+    fi
+
+    ocp_minor="${ocp_version#4.}"
+    INFO "Detected OCP version: ${ocp_version}"
+
+    fbc_var_name="FBC_URL_4_${ocp_minor}"
+    fbc_url="${!fbc_var_name}"
+
+    if [[ -z "$fbc_url" ]]; then
+        ERROR "FBC URL not provided for OCP ${ocp_version}. Please set ${fbc_var_name} parameter in Jenkins."
+    fi
+
+    LATEST_IIB="$fbc_url"
+    INFO "Using FBC URL from Jenkins parameter ${fbc_var_name}: $LATEST_IIB"
+    return 0
+}
+
+# Fallback: Get FBC from Snapshots if Release CRs don't exist
+function get_fbc_from_snapshots() {
+    local ocp_minor="$1"
+    local version="$2"
+
+    INFO "Fetching FBC from Snapshots for OCP 4.${ocp_minor}"
+
+    local snapshots
+    snapshots=$(oc get snapshots -n "$KONFLUX_NAMESPACE" --sort-by=.metadata.creationTimestamp 2>/dev/null \
+        | grep "^submariner-fbc-4-${ocp_minor}-" \
+        | awk '{print $1}' || echo "")
+
+    if [[ -z "$snapshots" ]]; then
+        ERROR "No snapshots found for OCP 4.${ocp_minor}"
+    fi
+
+    local latest_snapshot
+    latest_snapshot=$(echo "$snapshots" | tail -1)
+
+    if [[ -z "$latest_snapshot" ]]; then
+        ERROR "Failed to get latest snapshot for OCP 4.${ocp_minor}"
+    fi
+
+    INFO "Using latest FBC snapshot: $latest_snapshot"
+
+    local catalog_image
+    catalog_image=$(oc get snapshot "$latest_snapshot" -n "$KONFLUX_NAMESPACE" \
+        -o jsonpath='{.spec.components[0].containerImage}' 2>/dev/null || echo "")
+
+    if [[ -z "$catalog_image" ]]; then
+        ERROR "Failed to extract catalog image from snapshot $latest_snapshot"
+    fi
+
+    LATEST_IIB="$catalog_image"
+    INFO "Detected FBC from Konflux Snapshot: $LATEST_IIB (contains multiple Submariner versions)"
+}
+
+# ━━━ GET SUBCTL FROM KONFLUX ━━━
+# Sets global variable: KONFLUX_SUBCTL_IMAGE
+function get_konflux_subctl_image() {
+    INFO "Fetch subctl container image from Konflux snapshots"
+
+    local submariner_version="$SUBMARINER_VERSION_INSTALL"
+    local version_short
+    local application_name
+    local component_name
+    local subctl_image
+
+    if [[ "$submariner_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        version_short="${submariner_version%.*}"
+    else
+        version_short="$submariner_version"
+    fi
+    version_short="${version_short//./-}"
+
+    application_name="submariner-${version_short}"
+    component_name="subctl-${version_short}"
+
+    INFO "Looking for subctl in application: ${application_name}, component: ${component_name}"
+
+    local saved_kubeconfig="${KUBECONFIG:-}"
+    unset KUBECONFIG
+
+    login_to_konflux
+
+    local snapshots
+    snapshots=$(oc get snapshots -n "$KONFLUX_NAMESPACE" --sort-by=.metadata.creationTimestamp 2>/dev/null \
+        | grep "^${application_name}-" \
+        | awk '{print $1}' || echo "")
+
+    if [[ -z "$snapshots" ]]; then
+        [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+        WARNING "No snapshots found for application ${application_name}"
+        return 1
+    fi
+
+    local latest_snapshot
+    latest_snapshot=$(echo "$snapshots" | tail -1)
+    INFO "Using latest snapshot: $latest_snapshot"
+
+    subctl_image=$(oc get snapshot "$latest_snapshot" -n "$KONFLUX_NAMESPACE" \
+        -o json 2>/dev/null | jq -r ".spec.components[] | select(.name==\"${component_name}\") | .containerImage" || echo "")
+
+    if [[ -z "$subctl_image" || "$subctl_image" == "null" ]]; then
+        [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+        WARNING "Failed to extract subctl image from snapshot $latest_snapshot"
+        return 1
+    fi
+
+    [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
+
+    KONFLUX_SUBCTL_IMAGE="$subctl_image"
+    INFO "Detected subctl from Konflux Snapshot: $KONFLUX_SUBCTL_IMAGE"
+    return 0
+}
+
 
 # The CatalogSource will be created with the iib image
 # and used to fetch the submariner components images

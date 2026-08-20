@@ -16,3 +16,4 @@ spec:
   subscriptionConfig:
     source: $SUBMARINER_SOURCE
     sourceNamespace: openshift-marketplace
+    channel: stable-0.21
