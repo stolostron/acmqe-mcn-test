@@ -19,7 +19,7 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
                 string(name: 'FBC_URL_4_21', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.17'),
                 string(name: 'FBC_URL_4_22', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.18'),
                 string(name: 'SUBCTL_DOWNLOAD_URL', defaultValue: '', description: 'Subctl container image URL (required)'),
-                credentials(name: 'SUBMARINER_CONFIG', defaultValue: 'acm-2.17-subm-0.24-aws-gcp-azure2', description: 'Submariner config for environment deploy',
+                credentials(name: 'SUBMARINER_CONFIG', defaultValue: 'acm-5.0-subm-0.24-aws-gcp-azure2', description: 'Submariner config for environment deploy',
                     required: true, credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl')
             ])
         ])
