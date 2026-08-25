@@ -46,9 +46,10 @@ RUN wget -qO- "$OCP_CLI" | tar zxv -C /usr/local/bin/ oc kubectl \
 
 COPY requirements.txt requirements.yml ./
 
+# Cache bust: Force rebuild after PR #79 merge (2026-07-06 20:00 UTC)
 RUN pip install --no-cache-dir -r requirements.txt \
     && mkdir -p /usr/share/ansible/collections \
-    && ansible-galaxy collection install --no-cache -r requirements.yml -p /usr/share/ansible/collections
+    && ansible-galaxy collection install --no-cache --force -r requirements.yml -p /usr/share/ansible/collections
 
 USER "$SUBM"
 
