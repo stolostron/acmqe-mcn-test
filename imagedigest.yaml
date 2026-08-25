@@ -1,0 +1,30 @@
+apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
+metadata:
+  name: subm-bundle
+spec:
+  imageDigestMirrors:
+  - source: registry.redhat.io/rhacm2/submariner-operator-bundle
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/submariner-bundle-0-18
+  - source: registry.redhat.io/rhacm2/submariner-gateway-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/submariner-gateway-0-18
+  - source: registry.redhat.io/rhacm2/submariner-rhel9-operator
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/submariner-operator-0-18
+  - source: registry.redhat.io/rhacm2/submariner-route-agent-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/submariner-route-agent-0-18
+  - source: registry.redhat.io/rhacm2/submariner-globalnet-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/submariner-globalnet-0-18
+  - source: registry.redhat.io/rhacm2/lighthouse-agent-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/lighthouse-agent-0-18
+  - source: registry.redhat.io/rhacm2/lighthouse-coredns-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/lighthouse-coredns-0-18
+  - source: registry.redhat.io/rhacm2/nettest-rhel9
+    mirrors:
+    - quay.io/redhat-user-workloads/submariner-tenant/nettest-0-18
