@@ -14,6 +14,26 @@ function create_icsp() {
     done
 }
 
+# Apply the ImageDigestMirrorSet (imagedigest.yaml) that maps the released
+# registry.redhat.io submariner images to their Konflux quay mirrors. This must
+# run before the CatalogSource/FBC is applied so the managed clusters can pull
+# the bundle and operand images from the mirrors.
+# Note: the Brew ICSP is created separately via create_icsp() in run.sh, so it
+# is not re-applied here.
+function create_idms_and_icsp_combined() {
+    INFO "Create ImageDigestMirrorSet (IDMS) on the managed clusters"
+
+    local idms_manifest="$SCRIPT_DIR/imagedigest.yaml"
+    if [[ ! -f "$idms_manifest" ]]; then
+        ERROR "IDMS manifest not found at $idms_manifest"
+    fi
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Apply ImageDigestMirrorSet on $cluster"
+        KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f "$idms_manifest"
+    done
+}
+
 # ━━━ KONFLUX CONSTANTS ━━━
 readonly KONFLUX_API="${KONFLUX_CLUSTER_API:-https://api.kflux-prd-rh02.0fk9.p1.openshiftapps.com:6443}"
 readonly KONFLUX_NAMESPACE="submariner-tenant"
