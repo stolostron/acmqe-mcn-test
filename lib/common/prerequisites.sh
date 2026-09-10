@@ -114,7 +114,6 @@ function get_subctl_for_testing() {
         INFO "Trying alternative extraction path for Konflux image..."
         if oc image extract --insecure=true "$subctl_download_url" --path=/usr/local/bin/subctl:./ --confirm 2>/dev/null; then
             if [[ -f subctl ]]; then
-                # Create a tar.xz file with the extracted binary to match expected format
                 mkdir -p subctl-temp
                 mv subctl "subctl-temp/subctl-v${subctl_version}-linux-amd64"
                 tar -cJf subctl.tar.xz -C subctl-temp "subctl-v${subctl_version}-linux-amd64"

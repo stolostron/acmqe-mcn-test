@@ -14,131 +14,24 @@ function create_icsp() {
     done
 }
 
-# ━━━ IDMS FUNCTIONS ━━━
-# Create ImageDigestMirrorSet on managed clusters for bundle images
-function create_idms() {
-    INFO "Create ImageDigestMirrorSet on the managed clusters for bundle images"
-
-    local submariner_version="$SUBMARINER_VERSION_INSTALL"
-
-    if [[ -z "$submariner_version" ]]; then
-        ERROR "SUBMARINER_VERSION_INSTALL is not set"
-    fi
-
-    # Convert version format: 0.24.0 -> 0-24 or 0.24 -> 0-24
-    local version_short
-    if [[ "$submariner_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        version_short="${submariner_version%.*}"
-    else
-        version_short="$submariner_version"
-    fi
-    version_short="${version_short//./-}"
-
-    INFO "Using Submariner version: ${submariner_version} (converted to: ${version_short})"
-
-    for cluster in $MANAGED_CLUSTERS; do
-        INFO "Create ImageDigestMirrorSet on $cluster (Submariner version: ${version_short})"
-
-        # Generate version-aware IDMS from imagedigest.yaml template
-        sed "s/submariner-bundle-0-24/submariner-bundle-${version_short}/g; \
-             s/submariner-gateway-0-24/submariner-gateway-${version_short}/g; \
-             s/submariner-operator-0-24/submariner-operator-${version_short}/g; \
-             s/submariner-route-agent-0-24/submariner-route-agent-${version_short}/g; \
-             s/submariner-globalnet-0-24/submariner-globalnet-${version_short}/g; \
-             s/lighthouse-agent-0-24/lighthouse-agent-${version_short}/g; \
-             s/lighthouse-coredns-0-24/lighthouse-coredns-${version_short}/g; \
-             s/nettest-0-24/nettest-${version_short}/g" \
-            "$SCRIPT_DIR/imagedigest.yaml" | \
-            KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f -
-    done
-}
-
-# Create ImageContentSourcePolicy for Submariner operator bundle
-function create_submariner_bundle_icsp() {
-    INFO "Create ImageContentSourcePolicy for Submariner operator bundle on managed clusters"
-
-    local submariner_version="$SUBMARINER_VERSION_INSTALL"
-
-    if [[ -z "$submariner_version" ]]; then
-        ERROR "SUBMARINER_VERSION_INSTALL is not set"
-    fi
-
-    # Convert version format
-    local version_short
-    if [[ "$submariner_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        version_short="${submariner_version%.*}"
-    else
-        version_short="$submariner_version"
-    fi
-    version_short="${version_short//./-}"
-
-    for cluster in $MANAGED_CLUSTERS; do
-        INFO "Create Submariner bundle ICSP on $cluster (version: ${version_short})"
-
-        cat <<EOF | KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f -
-apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
-metadata:
-  name: submariner-bundle-mirror
-spec:
-  repositoryDigestMirrors:
-  - mirrors:
-    - quay.io/redhat-user-workloads/submariner-tenant/submariner-bundle-${version_short}
-    source: registry.redhat.io/rhacm2/submariner-operator-bundle
-EOF
-    done
-}
-
-# Combined function to create both IDMS and ICSP, then wait for MCPs once
+# Apply the ImageDigestMirrorSet (imagedigest.yaml) that maps the released
+# registry.redhat.io submariner images to their Konflux quay mirrors. This must
+# run before the CatalogSource/FBC is applied so the managed clusters can pull
+# the bundle and operand images from the mirrors.
+# Note: the Brew ICSP is created separately via create_icsp() in run.sh, so it
+# is not re-applied here.
 function create_idms_and_icsp_combined() {
-    INFO "Creating ImageDigestMirrorSet and ImageContentSourcePolicy on managed clusters"
+    INFO "Create ImageDigestMirrorSet (IDMS) on the managed clusters"
 
-    # Create IDMS first
-    create_idms
-
-    # Create ICSP immediately after
-    create_submariner_bundle_icsp
-
-    # Wait for MCPs to update (combines both IDMS and ICSP changes)
-    INFO "Waiting for MachineConfigPools to update after IDMS and ICSP creation..."
+    local idms_manifest="$SCRIPT_DIR/imagedigest.yaml"
+    if [[ ! -f "$idms_manifest" ]]; then
+        ERROR "IDMS manifest not found at $idms_manifest"
+    fi
 
     for cluster in $MANAGED_CLUSTERS; do
-        INFO "Waiting for MCPs on $cluster"
-        local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
-        local timeout=0
-        local max_timeout=1800  # 30 minutes
-
-        sleep 10
-
-        while [[ $timeout -lt $max_timeout ]]; do
-            local mcp_status
-            mcp_status=$(KUBECONFIG="$kube_conf" oc get mcp -o json 2>/dev/null | \
-                jq -r '.items[] | select(.metadata.name=="master" or .metadata.name=="worker") |
-                "\(.metadata.name): updating=\(.status.conditions[] | select(.type=="Updating") | .status),
-                updated=\(.status.conditions[] | select(.type=="Updated") | .status)"' 2>/dev/null || echo "")
-
-            if [[ -z "$mcp_status" ]]; then
-                WARNING "Cannot get MachineConfigPool status on $cluster - skipping MCP wait"
-                break
-            fi
-
-            if echo "$mcp_status" | grep -q "updating=False" && \
-               echo "$mcp_status" | grep -q "updated=True"; then
-                INFO "MachineConfigPools are updated on $cluster"
-                break
-            fi
-
-            INFO "Waiting for MCPs to update on $cluster... ($timeout/$max_timeout seconds)"
-            sleep 30
-            timeout=$((timeout + 30))
-        done
-
-        if [[ $timeout -ge $max_timeout ]]; then
-            WARNING "MachineConfigPool update timeout on $cluster - proceeding anyway"
-        fi
+        INFO "Apply ImageDigestMirrorSet on $cluster"
+        KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f "$idms_manifest"
     done
-
-    INFO "MachineConfigPool updates completed for all clusters"
 }
 
 # ━━━ KONFLUX CONSTANTS ━━━
@@ -222,7 +115,6 @@ function login_to_konflux() {
 
     # Perform web login (interactive)
     if oc login --web --server="${KONFLUX_API}" --insecure-skip-tls-verify=true; then
-        # Verify login succeeded
         if oc whoami &>/dev/null 2>&1; then
             local server
             server=$(oc whoami --show-server 2>/dev/null || echo "")
@@ -246,8 +138,6 @@ function login_to_konflux() {
 }
 
 # ━━━ VERSION MATCHING ━━━
-# Check if a release was built from a commit that added the requested version
-# Uses the pac.test.appstudio.openshift.io/sha-title annotation
 function release_matches_version() {
     local release="$1"
     local version="$2"
@@ -259,7 +149,6 @@ function release_matches_version() {
     echo "$sha_title" | head -1 | grep -q "v${version}"
 }
 
-# Check if a snapshot matches the requested version
 function snapshot_matches_version() {
     local snapshot="$1"
     local version="$2"
@@ -268,7 +157,6 @@ function snapshot_matches_version() {
     sha_title=$(oc get snapshot "$snapshot" -n "$KONFLUX_NAMESPACE" \
         -o jsonpath='{.metadata.annotations.pac\.test\.appstudio\.openshift\.io/sha-title}' 2>/dev/null || echo "")
 
-    # First try: check commit title
     if echo "$sha_title" | head -1 | grep -q "v${version}"; then
         return 0
     fi
@@ -287,7 +175,6 @@ function get_latest_iib() {
     local fbc_var_name
     local fbc_url
 
-    # Get OCP version from cluster
     ocp_version=$(KUBECONFIG="$kube_conf" oc version 2>/dev/null | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
 
     if [[ -z "$ocp_version" ]]; then
@@ -297,10 +184,7 @@ function get_latest_iib() {
     ocp_minor="${ocp_version#4.}"
     INFO "Detected OCP version: ${ocp_version}"
 
-    # Construct the environment variable name based on OCP version
     fbc_var_name="FBC_URL_4_${ocp_minor}"
-
-    # Get the FBC URL for this OCP version
     fbc_url="${!fbc_var_name}"
 
     if [[ -z "$fbc_url" ]]; then
@@ -319,7 +203,6 @@ function get_fbc_from_snapshots() {
 
     INFO "Fetching FBC from Snapshots for OCP 4.${ocp_minor}"
 
-    # Get all snapshots for this OCP version (newest last)
     local snapshots
     snapshots=$(oc get snapshots -n "$KONFLUX_NAMESPACE" --sort-by=.metadata.creationTimestamp 2>/dev/null \
         | grep "^submariner-fbc-4-${ocp_minor}-" \
@@ -329,8 +212,6 @@ function get_fbc_from_snapshots() {
         ERROR "No snapshots found for OCP 4.${ocp_minor}"
     fi
 
-    # For FBC catalogs, just use the latest snapshot since it contains all bundle versions
-    # No need to match version - the catalog includes multiple submariner versions
     local latest_snapshot
     latest_snapshot=$(echo "$snapshots" | tail -1)
 
@@ -340,7 +221,6 @@ function get_fbc_from_snapshots() {
 
     INFO "Using latest FBC snapshot: $latest_snapshot"
 
-    # Extract catalog image from snapshot
     local catalog_image
     catalog_image=$(oc get snapshot "$latest_snapshot" -n "$KONFLUX_NAMESPACE" \
         -o jsonpath='{.spec.components[0].containerImage}' 2>/dev/null || echo "")
@@ -354,7 +234,6 @@ function get_fbc_from_snapshots() {
 }
 
 # ━━━ GET SUBCTL FROM KONFLUX ━━━
-# Get subctl container image from Konflux snapshots
 # Sets global variable: KONFLUX_SUBCTL_IMAGE
 function get_konflux_subctl_image() {
     INFO "Fetch subctl container image from Konflux snapshots"
@@ -365,27 +244,23 @@ function get_konflux_subctl_image() {
     local component_name
     local subctl_image
 
-    # Convert version format: 0.24.0 -> 0-24 or 0.24 -> 0-24
     if [[ "$submariner_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        version_short="${submariner_version%.*}"  # 0.24.0 -> 0.24
+        version_short="${submariner_version%.*}"
     else
-        version_short="$submariner_version"       # 0.24 -> 0.24
+        version_short="$submariner_version"
     fi
-    version_short="${version_short//./-}"         # 0.24 -> 0-24
+    version_short="${version_short//./-}"
 
     application_name="submariner-${version_short}"
     component_name="subctl-${version_short}"
 
     INFO "Looking for subctl in application: ${application_name}, component: ${component_name}"
 
-    # Save current KUBECONFIG
     local saved_kubeconfig="${KUBECONFIG:-}"
     unset KUBECONFIG
 
-    # Login to Konflux (uses cached login)
     login_to_konflux
 
-    # Get the latest snapshot for the submariner application
     local snapshots
     snapshots=$(oc get snapshots -n "$KONFLUX_NAMESPACE" --sort-by=.metadata.creationTimestamp 2>/dev/null \
         | grep "^${application_name}-" \
@@ -397,13 +272,10 @@ function get_konflux_subctl_image() {
         return 1
     fi
 
-    # Get the latest snapshot
     local latest_snapshot
     latest_snapshot=$(echo "$snapshots" | tail -1)
     INFO "Using latest snapshot: $latest_snapshot"
 
-    # Extract subctl component image from snapshot
-    # The snapshot contains multiple components, we need to find the subctl component
     subctl_image=$(oc get snapshot "$latest_snapshot" -n "$KONFLUX_NAMESPACE" \
         -o json 2>/dev/null | jq -r ".spec.components[] | select(.name==\"${component_name}\") | .containerImage" || echo "")
 
@@ -413,13 +285,13 @@ function get_konflux_subctl_image() {
         return 1
     fi
 
-    # Restore KUBECONFIG
     [[ -n "$saved_kubeconfig" ]] && export KUBECONFIG="$saved_kubeconfig"
 
     KONFLUX_SUBCTL_IMAGE="$subctl_image"
     INFO "Detected subctl from Konflux Snapshot: $KONFLUX_SUBCTL_IMAGE"
     return 0
 }
+
 
 # The CatalogSource will be created with the iib image
 # and used to fetch the submariner components images
