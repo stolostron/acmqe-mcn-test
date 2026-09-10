@@ -3,3 +3,4 @@ logs/
 
 # Ignore the directory with installed npm packages
 cypress/node_modules/
+.ansible/
