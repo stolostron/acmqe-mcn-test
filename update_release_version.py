@@ -698,12 +698,134 @@ export {acm_var_name}'''
         with open(self.variables_file, 'w') as f:
             f.write(updated_content)
 
+    # Built-in template for the environment config YML (acm-<v>-subm-<v>-aws-gcp-azure.yml).
+    # Used when no existing acm-*-subm-*-aws-gcp-azure.yml is found in the repo and no
+    # --template-path is given. Version fields (openshift_version, acm_version, snapshot,
+    # mce_snapshot, *_catalog_tag, hive_cluster_version) use the same literals the regex
+    # substitutions in generate_config_yml() target, so they get replaced automatically.
+    #
+    # IMPORTANT: all credentials below are PLACEHOLDERS. Real secrets must never be
+    # committed to the repo. Fill them in (or supply a real template via --template-path)
+    # before using the generated file. All three platforms (AWS, GCP, Azure) are enabled.
+    CONFIG_TEMPLATE = """\
+run_ocp: true
+run_acm: true
+run_acm_hive_cluster: true
+run_managed_openshift: false
+run_acm_import_cluster: false
+
+###############################
+
+pull_secret: 'REPLACE_WITH_PULL_SECRET'
+ssh_pub_key: 'REPLACE_WITH_SSH_PUBLIC_KEY'
+ssh_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    REPLACE_WITH_SSH_PRIVATE_KEY
+    -----END RSA PRIVATE KEY-----
+
+clusters:
+  - name: submqe-cluster-hub
+    base_domain: subm.red-chesterfield.com
+    credentials: aws-creds
+    network:
+      cluster: 10.128.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.30.0.0/16
+      type: OVNKubernetes
+    cloud:
+      platform: aws
+      region: us-east-2
+      instance_type: m5.xlarge
+    openshift_version: "4.22"
+
+clusters_credentials:
+  - name: aws-creds
+    platform: aws
+    aws_access_key_id: REPLACE_WITH_AWS_ACCESS_KEY_ID
+    aws_secret_access_key: REPLACE_WITH_AWS_SECRET_ACCESS_KEY
+
+acm_version: "2.17"
+snapshot: "latest-2.17"
+mce_snapshot: "latest-2.17"
+acm_catalog_tag: "latest-2.17"
+mce_catalog_tag: "latest-2.17"
+deploy_test_env: true
+cluster_login_name: submqe-cluster-hub
+
+registry_secrets:
+  - name: "quay.io:443"
+    user: "REPLACE_WITH_QUAY_USER"
+    pass: "REPLACE_WITH_QUAY_PASS"
+  - name: "brew.registry.redhat.io"
+    user: "REPLACE_WITH_BREW_USER"
+    pass: "REPLACE_WITH_BREW_PASS"
+
+###############################
+
+acm_hive_clusters:
+  - name: submqe-aws
+    credentials: aws-creds
+    platform: aws
+    region: us-east-2
+    instance_type: m5.xlarge
+    network:
+      cluster: 10.132.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.32.0.0/16
+      type: OVNKubernetes
+    hive_cluster_version: "4.22"
+  - name: submqe-gcp
+    credentials: gcp-creds
+    platform: gcp
+    region: us-east1
+    network:
+      cluster: 10.132.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.31.0.0/16
+      type: OVNKubernetes
+    hive_cluster_version: "4.22"
+  - name: submqe-azure
+    credentials: azure-creds
+    platform: azr
+    region: centralus
+    network:
+      cluster: 10.136.0.0/14
+      machine: 10.0.0.0/16
+      service: 172.32.0.0/16
+      type: OVNKubernetes
+    hive_cluster_version: "4.22"
+
+acm_hive_clusters_credentials:
+  - name: aws-creds
+    platform: aws
+    namespace: open-cluster-management-hub
+    base_domain: subm.red-chesterfield.com
+    aws_access_key_id: REPLACE_WITH_AWS_ACCESS_KEY_ID
+    aws_secret_access_key: REPLACE_WITH_AWS_SECRET_ACCESS_KEY
+  - name: gcp-creds
+    platform: gcp
+    namespace: open-cluster-management-hub
+    base_domain: appsvc.gcp.subm.red-chesterfield.com
+    project_id: REPLACE_WITH_GCP_PROJECT_ID
+    os_service_account_json: |
+      REPLACE_WITH_GCP_SERVICE_ACCOUNT_JSON
+  - name: azure-creds
+    platform: azr
+    namespace: open-cluster-management-hub
+    base_domain: appsvc.az.subm.red-chesterfield.com
+    base_domain_resource_group_name: subm-res-group
+    cloud_name: AzurePublicCloud
+    os_service_principal_json: |
+      REPLACE_WITH_AZURE_SERVICE_PRINCIPAL_JSON
+"""
+
     def generate_config_yml(self):
         """Generate new config YML file at target directory"""
         print(f"\n[6/7] Generating config YML file...")
 
         # Determine which template to use
         template_file = None
+        config_content = None
 
         if self.template_path:
             # Use user-specified template
@@ -721,13 +843,16 @@ export {acm_var_name}'''
                 template_file = sorted(template_files, key=lambda x: x.stat().st_mtime, reverse=True)[0]
                 print(f"Using template from repo: {template_file.name}")
             else:
-                print("⚠ No template config files found")
-                print(f"⚠ Searched: {self.repo_root}/acm-*-subm-*-aws-gcp-azure.yml")
-                print("⚠ Provide a template via --template-path or place one in the repo root")
-                return
+                # No template file on disk — fall back to the built-in template.
+                print("⚠ No template config files found in repo")
+                print("  Falling back to built-in CONFIG_TEMPLATE (all platforms enabled)")
+                print("  NOTE: built-in template uses PLACEHOLDER credentials — fill them")
+                print("  in the generated file or supply a real one via --template-path.")
+                config_content = self.CONFIG_TEMPLATE
 
-        with open(template_file, 'r') as f:
-            config_content = f.read()
+        if config_content is None:
+            with open(template_file, 'r') as f:
+                config_content = f.read()
 
         # Update version fields
         config_content = re.sub(r'openshift_version: "[\d.]+"', f'openshift_version: "{self.ocp_hub}"', config_content, count=1)
