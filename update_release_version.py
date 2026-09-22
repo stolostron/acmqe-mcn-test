@@ -189,7 +189,27 @@ class ReleaseVersionUpdater:
     # Konflux block injected when missing from older branches.
     # Replaces the old UMB/IIB-based get_latest_iib with the FBC-based version
     # and adds all Konflux constants/functions needed for downstream Submariner testing.
-    KONFLUX_BLOCK = r'''# ━━━ KONFLUX CONSTANTS ━━━
+    KONFLUX_BLOCK = r'''# Apply the ImageDigestMirrorSet (imagedigest.yaml) that maps the released
+# registry.redhat.io submariner images to their Konflux quay mirrors. This must
+# run before the CatalogSource/FBC is applied so the managed clusters can pull
+# the bundle and operand images from the mirrors.
+# Note: the Brew ICSP is created separately via create_icsp() in run.sh, so it
+# is not re-applied here.
+function create_idms_and_icsp_combined() {
+    INFO "Create ImageDigestMirrorSet (IDMS) on the managed clusters"
+
+    local idms_manifest="$SCRIPT_DIR/imagedigest.yaml"
+    if [[ ! -f "$idms_manifest" ]]; then
+        ERROR "IDMS manifest not found at $idms_manifest"
+    fi
+
+    for cluster in $MANAGED_CLUSTERS; do
+        INFO "Apply ImageDigestMirrorSet on $cluster"
+        KUBECONFIG="$KCONF/$cluster-kubeconfig.yaml" oc apply -f "$idms_manifest"
+    done
+}
+
+# ━━━ KONFLUX CONSTANTS ━━━
 readonly KONFLUX_API="${KONFLUX_CLUSTER_API:-https://api.kflux-prd-rh02.0fk9.p1.openshiftapps.com:6443}"
 readonly KONFLUX_NAMESPACE="submariner-tenant"
 
@@ -464,6 +484,7 @@ function get_konflux_subctl_image() {
             "KONFLUX_API",
             "login_to_konflux",
             "get_konflux_subctl_image",
+            "create_idms_and_icsp_combined",
         ]
         missing = [m for m in required_markers if m not in content]
 
@@ -473,6 +494,19 @@ function get_konflux_subctl_image() {
 
         print(f"  Konflux code missing ({', '.join(missing)}) — injecting into {self.konflux_marker_file.name}...")
 
+        # Build the block to inject. If create_idms_and_icsp_combined already exists in
+        # the file (partial Konflux code), drop it from the block to avoid a duplicate
+        # bash function definition, keeping only the constants/functions still missing.
+        konflux_block = self.KONFLUX_BLOCK
+        if "create_idms_and_icsp_combined" not in missing:
+            konflux_block = re.sub(
+                r'# Apply the ImageDigestMirrorSet.*?function create_idms_and_icsp_combined\(\) \{.*?\n\}\n\n',
+                '',
+                konflux_block,
+                count=1,
+                flags=re.DOTALL,
+            )
+
         # Replace the old get_latest_iib function (and any leading comment lines) with the
         # full Konflux block, which includes the new FBC-based get_latest_iib.
         old_iib_pattern = re.compile(
@@ -481,14 +515,14 @@ function get_konflux_subctl_image() {
         )
         match = old_iib_pattern.search(content)
         if match:
-            updated_content = content[:match.start()] + self.KONFLUX_BLOCK + content[match.end():]
+            updated_content = content[:match.start()] + konflux_block + content[match.end():]
         else:
             # No get_latest_iib — insert before create_catalog_source or append at end
             anchor = re.search(r'\nfunction create_catalog_source', content)
             if anchor:
-                updated_content = content[:anchor.start()] + '\n' + self.KONFLUX_BLOCK.rstrip('\n') + content[anchor.start():]
+                updated_content = content[:anchor.start()] + '\n' + konflux_block.rstrip('\n') + content[anchor.start():]
             else:
-                updated_content = content.rstrip('\n') + '\n\n' + self.KONFLUX_BLOCK
+                updated_content = content.rstrip('\n') + '\n\n' + konflux_block
 
         with open(self.konflux_marker_file, 'w') as f:
             f.write(updated_content)
@@ -830,9 +864,17 @@ export {acm_var_name}'''
             print(f"⚠ File not found: {self.jenkinsfile}")
             return
 
-        if not hasattr(self, 'generated_config_name') or not self.generated_config_name:
-            print("⚠ No generated config name available — skipping Jenkinsfile update")
-            return
+        # SUBMARINER_CONFIG credential id always follows the
+        # acm-<acm_version>-subm-<submariner_version>-aws-gcp-azure convention.
+        # Prefer the name produced by generate_config_yml(), but fall back to the
+        # derived name so the Jenkinsfile is updated even when config generation
+        # was skipped (e.g. no template found). For release-2.15 / submariner 0.22
+        # this yields: acm-2.15-subm-0.22-aws-gcp-azure.
+        config_name = self.generated_config_name or (
+            f"acm-{self.acm_version}-subm-{self.submariner_version}-aws-gcp-azure"
+        )
+        if not self.generated_config_name:
+            print(f"  Using derived SUBMARINER_CONFIG name: '{config_name}'")
 
         with open(self.jenkinsfile, 'r') as f:
             content = f.read()
@@ -840,7 +882,7 @@ export {acm_var_name}'''
         # If the old extendedChoice format is still present, replace the entire params block
         if "extendedChoice(name: 'JOB_STAGES'" in content:
             modern_params = self.JENKINSFILE_MODERN_PARAMS.format(
-                config_name=self.generated_config_name
+                config_name=config_name
             )
             # Replace everything between the opening `parameters([` and its closing `])`
             old_params_pattern = re.compile(
@@ -855,9 +897,9 @@ export {acm_var_name}'''
                 f.write(updated_content)
             print("✓ Modernised Jenkinsfile: replaced extendedChoice params with ChoiceParameter format")
             print(f"✓ Added FBC URL and SUBCTL_DOWNLOAD_URL parameters")
-            print(f"✓ Set SUBMARINER_CONFIG defaultValue: '{self.generated_config_name}'")
+            print(f"✓ Set SUBMARINER_CONFIG defaultValue: '{config_name}'")
             self.changes_made.append(
-                f"aws-gcp-azure.Jenkinsfile: modernised params + SUBMARINER_CONFIG → '{self.generated_config_name}'"
+                f"aws-gcp-azure.Jenkinsfile: modernised params + SUBMARINER_CONFIG → '{config_name}'"
             )
             return
 
@@ -866,12 +908,12 @@ export {acm_var_name}'''
         match = re.search(pattern, content)
         if match:
             old_value = match.group(0).split("'")[3]
-            updated_content = re.sub(pattern, rf"\g<1>{self.generated_config_name}\g<2>", content)
+            updated_content = re.sub(pattern, rf"\g<1>{config_name}\g<2>", content)
             with open(self.jenkinsfile, 'w') as f:
                 f.write(updated_content)
-            print(f"✓ Updated SUBMARINER_CONFIG defaultValue: '{old_value}' → '{self.generated_config_name}'")
+            print(f"✓ Updated SUBMARINER_CONFIG defaultValue: '{old_value}' → '{config_name}'")
             self.changes_made.append(
-                f"aws-gcp-azure.Jenkinsfile: SUBMARINER_CONFIG defaultValue → '{self.generated_config_name}'"
+                f"aws-gcp-azure.Jenkinsfile: SUBMARINER_CONFIG defaultValue → '{config_name}'"
             )
         else:
             print("⚠ SUBMARINER_CONFIG credentials parameter not found in Jenkinsfile")
