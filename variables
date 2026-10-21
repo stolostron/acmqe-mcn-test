@@ -34,7 +34,7 @@ export VALIDATION_STATE=""
 # Declare associative arrays for acm/submariner versions
 declare -A ACM_5_0=(
     [acm_version]='5.0'
-    [submariner_version]='0.24'
+    [submariner_version]='0.25'
     [channel]='stable'
 )
 export ACM_5_0
