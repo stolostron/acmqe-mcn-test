@@ -71,7 +71,7 @@ podTemplate(yaml: readTrusted('jenkinsfiles/SubmarinerAgentPod.yaml')) {
                 ],
                 booleanParam(name: 'SUBMARINER_GATEWAY_RANDOM', defaultValue: true, description: 'Deploy two submariner gateways on one of the clusters'),
                 string(name: 'NODE_TO_LABEL_AS_GW', defaultValue: '', description: 'Specify cluster node to be manually labeled as Submariner Gateway'),
-                string(name: 'FBC_URL_4_19', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.19'),
+                string(name: 'FBC_URL_5_0', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 5.0'),
                 string(name: 'FBC_URL_4_20', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.20'),
                 string(name: 'FBC_URL_4_21', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.21'),
                 string(name: 'FBC_URL_4_22', defaultValue: '', description: 'FBC (File-Based Catalog) image URL for OCP 4.22'),
