@@ -283,22 +283,22 @@ function get_latest_iib() {
 
     local kube_conf="$KCONF/$cluster-kubeconfig.yaml"
     local ocp_version
-    local ocp_minor
     local fbc_var_name
     local fbc_url
 
-    # Get OCP version from cluster
+    # Get OCP version from cluster (e.g. "4.22" or "5.0")
     ocp_version=$(KUBECONFIG="$kube_conf" oc version 2>/dev/null | grep "Server Version: " | tr -s ' ' | cut -d ' ' -f3 | cut -d '.' -f1,2)
 
     if [[ -z "$ocp_version" ]]; then
         ERROR "Failed to get OCP version from cluster $cluster"
     fi
 
-    ocp_minor="${ocp_version#4.}"
     INFO "Detected OCP version: ${ocp_version}"
 
-    # Construct the environment variable name based on OCP version
-    fbc_var_name="FBC_URL_4_${ocp_minor}"
+    # Construct the environment variable name based on the full OCP
+    # major.minor version (e.g. 4.22 -> FBC_URL_4_22, 5.0 -> FBC_URL_5_0).
+    # Replacing the '.' with '_' keeps it a valid shell variable name.
+    fbc_var_name="FBC_URL_${ocp_version//./_}"
 
     # Get the FBC URL for this OCP version
     fbc_url="${!fbc_var_name}"
