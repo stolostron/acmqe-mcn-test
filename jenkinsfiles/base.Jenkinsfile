@@ -168,11 +168,14 @@ pipeline {
                     // If the version is below 2.5.0, globalnet
                     // is not supported - disable it.
                     // Otherwise, use parameter definition.
+                    // Compare major first; only compare minor when majors are equal.
+                    // The previous OR on minor alone incorrectly disabled Globalnet
+                    // for ACM 5.0.x (minor 0 < 5) even though major 5 > 2.
                     globalnet_ver = '2.5'
                     globalnet_ver_major = globalnet_ver.split('\\.')[0] as Integer
                     globalnet_ver_minor = globalnet_ver.split('\\.')[1] as Integer
                     if (mch_ver_major < globalnet_ver_major ||
-                        mch_ver_minor < globalnet_ver_minor) {
+                        (mch_ver_major == globalnet_ver_major && mch_ver_minor < globalnet_ver_minor)) {
                             println("Disable Globalnet as it's not supported in ACM " + mch_ver)
                             GLOBALNET_TRIGGER = false
                         }
