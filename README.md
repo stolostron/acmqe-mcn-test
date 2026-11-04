@@ -63,6 +63,9 @@ Example:
 export OC_CLUSTER_API=<hub cluster api url>
 export OC_CLUSTER_USER=<cluster user name (kubeadmin)>
 export OC_CLUSTER_PASS=<password of the cluster user>
+export FBC_URL_5_0=<FBC_URL>
+export FBC_URL_4_20=<FBC_URL>
+export SUBCTL_DOWNLOAD_URL= <Subctl container image URL>
 
 ./run.sh --deploy --platform aws,gcp --downstream true --globalnet true
 ```
