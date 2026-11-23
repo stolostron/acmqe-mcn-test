@@ -37,6 +37,12 @@ spec:
         value: '/home/jenkins'
       - name: ANSIBLE_COLLECTIONS_PATHS
         value: '/usr/share/ansible/collections'
+      - name: http_proxy
+        value: 'http://squid.corp.redhat.com:3128'
+      - name: https_proxy
+        value: 'http://squid.corp.redhat.com:3128'
+      - name: no_proxy
+        value: '.redhat.com,.corp.redhat.com,.cee.redhat.com,.svc,.cluster.local,localhost,127.0.0.1,172.31.0.0/16,10.0.0.0/8,169.254.169.254,.itup.redhat.com,.psi.redhat.com'
     resources:
       limits:
         cpu: 2000m
