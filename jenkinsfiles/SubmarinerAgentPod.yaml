@@ -43,6 +43,8 @@ spec:
         value: 'http://squid.corp.redhat.com:3128'
       - name: no_proxy
         value: '.redhat.com,.corp.redhat.com,.cee.redhat.com,.svc,.cluster.local,localhost,127.0.0.1,172.31.0.0/16,10.0.0.0/8,169.254.169.254,.itup.redhat.com,.psi.redhat.com'
+      - name: K8S_AUTH_PROXY          
+        value: 'http://squid.corp.redhat.com:3128'   
     resources:
       limits:
         cpu: 2000m
